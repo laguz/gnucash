@@ -73,15 +73,15 @@ static GtkWidget* add_summary_label( GtkWidget *summarybar, gboolean pack_start,
 
 static void gsr_summarybar_set_arrow_draw (GNCSplitReg *gsr);
 
-static void gnc_split_reg_determine_read_only( GNCSplitReg *gsr, gboolean show_dialog );
+static void gnc_split_reg_determine_read_only( GNCSplitReg *gsr, SplitRegister *sr, gboolean show_dialog );
 static gboolean is_trans_readonly_and_warn (GtkWindow *parent, Transaction *trans);
 
-static GNCPlaceholderType gnc_split_reg_get_placeholder( GNCSplitReg *gsr );
+static GNCPlaceholderType gnc_split_reg_get_placeholder( GNCSplitReg *gsr, SplitRegister *sr );
 static GtkWidget *gnc_split_reg_get_parent( GNCLedgerDisplay *ledger );
 
-static void gsr_create_table( GNCSplitReg *gsr );
-static void gsr_setup_table( GNCSplitReg *gsr );
-static void gsr_setup_status_widgets( GNCSplitReg *gsr );
+static void gsr_create_table( GNCSplitReg *gsr, SplitRegister *sr );
+static void gsr_setup_table( GNCSplitReg *gsr, SplitRegister *sr );
+static void gsr_setup_status_widgets( GNCSplitReg *gsr, SplitRegister *sr );
 
 static void gsr_update_summary_label( GtkWidget *label,
                                       xaccGetBalanceFn getter,
@@ -333,14 +333,18 @@ gnc_split_reg_pref_acc_labels (gpointer prefs, gchar *pref, gpointer user_data)
 static void
 gnc_split_reg_init2( GNCSplitReg *gsr )
 {
+    SplitRegister *sr;
+
     if ( !gsr ) return;
 
-    gnc_split_reg_determine_read_only( gsr, TRUE );
+    sr = gnc_ledger_display_get_split_register( gsr->ledger );
 
-    gsr_setup_status_widgets( gsr );
+    gnc_split_reg_determine_read_only( gsr, sr, TRUE );
+
+    gsr_setup_status_widgets( gsr, sr );
     /* ordering is important here... setup_status before create_table */
-    gsr_create_table( gsr );
-    gsr_setup_table( gsr );
+    gsr_create_table( gsr, sr );
+    gsr_setup_table( gsr, sr );
 
     gnc_prefs_register_cb (GNC_PREFS_GROUP_GENERAL,
                            GNC_PREF_ACCOUNTING_LABELS,
@@ -350,13 +354,10 @@ gnc_split_reg_init2( GNCSplitReg *gsr )
 
 static
 void
-gsr_setup_table( GNCSplitReg *gsr )
+gsr_setup_table( GNCSplitReg *gsr, SplitRegister *sr )
 {
-    SplitRegister *sr;
+    ENTER("gsr=%p, sr=%p", gsr, sr);
 
-    ENTER("gsr=%p", gsr);
-
-    sr = gnc_ledger_display_get_split_register( gsr->ledger );
     gnc_split_register_show_present_divider( sr, TRUE );
     /* events should be sufficient to redraw this */
     /* gnc_ledger_display_refresh( gsr->ledger ); */
@@ -431,27 +432,22 @@ gsr_get_register_state_section (GNCSplitReg *gsr)
 
 static
 void
-gsr_create_table( GNCSplitReg *gsr )
+gsr_create_table( GNCSplitReg *gsr, SplitRegister *sr )
 {
     GtkWidget *register_widget = NULL;
-    SplitRegister *sr = NULL;
     GKeyFile* state_file = gnc_state_get_current();
     gchar *register_state_section;
 
     /* register_state_section is used to store per register state: column widths, sort order,... */
     register_state_section = gsr_get_register_state_section (gsr);
 
-    ENTER("gsr=%p", gsr);
-
-    sr = gnc_ledger_display_get_split_register (gsr->ledger);
+    ENTER("gsr=%p, sr=%p", gsr, sr);
 
     gnc_ledger_display_set_user_data( gsr->ledger, (gpointer)gsr );
     gnc_ledger_display_set_handlers( gsr->ledger,
                                      gnc_split_reg_ld_destroy,
                                      gnc_split_reg_get_parent );
 
-    /* FIXME: We'd really rather pass this down... */
-    sr = gnc_ledger_display_get_split_register( gsr->ledger );
     register_widget = gnucash_register_new( sr->table, register_state_section );
     gsr->reg = GNUCASH_REGISTER( register_widget );
 
@@ -480,12 +476,10 @@ gsr_create_table( GNCSplitReg *gsr )
 
 static
 void
-gsr_setup_status_widgets( GNCSplitReg *gsr )
+gsr_setup_status_widgets( GNCSplitReg *gsr, SplitRegister *sr )
 {
-    SplitRegister *sr;
     gboolean use_double_line;
 
-    sr = gnc_ledger_display_get_split_register( gsr->ledger );
     use_double_line = gnc_ledger_display_default_double_line( gsr->ledger );
 
     /* be sure to initialize the gui elements associated with the cursor */
@@ -2341,18 +2335,15 @@ gsr_create_summary_bar( GNCSplitReg *gsr )
  **/
 static
 GNCPlaceholderType
-gnc_split_reg_get_placeholder( GNCSplitReg *gsr )
+gnc_split_reg_get_placeholder( GNCSplitReg *gsr, SplitRegister *sr )
 {
     Account *leader;
-    SplitRegister *reg;
     gboolean single_account;
 
     if (gsr == NULL)
         return PLACEHOLDER_NONE;
 
-    reg = gnc_ledger_display_get_split_register( gsr->ledger );
-
-    switch (reg->type)
+    switch (sr->type)
     {
     case GENERAL_JOURNAL:
     case INCOME_LEDGER:
@@ -2440,10 +2431,8 @@ gtk_callback_bug_workaround (gpointer argp)
  **/
 static
 void
-gnc_split_reg_determine_read_only( GNCSplitReg *gsr, gboolean show_dialog )
+gnc_split_reg_determine_read_only( GNCSplitReg *gsr, SplitRegister *sr, gboolean show_dialog )
 {
-    SplitRegister *reg;
-
     if (qof_book_is_readonly(gnc_get_current_book()))
     {
         /* Is the book read-only? Then for sure also make this register
@@ -2454,8 +2443,7 @@ gnc_split_reg_determine_read_only( GNCSplitReg *gsr, gboolean show_dialog )
     if ( !gsr->read_only )
     {
         char *string = NULL;
-        reg = gnc_ledger_display_get_split_register( gsr->ledger );
-        if(reg->mismatched_commodities)
+        if(sr->mismatched_commodities)
         {
             string = _("The transactions of this account may not be edited "
                        "because its subaccounts have mismatched commodities "
@@ -2465,7 +2453,7 @@ gnc_split_reg_determine_read_only( GNCSplitReg *gsr, gboolean show_dialog )
         }
         else
         {
-            switch (gnc_split_reg_get_placeholder(gsr))
+            switch (gnc_split_reg_get_placeholder(gsr, sr))
             {
             case PLACEHOLDER_NONE:
                 /* stay as false. */
@@ -2501,9 +2489,7 @@ gnc_split_reg_determine_read_only( GNCSplitReg *gsr, gboolean show_dialog )
     }
 
     /* Make the contents immutable */
-    reg = gnc_ledger_display_get_split_register( gsr->ledger );
-    gnc_split_register_set_read_only( reg, TRUE );
-
+    gnc_split_register_set_read_only( sr, TRUE );
 }
 
 static
@@ -2579,16 +2565,17 @@ gnc_split_reg_get_summarybar( GNCSplitReg *gsr )
 gboolean
 gnc_split_reg_get_read_only( GNCSplitReg *gsr )
 {
-    SplitRegister *reg;
+    SplitRegister *sr;
 
     g_assert( gsr );
 
+    sr = gnc_ledger_display_get_split_register( gsr->ledger );
+
     // reset read_only flag
     gsr->read_only = FALSE;
-    gnc_split_reg_determine_read_only (gsr, FALSE);
+    gnc_split_reg_determine_read_only (gsr, sr, FALSE);
 
-    reg = gnc_ledger_display_get_split_register( gsr->ledger );
-    gnc_split_register_set_read_only( reg, gsr->read_only );
+    gnc_split_register_set_read_only( sr, gsr->read_only );
     return gsr->read_only;
 }
 
