@@ -266,19 +266,19 @@ def __transaction__str__(self):
           *all_as_classwithcutting__format__(*fmt_tuple))
     transaction_str += "\n"
 
-    splits_str=""
-    for n,split in enumerate(self.GetSplitList()):
-        if not (type(split)==gnucash.Split):
-            split=gnucash.Split(instance=split)
+    splits_list = []
+    for n, split in enumerate(self.GetSplitList()):
+        if not (type(split) == gnucash.Split):
+            split = gnucash.Split(instance=split)
 
         transaction_flag = split.getflag("PRINT_TRANSACTION")
-        split.setflag("PRINT_TRANSACTION",False)
-        splits_str += "[{0:>2}] ".format(str(n))
-        splits_str += str(split)
-        splits_str += "\n"
-        split.setflag("PRINT_TRANSACTION",transaction_flag)
+        split.setflag("PRINT_TRANSACTION", False)
+        splits_list.append("[{0:>2}] ".format(str(n)))
+        splits_list.append(str(split))
+        splits_list.append("\n")
+        split.setflag("PRINT_TRANSACTION", transaction_flag)
 
-    return transaction_str + splits_str
+    return transaction_str + "".join(splits_list)
 
 gnucash.gnucash_core_c.__transaction__str__=__transaction__str__
 gnucash.Transaction.add_method("__transaction__str__","__str__")
@@ -308,14 +308,14 @@ def __invoice__str__(self):
                   "{total_name:8}{total_value:10}{currency_mnemonic:3}").\
                     format(**all_as_classwithcutting__format__keys(**fmt_dict))
 
-    ret_entries=""
+    ret_entries_list = []
     entry_list = self.GetEntries()
     for entry in entry_list: # Type of entry has to be checked
-      if not(type(entry)==Entry):
-        entry=Entry(instance=entry)
-      ret_entries += "  "+str(entry)+"\n"
+      if not(type(entry) == Entry):
+        entry = Entry(instance=entry)
+      ret_entries_list.append("  " + str(entry) + "\n")
 
-    return ret_invoice+"\n"+ret_entries
+    return ret_invoice + "\n" + "".join(ret_entries_list)
 
 
 from gnucash.gnucash_business import Invoice
