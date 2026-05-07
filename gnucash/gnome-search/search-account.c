@@ -96,7 +96,12 @@ static void
 gnc_search_account_finalize (GObject *obj)
 {
     GNCSearchAccount *o = (GNCSearchAccount *)obj;
+    GNCSearchAccountPrivate *priv;
+
     g_assert (GNC_IS_SEARCH_ACCOUNT (o));
+
+    priv = _PRIVATE(o);
+    g_list_free (priv->selected_accounts);
 
     G_OBJECT_CLASS (gnc_search_account_parent_class)->finalize(obj);
 }
@@ -147,13 +152,11 @@ gncs_validate (GNCSearchCoreType *fe)
 
     priv = _PRIVATE(fi);
 
-    if (priv->selected_accounts == NULL && fi->how )
+    if (priv->selected_accounts == NULL)
     {
         valid = FALSE;
         gnc_error_dialog (GTK_WINDOW(priv->parent), "%s", _("You have not selected any accounts"));
     }
-
-    /* XXX */
 
     return valid;
 }
