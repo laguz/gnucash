@@ -31,6 +31,7 @@
 
 #include "qof.h"
 #include "Transaction.h"	/* for ?REC */
+#include "gnc-gui-query.h"
 
 #include "search-reconciled.h"
 #include "search-core-utils.h"
@@ -141,7 +142,13 @@ gncs_validate (GNCSearchCoreType *fe)
     g_return_val_if_fail (fi, FALSE);
     g_return_val_if_fail (GNC_IS_SEARCH_RECONCILED (fi), FALSE);
 
-    return TRUE;
+    if (fi->value == CLEARED_NONE)
+    {
+        gnc_error_dialog (fi->parent, "%s", _("You must select at least one reconciliation status to search for."));
+        valid = FALSE;
+    }
+
+    return valid;
 }
 
 static void
