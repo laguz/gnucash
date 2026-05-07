@@ -137,14 +137,11 @@ static gboolean
 gncs_validate (GNCSearchCoreType *fe)
 {
     GNCSearchReconciled *fi = (GNCSearchReconciled *)fe;
-    gboolean valid = TRUE;
 
     g_return_val_if_fail (fi, FALSE);
     g_return_val_if_fail (GNC_IS_SEARCH_RECONCILED (fi), FALSE);
 
-    /* XXX */
-
-    return valid;
+    return TRUE;
 }
 
 static void
