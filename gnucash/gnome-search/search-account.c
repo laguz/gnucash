@@ -153,6 +153,8 @@ gncs_validate (GNCSearchCoreType *fe)
         gnc_error_dialog (GTK_WINDOW(priv->parent), "%s", _("You have not selected any accounts"));
     }
 
+    /* XXX */
+
     return valid;
 }
 

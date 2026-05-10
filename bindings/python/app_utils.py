@@ -14,5 +14,4 @@ from gnucash import _sw_app_utils
 
 def gnc_get_current_session():
     from gnucash import Session
-    instance = _sw_app_utils.gnc_get_current_session()
-    return Session(instance=instance) if instance else None
+    return Session(instance=_sw_app_utils.gnc_get_current_session())

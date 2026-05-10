@@ -555,7 +555,7 @@ gnc_ab_trans_to_gnc (const AB_TRANSACTION *ab_trans, Account *gnc_acc)
          post_time = gnc_gwen_date_to_time64 (post_date);
     else
     {
-        g_warning ("gnc_ab_trans_to_gnc: Import had no transaction date");
+        g_warning ("transaction_cb: Import had no transaction date");
         post_time = gnc_time (NULL);
     }
     xaccTransSetDatePostedSecsNormalized (gnc_trans, post_time);

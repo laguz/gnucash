@@ -121,7 +121,8 @@ QofSessionImpl::QofSessionImpl (QofBook* book) noexcept
     m_book {book},
     m_uri {},
     m_saving {false},
-    m_err_stack {std::make_shared<QofErrorStack>()}
+    m_last_err {},
+    m_error_message {}
 {
 }
 
@@ -186,7 +187,6 @@ QofSessionImpl::load_backend (std::string access_method) noexcept
             continue;
         }
         m_backend = prov->create_backend();
-        m_backend->set_error_stack(m_err_stack);
         LEAVE (" ");
         return;
     }
@@ -225,6 +225,7 @@ QofSessionImpl::load (QofPercentageFunc percentage_func) noexcept
     {
         m_backend->set_percentage(percentage_func);
         m_backend->load (m_book, LOAD_TYPE_INITIAL_LOAD);
+        push_error (m_backend->get_error(), {});
     }
 
     auto err = get_error ();
@@ -313,15 +314,15 @@ QofSessionImpl::begin (const char* new_uri, SessionOpenMode mode) noexcept
     /* If there's a begin method, call that. */
     m_backend->session_begin(this, m_uri.c_str(), mode);
     PINFO ("Done running session_begin on backend");
-    if (m_err_stack->check_error())
+    QofBackendError const err {m_backend->get_error()};
+    auto msg (m_backend->get_message());
+    if (err != ERR_BACKEND_NO_ERR)
     {
-        auto err = m_err_stack->peek_error();
-        auto msg = m_err_stack->peek_message();
         m_uri = {};
+        push_error (err, msg);
         LEAVE (" backend error %d %s", err, msg.empty() ? "(null)" : msg.c_str());
         return;
     }
-    auto msg (m_err_stack->fetch_message());
     if (!msg.empty())
     {
         PWARN("%s", msg.c_str());
@@ -347,31 +348,51 @@ QofSessionImpl::end () noexcept
 void
 QofSessionImpl::clear_error () noexcept
 {
-    m_err_stack->clear();
+    m_last_err = ERR_BACKEND_NO_ERR;
+    m_error_message = {};
+
+    /* pop the stack on the backend as well. */
+    if (auto backend = qof_book_get_backend (m_book))
+    {
+        QofBackendError err = ERR_BACKEND_NO_ERR;
+        do
+            err = backend->get_error();
+        while (err != ERR_BACKEND_NO_ERR);
+    }
 }
 
 void
 QofSessionImpl::push_error (QofBackendError const err, std::string message) noexcept
 {
-    m_err_stack->push_error(err, message);
+    m_last_err = err;
+    m_error_message = message;
 }
 
 QofBackendError
 QofSessionImpl::get_error () noexcept
 {
-    return m_err_stack->peek_error();
+    /* if we have a local error, return that. */
+    if (m_last_err != ERR_BACKEND_NO_ERR)
+        return m_last_err;
+    auto qof_be = qof_book_get_backend (m_book);
+    if (qof_be == nullptr) return ERR_BACKEND_NO_ERR;
+
+    m_last_err = qof_be->get_error();
+    return m_last_err;
 }
 
 const std::string&
 QofSessionImpl::get_error_message () const noexcept
 {
-    return m_err_stack->peek_message();
+    return m_error_message;
 }
 
 QofBackendError
 QofSessionImpl::pop_error () noexcept
 {
-    return m_err_stack->fetch_error();
+    QofBackendError err {get_error ()};
+    clear_error ();
+    return err;
 }
 
 /* Accessors (getters/setters) -----------------------------*/
@@ -434,13 +455,16 @@ QofSessionImpl::save (QofPercentageFunc percentage_func) noexcept
             qof_book_set_backend (m_book, m_backend);
         m_backend->set_percentage(percentage_func);
         m_backend->sync(m_book);
-        if (m_err_stack->check_error())
+        auto err = m_backend->get_error();
+        if (err != ERR_BACKEND_NO_ERR)
         {
+            push_error (err, {});
             m_saving = false;
             return;
         }
         /* If we got to here, then the backend saved everything
         * just fine, and we are done. So return. */
+        clear_error ();
         LEAVE("Success");
     }
     else
@@ -459,9 +483,12 @@ QofSessionImpl::safe_save (QofPercentageFunc percentage_func) noexcept
         qof_book_set_backend (m_book, m_backend);
     m_backend->set_percentage(percentage_func);
     m_backend->safe_sync(get_book ());
-    if (m_err_stack->check_error())
+    auto err = m_backend->get_error();
+    auto msg = m_backend->get_message();
+    if (err != ERR_BACKEND_NO_ERR)
     {
         m_uri = "";
+        push_error (err, msg);
     }
 }
 
@@ -472,6 +499,7 @@ QofSessionImpl::ensure_all_data_loaded () noexcept
     if (qof_book_get_backend (m_book) != m_backend)
         qof_book_set_backend (m_book, m_backend);
     m_backend->load(m_book, LOAD_TYPE_LOAD_ALL);
+    push_error (m_backend->get_error(), {});
 }
 
 void
@@ -520,7 +548,10 @@ QofSessionImpl::export_session (QofSessionImpl & real_session,
     m_backend->set_percentage(percentage_func);
 
     m_backend->export_coa(real_book);
-    return !m_err_stack->check_error();
+    auto err = m_backend->get_error();
+    if (err != ERR_BACKEND_NO_ERR)
+        return false;
+    return true;
 }
 
 /* C Wrapper Functions */

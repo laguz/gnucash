@@ -79,7 +79,6 @@ static QofLogModule log_module = GNC_MOD_IO;
 typedef struct
 {
     gint fd;
-    gint dest_fd;
     gchar* filename;
     gchar* perms;
     gboolean write;
@@ -114,8 +113,7 @@ gnc_v2_book_version_string;        /* see gnc-book-xml-v2 */
 static std::pair<FILE*, GThread*> try_gz_open (const char* filename,
                                                const char* perms,
                                                gboolean compress,
-                                               gboolean write,
-                                               int dest_fd);
+                                               gboolean write);
 static bool is_gzipped_file (const gchar* name);
 
 static void
@@ -784,7 +782,7 @@ qof_session_load_from_xml_file_v2_full (
          */
         auto filename = xml_be->get_filename();
         auto [file, thread] = try_gz_open (filename, "r",
-                                           is_gzipped_file (filename), FALSE, -1);
+                                           is_gzipped_file (filename), FALSE);
         if (!file)
         {
             PWARN ("Unable to open file %s", filename);
@@ -1374,11 +1372,8 @@ gnc_book_write_accounts_to_xml_filehandle_v2 (QofBackend* qof_be, QofBook* book,
 }
 
 static inline gzFile
-do_gzopen (const char* filename, const char* perms, int dest_fd)
+do_gzopen (const char* filename, const char* perms)
 {
-    if (dest_fd != -1)
-        return gzdopen (dest_fd, perms);
-
 #ifdef G_OS_WIN32
     gzFile file;
     char* new_perms = nullptr;
@@ -1489,7 +1484,7 @@ gz_thread_func (gz_thread_params_t* params)
     gint gzval;
     bool success = true;
 
-    auto file = do_gzopen (params->filename, params->perms, params->dest_fd);
+    auto file = do_gzopen (params->filename, params->perms);
 
     if (!file)
     {
@@ -1525,19 +1520,14 @@ cleanup_gz_thread_func:
 
 static std::pair<FILE*, GThread*>
 try_gz_open (const char* filename, const char* perms, gboolean compress,
-             gboolean write, int dest_fd)
+             gboolean write)
 {
     if (strstr (filename, ".gz.") != NULL) /* its got a temp extension */
         compress = TRUE;
 
     if (!compress)
-    {
-        if (dest_fd != -1)
-            return std::pair<FILE*, GThread*>(fdopen (dest_fd, perms),
-                                              nullptr);
         return std::pair<FILE*, GThread*>(g_fopen (filename, perms),
                                           nullptr);
-    }
 
     {
         int filedes[2]{};
@@ -1564,16 +1554,12 @@ try_gz_open (const char* filename, const char* perms, gboolean compress,
                 close(filedes[1]);
             }
 
-            if (dest_fd != -1)
-                return std::pair<FILE*, GThread*>(fdopen (dest_fd, perms),
-                                                  nullptr);
             return std::pair<FILE*, GThread*>(g_fopen (filename, perms),
                                               nullptr);
         }
 
         gz_thread_params_t* params = g_new (gz_thread_params_t, 1);
         params->fd = filedes[write ? 0 : 1];
-        params->dest_fd = dest_fd;
         params->filename = g_strdup (filename);
         params->perms = g_strdup (perms);
         params->write = write;
@@ -1591,10 +1577,7 @@ try_gz_open (const char* filename, const char* perms, gboolean compress,
             g_free (params);
             close (filedes[0]);
             close (filedes[1]);
-            if (dest_fd != -1)
-                file = fdopen (dest_fd, perms);
-            else
-                file = g_fopen (filename, perms);
+            file = g_fopen (filename, perms);
         }
         else
         {
@@ -1610,11 +1593,11 @@ try_gz_open (const char* filename, const char* perms, gboolean compress,
 
 gboolean
 gnc_book_write_to_xml_file_v2 (QofBook* book, const char* filename,
-                               gboolean compress, int input_fd)
+                               gboolean compress)
 {
     bool success = true;
 
-    auto [file, thread] = try_gz_open (filename, "wb", compress, TRUE, input_fd);
+    auto [file, thread] = try_gz_open (filename, "wb", compress, TRUE);
     if (!file)
         return false;
 
@@ -1706,7 +1689,7 @@ gnc_is_xml_data_file_v2 (const gchar* name, gboolean* with_encoding)
         char first_chunk[256];
         int num_read;
 
-        file = do_gzopen (name, "r", -1);
+        file = do_gzopen (name, "r");
 
         if (file == NULL)
             return GNC_BOOK_NOT_OURS;
@@ -1816,7 +1799,7 @@ gnc_xml2_find_ambiguous (const gchar* filename, GList* encodings,
     gboolean clean_return = FALSE;
 
     auto [file, thread] = try_gz_open (filename, "r",
-                                       is_gzipped_file (filename), FALSE, -1);
+                                       is_gzipped_file (filename), FALSE);
     if (file == NULL)
     {
         PWARN ("Unable to open file %s", filename);
@@ -2022,7 +2005,7 @@ parse_with_subst_push_handler (xmlParserCtxtPtr xml_context,
 
     auto filename = push_data->filename;
     auto [file, thread] = try_gz_open (filename, "r",
-                                       is_gzipped_file (filename), FALSE, -1);
+                                       is_gzipped_file (filename), FALSE);
     if (!file)
     {
         PWARN ("Unable to open file %s", filename);

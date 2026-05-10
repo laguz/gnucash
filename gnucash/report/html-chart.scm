@@ -260,7 +260,7 @@
                                   (cons 'display #t)
                                   (cons 'fontStyle "")
                                   (cons 'text ""))))))
-   ""        ;currency-iso
+   "XXX"     ;currency-iso
    "\u00A4"  ;currency-symbol
    "currency";format-style
    #t        ;custom x-axis ticks?
