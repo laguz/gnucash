@@ -1019,6 +1019,16 @@ test_xaccAccountCommitEdit (Fixture *fixture, gconstpointer pData)
     qof_book_destroy (book);
     g_free (fixture->func);
 }
+
+static void
+test_xaccAccountDestroy (Fixture *fixture, gconstpointer pData)
+{
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*xaccAccountDestroy*assertion*GNC_IS_ACCOUNT(acc)*");
+    xaccAccountDestroy (nullptr);
+    g_test_assert_expected_messages();
+}
+
 /* xaccAcctChildrenEqual
 static gboolean
 xaccAcctChildrenEqual (const GList *na,// 2
@@ -2850,6 +2860,7 @@ test_suite_account (void)
     /* See comment at the beginning of test_xaccFreeAccount */
     GNC_TEST_ADD (suitename, "xaccFreeAccount", Fixture, &good_data, setup, test_xaccFreeAccount,  NULL );
     GNC_TEST_ADD (suitename, "xaccAccountCommitEdit", Fixture, &good_data, setup, test_xaccAccountCommitEdit,  NULL );
+    GNC_TEST_ADD (suitename, "xaccAccountDestroy", Fixture, &good_data, setup, test_xaccAccountDestroy,  NULL );
 // GNC_TEST_ADD (suitename, "xaccAcctChildrenEqual", Fixture, NULL, setup, test_xaccAcctChildrenEqual,  teardown );
 // GNC_TEST_ADD (suitename, "xaccAccountEqual", Fixture, NULL, setup, test_xaccAccountEqual,  teardown );
     GNC_TEST_ADD (suitename, "gnc account kvp getters & setters", Fixture, NULL, setup, test_gnc_account_kvp_setters_getters,  teardown );
