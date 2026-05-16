@@ -236,15 +236,40 @@ test_gint_fcn (QofBook *book, const char *message,
 }
 #endif
 
+static void
+test_vendor_equal(void)
+{
+    QofBook *book = qof_book_new();
+    GncVendor *vendor = gncVendorCreate(book);
+    QofBook *invalid_vendor = qof_book_new(); /* Use a valid GObject/QofInstance but not a Vendor */
+
+    do_test(gncVendorEqual(NULL, NULL) == TRUE, "vendor_equal NULL NULL");
+    do_test(gncVendorEqual(vendor, NULL) == FALSE, "vendor_equal vendor NULL");
+    do_test(gncVendorEqual(NULL, vendor) == FALSE, "vendor_equal NULL vendor");
+
+    g_test_expect_message("gnc.engine", G_LOG_LEVEL_CRITICAL, "*assertion*GNC_IS_VENDOR*");
+    do_test(gncVendorEqual((GncVendor*)invalid_vendor, vendor) == FALSE, "vendor_equal invalid vendor1");
+    g_test_assert_expected_messages();
+
+    g_test_expect_message("gnc.engine", G_LOG_LEVEL_CRITICAL, "*assertion*GNC_IS_VENDOR*");
+    do_test(gncVendorEqual(vendor, (GncVendor*)invalid_vendor) == FALSE, "vendor_equal invalid vendor2");
+    g_test_assert_expected_messages();
+
+    qof_book_destroy(invalid_vendor);
+    qof_book_destroy(book);
+}
+
 int
 main (int argc, char **argv)
 {
     qof_init();
+    g_test_init(&argc, &argv, NULL);
     do_test (gncInvoiceRegister(), "Cannot register GncInvoice");
     do_test (gncJobRegister (),  "Cannot register GncJob");
     do_test (gncCustomerRegister(), "Cannot register GncCustomer");
     do_test (gncVendorRegister(), "Cannot register GncVendor");
     test_vendor();
+    test_vendor_equal();
     print_test_results();
     qof_close();
     return get_rv();
