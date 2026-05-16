@@ -294,8 +294,10 @@ def createdelete(create_statement, table_name):
     try:
         Stmt.execute(create_statement)
     except:
-        if table_name:
+        if table_name and str(table_name).replace('_', '').isalnum():
             Stmt.execute("DELETE FROM " + table_name)
+        elif table_name:
+            raise ValueError("Invalid table name: " + str(table_name))
 
 def eval_fraction(cont):
     global crout
