@@ -16,6 +16,8 @@
 import os
 import sys
 import re
+import shlex
+import subprocess
 from io import StringIO
 try:
     import IPython
@@ -126,8 +128,11 @@ class Shell:
         stat = 0
         if verbose or debug: print(header+cmd)
         if not debug:
-            input, output = os.popen4(cmd)
-            print(output.read())
-            output.close()
-            input.close()
+            args = shlex.split(cmd)
+            try:
+                proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, shell=False)
+                output, _ = proc.communicate()
+                print(output, end='')
+            except Exception as e:
+                print(f"Error executing command: {e}")
 
