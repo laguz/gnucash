@@ -255,6 +255,10 @@ test_vendor_equal(void)
     do_test(gncVendorEqual(vendor, (GncVendor*)invalid_vendor) == FALSE, "vendor_equal invalid vendor2");
     g_test_assert_expected_messages();
 
+    g_test_expect_message("gnc.engine", G_LOG_LEVEL_CRITICAL, "*assertion*GNC_IS_VENDOR*");
+    do_test(gncVendorEqual((GncVendor*)invalid_vendor, (GncVendor*)invalid_vendor) == FALSE, "vendor_equal invalid vendor3");
+    g_test_assert_expected_messages();
+
     qof_book_destroy(invalid_vendor);
     qof_book_destroy(book);
 }
