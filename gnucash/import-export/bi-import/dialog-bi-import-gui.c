@@ -170,7 +170,7 @@ gnc_plugin_bi_import_showGUI (GtkWindow *parent, const gchar *type)
         GtkWidget *radio;
         if (type)
         {
-            if (g_ascii_strcasecmp (type, GNC_BI_IMPORT_TYPE_INVOICE) == 0)
+            if (g_ascii_strcasecmp (type, "INVOICE") == 0)
                 radio = GTK_WIDGET (gtk_builder_get_object (builder, "radiobuttonInvoice"));
             else
                 radio = GTK_WIDGET (gtk_builder_get_object (builder, "radiobuttonBill"));
@@ -256,6 +256,7 @@ gnc_bi_import_gui_ok_cb (GtkWidget *widget, gpointer data)
     }
     else if (res ==  RESULT_ERROR_IN_REGEXP)
     {
+        //gnc_error_dialog (GTK_WINDOW (gui->dialog), "The regular expression is faulty:\n\n%s", stats.err->str);
     }
 }
 
@@ -280,6 +281,8 @@ gnc_bi_import_gui_close_handler (gpointer user_data)
     BillImportGui *gui = user_data;
 
     gtk_widget_destroy (gui->dialog);
+    // gui has already been freed by this point.
+    // gui->dialog = NULL;
 }
 
 void
@@ -304,7 +307,9 @@ void gnc_bi_import_gui_buttonOpen_cb (GtkWidget *widget, gpointer data)
     filename = gnc_plugin_bi_import_getFilename (gnc_ui_get_gtk_window (widget));
     if (filename)
     {
+        //printf("Setting filename"); // debug
         gtk_entry_set_text( GTK_ENTRY(gui->entryFilename), filename );
+        //printf("Set filename"); // debug
         g_free( filename );
     }
 }
@@ -384,9 +389,9 @@ void gnc_bi_import_gui_open_mode_cb (GtkWidget *widget, gpointer data)
     name = gtk_buildable_get_name(GTK_BUILDABLE(widget));
     if (!gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget) ))
         return;
-    if  (g_ascii_strcasecmp(name, "radiobuttonOpenAll") == 0)gui->open_mode = GNC_BI_IMPORT_MODE_ALL;
-    else if (g_ascii_strcasecmp(name, "radiobuttonOpenNotPosted") == 0)gui->open_mode = GNC_BI_IMPORT_MODE_NOT_POSTED;
-    else if (g_ascii_strcasecmp(name, "radiobuttonOpenNone") == 0)gui->open_mode = GNC_BI_IMPORT_MODE_NONE;
+    if  (g_ascii_strcasecmp(name, "radiobuttonOpenAll") == 0)gui->open_mode = "ALL";
+    else if (g_ascii_strcasecmp(name, "radiobuttonOpenNotPosted") == 0)gui->open_mode = "NOT_POSTED";
+    else if (g_ascii_strcasecmp(name, "radiobuttonOpenNone") == 0)gui->open_mode = "NONE";
 }
 
 
@@ -400,8 +405,9 @@ void gnc_import_gui_type_cb (GtkWidget *widget, gpointer data)
     name = gtk_buildable_get_name(GTK_BUILDABLE(widget));
     if (!gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(widget) ))
         return;
-    if  (g_ascii_strcasecmp(name, "radiobuttonInvoice") == 0)gui->type = GNC_BI_IMPORT_TYPE_INVOICE;
-    else if (g_ascii_strcasecmp(name, "radiobuttonBill") == 0)gui->type = GNC_BI_IMPORT_TYPE_BILL;
+    if  (g_ascii_strcasecmp(name, "radiobuttonInvoice") == 0)gui->type = "INVOICE";
+    else if (g_ascii_strcasecmp(name, "radiobuttonBill") == 0)gui->type = "BILL";
+    //printf ("TYPE set to, %s\n",gui->type);
 
 }
 
