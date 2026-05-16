@@ -448,6 +448,15 @@ class TestFunctionClass(TestCase):
         processed_kwargs = process_dict_convert_to_instance(test_kwargs)
         self.assertEqual(dummy_func(**processed_kwargs), {"a": t1.instance, "other": "string"})
 
+        # Dictionary with keys that are not strings
+        self.assertEqual(
+            process_dict_convert_to_instance({1: t1, (1, 2): "test"}),
+            {1: t1.instance, (1, 2): "test"}
+        )
+
+        # Dictionary with same instances multiple times
+        self.assertEqual(process_dict_convert_to_instance({"a": t1, "b": t1}), {"a": t1.instance, "b": t1.instance})
+
     def test_extract_attributes_with_prefix(self):
         """test extract_attributes_with_prefix()"""
 
