@@ -1079,6 +1079,13 @@ test_xaccAccountDestroy (Fixture *fixture, gconstpointer pData)
                            "*xaccAccountDestroy*assertion*GNC_IS_ACCOUNT(acc)*");
     xaccAccountDestroy (nullptr);
     g_test_assert_expected_messages();
+
+    GObject* dummy = static_cast<GObject*>(g_object_new(G_TYPE_OBJECT, NULL));
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*xaccAccountDestroy*assertion*GNC_IS_ACCOUNT(acc)*");
+    xaccAccountDestroy(reinterpret_cast<Account*>(dummy));
+    g_test_assert_expected_messages();
+    g_object_unref(dummy);
 }
 
 /* xaccAcctChildrenEqual
