@@ -204,9 +204,9 @@ class Console (Gtk.ScrolledWindow):
         self.stdin  = ConsoleIn  (self, sys.stdin.fileno())
 
         # Create a named pipe for system stdout/stderr redirection
-        self.fifoname = tempfile.mktemp()
-        if not os.path.exists (self.fifoname):
-            os.mkfifo (self.fifoname)
+        self.fifodir = tempfile.mkdtemp()
+        self.fifoname = os.path.join(self.fifodir, 'fifo')
+        os.mkfifo (self.fifoname)
         self.piperead  = os.open (self.fifoname, os.O_RDONLY | os.O_NONBLOCK)
         self.pipewrite = os.open (self.fifoname, os.O_WRONLY | os.O_NONBLOCK)
         self.shell.eval(self)
@@ -446,6 +446,8 @@ class Console (Gtk.ScrolledWindow):
             os.close (self.pipewrite)
         except:
             pass
-        if os.path.exists (self.fifoname):
+        if hasattr(self, 'fifoname') and os.path.exists (self.fifoname):
             os.remove (self.fifoname)
+        if hasattr(self, 'fifodir') and os.path.exists (self.fifodir):
+            os.rmdir (self.fifodir)
         self.do_quit = True
