@@ -469,27 +469,24 @@ GList *gnc_account_list_name_violations (QofBook *book, const gchar *separator)/
 static void
 test_gnc_account_list_name_violations (Fixture *fixture, gconstpointer pData)
 {
-    auto log_level = static_cast<GLogLevelFlags>(G_LOG_LEVEL_CRITICAL | G_LOG_FLAG_FATAL);
-    auto log_domain = "gnc.engine";
-    auto msg = ": assertion 'separator != nullptr' failed";
-    auto check = test_error_struct_new(log_domain, log_level, msg);
     GList *results, *res_iter;
     auto sep = ":";
     QofBook *book = gnc_account_get_book (fixture->acct);
-    /* Because of GLib bug 653052, we have to set the logging user_data to
-     * affect the test_log_fatal_handler
-     */
-    GLogFunc oldlogger = g_log_set_default_handler ((GLogFunc)test_null_handler, check);
-    g_test_log_set_fatal_handler ((GTestLogFatalFunc)test_checked_substring_handler, check);
+
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*gnc_account_list_name_violations*assertion*separator != nullptr*");
     g_assert_true (gnc_account_list_name_violations (NULL, NULL) == NULL);
-    g_assert_cmpint (check->hits, ==, 1);
+    g_test_assert_expected_messages();
+
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*gnc_account_list_name_violations*assertion*separator != nullptr*");
     g_assert_true (gnc_account_list_name_violations (book, NULL) == NULL);
-    g_assert_cmpint (check->hits, ==, 2);
+    g_test_assert_expected_messages();
+
     g_assert_true (gnc_account_list_name_violations (NULL, sep) == NULL);
-    g_log_set_default_handler (oldlogger, NULL);
+
     results = gnc_account_list_name_violations (book, sep);
     g_assert_cmpuint (g_list_length (results), == , 2);
-    g_assert_cmpint (check->hits, ==, 2);
     for (res_iter = results; res_iter; res_iter = g_list_next (res_iter))
         test_free (res_iter->data);
     g_list_free (results);
