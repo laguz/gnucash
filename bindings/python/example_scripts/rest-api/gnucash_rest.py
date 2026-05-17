@@ -835,7 +835,7 @@ def getAccountsFlat(book):
 
     filtered_flat_account = []
 
-    type_ids = [9]
+    type_ids = {9}
 
     for n, account in enumerate(flat_accounts):
         if account['type_id'] in type_ids:
