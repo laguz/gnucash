@@ -848,10 +848,10 @@ def getSubAccounts(account):
 
     flat_accounts = []
 
-    if 'subaccounts' in list(account.keys()):
-        for n, subaccount in enumerate(account['subaccounts']):
+    if 'subaccounts' in account:
+        for subaccount in account['subaccounts']:
             flat_accounts.append(subaccount)
-            flat_accounts = flat_accounts + getSubAccounts(subaccount)
+            flat_accounts.extend(getSubAccounts(subaccount))
 
     return flat_accounts
 
