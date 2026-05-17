@@ -810,23 +810,19 @@ test_xaccCloneAccount (Fixture *fixture, gconstpointer pData)
 {
     Account *clone;
     QofBook *book = gnc_account_get_book (fixture->acct);
-    auto loglevel = static_cast<GLogLevelFlags>(G_LOG_LEVEL_CRITICAL | G_LOG_FLAG_FATAL);
-    auto msg1 = ": assertion 'GNC_IS_ACCOUNT(from)' failed";
-    auto msg2 = ": assertion 'QOF_IS_BOOK(book)' failed";
-    auto check = test_error_struct_new("gnc.engine", loglevel, msg1);
     AccountPrivate *acct_p, *clone_p;
-    auto oldlogger = g_log_set_default_handler ((GLogFunc)test_null_handler,
-                                                check);
-    g_test_log_set_fatal_handler ((GTestLogFatalFunc)test_checked_substring_handler, check);
-    clone = xaccCloneAccount (NULL, book);
-    g_assert_true (clone == NULL);
-    g_assert_cmpint (check->hits, ==, 1);
-    g_free(check->msg);
-    check->msg = g_strdup(msg2);
-    clone = xaccCloneAccount (fixture->acct, NULL);
-    g_assert_true (clone == NULL);
-    g_assert_cmpint (check->hits, ==, 2);
-    g_log_set_default_handler (oldlogger, NULL);
+
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*xaccCloneAccount*assertion*GNC_IS_ACCOUNT(from)*");
+    clone = xaccCloneAccount (nullptr, book);
+    g_assert_null (clone);
+    g_test_assert_expected_messages ();
+
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*xaccCloneAccount*assertion*QOF_IS_BOOK(book)*");
+    clone = xaccCloneAccount (fixture->acct, nullptr);
+    g_assert_null (clone);
+    g_test_assert_expected_messages ();
     /* Now test the real clone */
     clone = xaccCloneAccount (fixture->acct, book);
     g_assert_true (clone);
@@ -842,7 +838,6 @@ test_xaccCloneAccount (Fixture *fixture, gconstpointer pData)
     g_assert_true (clone_p->commodity_scu == acct_p->commodity_scu);
     g_assert_true (clone_p->non_standard_scu == acct_p->non_standard_scu);
     /* Clean Up */
-    test_error_struct_free(check);
     g_object_unref (clone);
 
 }
