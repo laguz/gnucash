@@ -543,6 +543,23 @@ gnc_account_init (Account* acc)// 1
  */
 
 static void
+test_gnc_account_get_property_error (void)
+{
+    GObjectClass *gobject_class = G_OBJECT_CLASS(g_type_class_ref(GNC_TYPE_ACCOUNT));
+    GObject *dummy_obj = static_cast<GObject*>(g_object_new(G_TYPE_OBJECT, NULL));
+    GValue value = G_VALUE_INIT;
+    g_value_init(&value, G_TYPE_STRING);
+
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*gnc_account_get_property*assertion*GNC_IS_ACCOUNT*");
+    gobject_class->get_property(dummy_obj, 1, &value, NULL);
+    g_test_assert_expected_messages();
+
+    g_object_unref(dummy_obj);
+    g_type_class_unref(gobject_class);
+}
+
+static void
 test_gnc_account_create_and_destroy (void)
 {
     auto acc = static_cast<Account*>(g_object_new (GNC_TYPE_ACCOUNT, NULL));
@@ -2849,6 +2866,7 @@ test_suite_account (void)
     GNC_TEST_ADD_FUNC (suitename, "gnc set account separator", test_gnc_set_account_separator);
     GNC_TEST_ADD_FUNC (suitename, "gnc account name violations errmsg", test_gnc_account_name_violations_errmsg);
     GNC_TEST_ADD (suitename, "gnc account list name violations", Fixture, &bad_data, setup, test_gnc_account_list_name_violations,  teardown);
+    GNC_TEST_ADD_FUNC (suitename, "account get property error", test_gnc_account_get_property_error);
     GNC_TEST_ADD_FUNC (suitename, "account create and destroy", test_gnc_account_create_and_destroy);
     GNC_TEST_ADD (suitename, "book set/get root account", Fixture, NULL, setup, test_gnc_book_set_get_root_account, teardown);
     GNC_TEST_ADD_FUNC (suitename, "xaccMallocAccount", test_xaccMallocAccount);
