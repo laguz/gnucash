@@ -104,7 +104,7 @@ gnc_ab_set_job_date(AB_TRANSACTION *job, const GWEN_TIME *time,
     if (!time)
         return;
 
-    dt = GWEN_Date_fromLocalTime(GWEN_Time_toTime_t(time));
+    dt = GWEN_Date_fromTime(time);
     setter(job, dt);
     GWEN_Date_free(dt);
 }

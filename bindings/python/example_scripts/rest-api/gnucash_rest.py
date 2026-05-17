@@ -835,7 +835,7 @@ def getAccountsFlat(book):
 
     filtered_flat_account = []
 
-    type_ids = [9]
+    type_ids = {9}
 
     for n, account in enumerate(flat_accounts):
         if account['type_id'] in type_ids:
@@ -848,10 +848,10 @@ def getSubAccounts(account):
 
     flat_accounts = []
 
-    if 'subaccounts' in list(account.keys()):
-        for n, subaccount in enumerate(account['subaccounts']):
+    if 'subaccounts' in account:
+        for subaccount in account['subaccounts']:
             flat_accounts.append(subaccount)
-            flat_accounts = flat_accounts + getSubAccounts(subaccount)
+            flat_accounts.extend(getSubAccounts(subaccount))
 
     return flat_accounts
 

@@ -46,6 +46,17 @@ protected:
     }
 };
 
+extern "C" {
+GList* get_object_modules( void );
+GList* get_book_list( void );
+}
+
+TEST_F(QofObjectTest, Getters)
+{
+    EXPECT_TRUE(get_object_modules() == nullptr);
+    EXPECT_TRUE(get_book_list() == nullptr);
+}
+
 TEST_F(QofObjectTest, RegistrationAndLookup)
 {
     static QofObject obj{};
@@ -53,12 +64,20 @@ TEST_F(QofObjectTest, RegistrationAndLookup)
     obj.e_type = (char*)"test-type";
     obj.type_label = "Test Object";
 
+    EXPECT_FALSE(qof_object_register(nullptr));
+
     EXPECT_TRUE(qof_object_register(&obj));
     EXPECT_EQ(qof_object_lookup("test-type"), &obj);
     EXPECT_STREQ(qof_object_get_type_label("test-type"), "Test Object");
 
     // Registering again should fail
     EXPECT_FALSE(qof_object_register(&obj));
+
+    EXPECT_EQ(qof_object_lookup(nullptr), nullptr);
+    EXPECT_EQ(qof_object_lookup("non-existent"), nullptr);
+
+    EXPECT_EQ(qof_object_get_type_label(nullptr), nullptr);
+    EXPECT_EQ(qof_object_get_type_label("non-existent"), nullptr);
 }
 
 TEST_F(QofObjectTest, NewInstance)
@@ -76,6 +95,17 @@ TEST_F(QofObjectTest, NewInstance)
 
     QofBook *book = qof_book_new();
     EXPECT_EQ(qof_object_new_instance("create-type", book), (gpointer)0x1234);
+
+    EXPECT_EQ(qof_object_new_instance(nullptr, book), nullptr);
+    EXPECT_EQ(qof_object_new_instance("non-existent", book), nullptr);
+
+    static QofObject obj_no_create{};
+    obj_no_create.interface_version = QOF_OBJECT_VERSION;
+    obj_no_create.e_type = (char*)"no-create-type";
+    qof_object_register(&obj_no_create);
+
+    EXPECT_EQ(qof_object_new_instance("no-create-type", book), nullptr);
+
     qof_book_destroy(book);
 }
 
@@ -170,13 +200,57 @@ TEST_F(QofObjectTest, BookLifecycle)
 
     expected_book = qof_book_new();
     begin_calls = 0; // Reset as register might have called it if book_list was not empty
+
+    qof_object_book_begin(nullptr);
+    EXPECT_EQ(begin_calls, 0);
+
     qof_object_book_begin(expected_book);
     EXPECT_EQ(begin_calls, 1);
+
+    qof_object_book_end(nullptr);
+    EXPECT_EQ(end_calls, 0);
 
     qof_object_book_end(expected_book);
     EXPECT_EQ(end_calls, 1);
 
     qof_book_destroy(expected_book);
+}
+
+TEST_F(QofObjectTest, RegisterWithExistingBook)
+{
+    QofBook *book = qof_book_new();
+
+    // Ensure book_list is clean
+    qof_object_shutdown();
+    qof_object_initialize();
+
+    // Create an object that doesn't have book_begin, to populate book_list
+    static QofObject obj1{};
+    obj1.interface_version = QOF_OBJECT_VERSION;
+    obj1.e_type = (char*)"type1";
+    qof_object_register(&obj1);
+
+    qof_object_book_begin(book);
+
+    static int begin_calls = 0;
+    begin_calls = 0;
+
+    auto mock_begin = [](QofBook *b) {
+        begin_calls++;
+    };
+
+    static QofObject obj2{};
+    obj2.interface_version = QOF_OBJECT_VERSION;
+    obj2.e_type = (char*)"type2";
+    obj2.book_begin = mock_begin;
+
+    // Registering should call book_begin on existing books
+    qof_object_register(&obj2);
+
+    EXPECT_EQ(begin_calls, 1);
+
+    qof_object_book_end(book);
+    qof_book_destroy(book);
 }
 
 TEST_F(QofObjectTest, Compliance)
@@ -188,12 +262,15 @@ TEST_F(QofObjectTest, Compliance)
     qof_object_register(&obj);
 
     // Not compliant yet (missing create and foreach)
+    EXPECT_FALSE(qof_object_compliance("compliance-type", TRUE));
     EXPECT_FALSE(qof_object_compliance("compliance-type", FALSE));
 
     obj.create = [](QofBook*) -> gpointer { return nullptr; };
+    EXPECT_FALSE(qof_object_compliance("compliance-type", TRUE));
     EXPECT_FALSE(qof_object_compliance("compliance-type", FALSE));
 
     obj.foreach = [](const QofCollection*, QofInstanceForeachCB, gpointer) {};
+    EXPECT_TRUE(qof_object_compliance("compliance-type", TRUE));
     EXPECT_TRUE(qof_object_compliance("compliance-type", FALSE));
 }
 
@@ -223,12 +300,16 @@ TEST_F(QofObjectTest, DirtyAndClean)
     QofBook *book = qof_book_new();
 
     is_dirty_val = false;
+    EXPECT_FALSE(qof_object_is_dirty(nullptr));
     EXPECT_FALSE(qof_object_is_dirty(book));
 
     is_dirty_val = true;
     EXPECT_TRUE(qof_object_is_dirty(book));
 
     mark_clean_called = false;
+    qof_object_mark_clean(nullptr);
+    EXPECT_FALSE(mark_clean_called);
+
     qof_object_mark_clean(book);
     EXPECT_TRUE(mark_clean_called);
 
@@ -252,6 +333,9 @@ TEST_F(QofObjectTest, ForeachType)
         count++;
     };
 
+    qof_object_foreach_type(nullptr, nullptr);
+    EXPECT_EQ(count, 0);
+
     qof_object_foreach_type(cb, nullptr);
     EXPECT_EQ(count, 2);
 }
@@ -269,7 +353,18 @@ TEST_F(QofObjectTest, Printable)
 
     qof_object_register(&obj);
 
+    EXPECT_EQ(qof_object_printable(nullptr, (gpointer)1), nullptr);
+    EXPECT_EQ(qof_object_printable("printable-type", nullptr), nullptr);
+    EXPECT_EQ(qof_object_printable("non-existent", (gpointer)1), nullptr);
+
     EXPECT_STREQ(qof_object_printable("printable-type", (gpointer)1), "printed");
+
+    static QofObject obj2{};
+    obj2.interface_version = QOF_OBJECT_VERSION;
+    obj2.e_type = (char*)"printable-none";
+    qof_object_register(&obj2);
+
+    EXPECT_EQ(qof_object_printable("printable-none", (gpointer)1), nullptr);
 }
 
 TEST_F(QofObjectTest, Foreach)
@@ -300,8 +395,31 @@ TEST_F(QofObjectTest, Foreach)
     expected_cb = [](QofInstance*, gpointer) {};
     expected_data = (gpointer)0x5678;
 
+    qof_object_foreach(nullptr, book, expected_cb, expected_data);
+    EXPECT_FALSE(foreach_called);
+
+    qof_object_foreach("foreach-type", nullptr, expected_cb, expected_data);
+    EXPECT_FALSE(foreach_called);
+
+    qof_object_foreach("non-existent", book, expected_cb, expected_data);
+    EXPECT_FALSE(foreach_called);
+
     qof_object_foreach("foreach-type", book, expected_cb, expected_data);
     EXPECT_TRUE(foreach_called);
 
+    // Test when collection does not exist
+    static QofObject obj_no_col{};
+    obj_no_col.interface_version = QOF_OBJECT_VERSION;
+    obj_no_col.e_type = (char*)"no-col-type";
+    qof_object_register(&obj_no_col);
+
+    QofBook *book_no_col = qof_book_new();
+    // we don't put anything in the book, but qof_book_get_collection creates it if it doesn't exist
+    // So to trigger the !col path in qof_object_foreach, we would need qof_book_get_collection to return null.
+    // qof_book_get_collection is guaranteed to return non-null for any valid e_type since it auto-creates it.
+    // Let's check if there's a way. It's an internal detail, maybe we can mock qof_book_get_collection?
+    // In unit tests, we don't have mock of qof_book_get_collection. We can just skip it or leave it uncovered since it's impossible.
+
     qof_book_destroy(book);
+    qof_book_destroy(book_no_col);
 }
