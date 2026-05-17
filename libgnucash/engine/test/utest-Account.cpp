@@ -1008,6 +1008,11 @@ Also tests:
 static void
 test_xaccAccountCommitEdit (Fixture *fixture, gconstpointer pData)
 {
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*xaccAccountCommitEdit*assertion*acc*");
+    xaccAccountCommitEdit (nullptr);
+    g_test_assert_expected_messages();
+
     auto msg1 = "[xaccFreeAccount()]  instead of calling xaccFreeAccount(), please call\n"
                   " xaccAccountBeginEdit(); xaccAccountDestroy();\n";
     auto loglevel = static_cast<GLogLevelFlags>(G_LOG_LEVEL_CRITICAL | G_LOG_FLAG_FATAL);
