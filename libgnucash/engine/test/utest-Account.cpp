@@ -765,6 +765,12 @@ test_xaccMallocAccount (void)
 {
     QofBook *book = qof_book_new ();
     Account *acc;
+
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*xaccMallocAccount*assertion*book*");
+    g_assert_null (xaccMallocAccount (nullptr));
+    g_test_assert_expected_messages ();
+
     TestSignal signal = test_signal_new (NULL, QOF_EVENT_CREATE, NULL);
     acc = xaccMallocAccount (book);
     g_assert_true (acc != NULL);
