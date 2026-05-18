@@ -812,9 +812,17 @@ test_xaccCloneAccount (Fixture *fixture, gconstpointer pData)
     QofBook *book = gnc_account_get_book (fixture->acct);
     AccountPrivate *acct_p, *clone_p;
 
+    GObject *dummy_obj = static_cast<GObject*>(g_object_new(G_TYPE_OBJECT, NULL));
+
     g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
                            "*xaccCloneAccount*assertion*GNC_IS_ACCOUNT(from)*");
     clone = xaccCloneAccount (nullptr, book);
+    g_assert_null (clone);
+    g_test_assert_expected_messages ();
+
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*xaccCloneAccount*assertion*GNC_IS_ACCOUNT(from)*");
+    clone = xaccCloneAccount (reinterpret_cast<Account*>(dummy_obj), book);
     g_assert_null (clone);
     g_test_assert_expected_messages ();
 
@@ -823,6 +831,13 @@ test_xaccCloneAccount (Fixture *fixture, gconstpointer pData)
     clone = xaccCloneAccount (fixture->acct, nullptr);
     g_assert_null (clone);
     g_test_assert_expected_messages ();
+
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*xaccCloneAccount*assertion*QOF_IS_BOOK(book)*");
+    clone = xaccCloneAccount (fixture->acct, reinterpret_cast<QofBook*>(dummy_obj));
+    g_assert_null (clone);
+    g_test_assert_expected_messages ();
+
     /* Now test the real clone */
     clone = xaccCloneAccount (fixture->acct, book);
     g_assert_true (clone);
@@ -839,7 +854,7 @@ test_xaccCloneAccount (Fixture *fixture, gconstpointer pData)
     g_assert_true (clone_p->non_standard_scu == acct_p->non_standard_scu);
     /* Clean Up */
     g_object_unref (clone);
-
+    g_object_unref (dummy_obj);
 }
 /* xaccFreeOneChildAccount
 static void
