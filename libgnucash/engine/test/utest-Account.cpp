@@ -901,6 +901,17 @@ acc_free
 /* Aside from being broken (the assert at the end of freeing the splits fails),
    Account deallocation is implemented wrong. We don't run this test, and the function will be replaced when the time comes. */
 static void
+test_xaccFreeAccount_error (void)
+{
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*xaccFreeAccount*assertion*GNC_IS_ACCOUNT*");
+    AccountTestFunctions *func = _utest_account_fill_functions ();
+    func->xaccFreeAccount (nullptr);
+    g_free (func);
+    g_test_assert_expected_messages();
+}
+
+static void
 test_xaccFreeAccount (Fixture *fixture, gconstpointer pData)
 {
     auto msg1 = "[xaccFreeAccount()]  instead of calling xaccFreeAccount(), please call\n"
@@ -2914,6 +2925,7 @@ test_suite_account (void)
     GNC_TEST_ADD (suitename, "xaccFreeAccountChildren", Fixture,  &good_data, setup, test_xaccFreeAccountChildren,  NULL);
     /* See comment at the beginning of test_xaccFreeAccount */
     GNC_TEST_ADD (suitename, "xaccFreeAccount", Fixture, &good_data, setup, test_xaccFreeAccount,  NULL );
+    GNC_TEST_ADD_FUNC (suitename, "xaccFreeAccount error path", test_xaccFreeAccount_error);
     GNC_TEST_ADD (suitename, "xaccAccountCommitEdit", Fixture, &good_data, setup, test_xaccAccountCommitEdit,  NULL );
     GNC_TEST_ADD (suitename, "xaccAccountDestroy", Fixture, &good_data, setup, test_xaccAccountDestroy,  NULL );
 // GNC_TEST_ADD (suitename, "xaccAcctChildrenEqual", Fixture, NULL, setup, test_xaccAcctChildrenEqual,  teardown );
