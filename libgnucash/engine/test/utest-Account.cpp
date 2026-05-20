@@ -469,24 +469,31 @@ GList *gnc_account_list_name_violations (QofBook *book, const gchar *separator)/
 static void
 test_gnc_account_list_name_violations (Fixture *fixture, gconstpointer pData)
 {
+    auto log_level = static_cast<GLogLevelFlags>(G_LOG_LEVEL_CRITICAL | G_LOG_FLAG_FATAL);
+    auto log_domain = "gnc.engine";
+    auto msg = ": assertion 'separator != nullptr' failed";
+    auto check = test_error_struct_new(log_domain, log_level, msg);
     GList *results, *res_iter;
     auto sep = ":";
     QofBook *book = gnc_account_get_book (fixture->acct);
-
-    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
-                           "*gnc_account_list_name_violations*assertion*separator != nullptr*");
+    /* Because of GLib bug 653052, we have to set the logging user_data to
+     * affect the test_log_fatal_handler
+     */
+    GLogFunc oldlogger = g_log_set_default_handler ((GLogFunc)test_null_handler, check);
+    g_test_log_set_fatal_handler ((GTestLogFatalFunc)test_checked_substring_handler, check);
     g_assert_true (gnc_account_list_name_violations (NULL, NULL) == NULL);
-    g_test_assert_expected_messages();
-
-    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
-                           "*gnc_account_list_name_violations*assertion*separator != nullptr*");
+    g_assert_cmpint (check->hits, ==, 1);
     g_assert_true (gnc_account_list_name_violations (book, NULL) == NULL);
     g_test_assert_expected_messages();
 
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*gnc_account_list_name_violations*assertion*book != nullptr*");
     g_assert_true (gnc_account_list_name_violations (NULL, sep) == NULL);
+    g_test_assert_expected_messages();
 
     results = gnc_account_list_name_violations (book, sep);
     g_assert_cmpuint (g_list_length (results), == , 2);
+    g_assert_cmpint (check->hits, ==, 2);
     for (res_iter = results; res_iter; res_iter = g_list_next (res_iter))
         test_free (res_iter->data);
     g_list_free (results);
@@ -538,121 +545,6 @@ gnc_account_init (Account* acc)// 1
  * and destroying Account objects. There are other parts (which is a
  * major problem), see in particular the note at test_xaccFreeAccount.
  */
-
-static void
-test_gnc_account_set_sort_dirty_error (void)
-{
-    GObject *dummy_obj = static_cast<GObject*>(g_object_new(G_TYPE_OBJECT, NULL));
-
-    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
-                           "*gnc_account_set_sort_dirty*assertion*GNC_IS_ACCOUNT*");
-    gnc_account_set_sort_dirty (reinterpret_cast<Account*>(dummy_obj));
-    g_test_assert_expected_messages();
-
-    g_object_unref(dummy_obj);
-}
-
-static void
-test_gnc_account_set_balance_dirty_error (void)
-{
-    GObject *dummy_obj = static_cast<GObject*>(g_object_new(G_TYPE_OBJECT, NULL));
-
-    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
-                           "*gnc_account_set_balance_dirty*assertion*GNC_IS_ACCOUNT*");
-    gnc_account_set_balance_dirty (reinterpret_cast<Account*>(dummy_obj));
-    g_test_assert_expected_messages();
-
-    g_object_unref(dummy_obj);
-}
-
-static void
-test_gnc_account_get_property_error (void)
-{
-    GObjectClass *gobject_class = G_OBJECT_CLASS(g_type_class_ref(GNC_TYPE_ACCOUNT));
-    GObject *dummy_obj = static_cast<GObject*>(g_object_new(G_TYPE_OBJECT, NULL));
-    GValue value = G_VALUE_INIT;
-    g_value_init(&value, G_TYPE_STRING);
-
-    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
-                           "*gnc_account_get_property*assertion*GNC_IS_ACCOUNT*");
-    gobject_class->get_property(dummy_obj, 1, &value, NULL);
-    g_test_assert_expected_messages();
-
-    g_value_unset(&value);
-    g_object_unref(dummy_obj);
-    g_type_class_unref(gobject_class);
-}
-
-static void
-test_gnc_account_set_property_editlevel_error (void)
-{
-    if (g_test_subprocess())
-    {
-        Account *acc = static_cast<Account*>(g_object_new (GNC_TYPE_ACCOUNT, NULL));
-        GObjectClass *gobject_class = G_OBJECT_CLASS(g_type_class_ref(GNC_TYPE_ACCOUNT));
-        GValue value = G_VALUE_INIT;
-        g_value_init(&value, G_TYPE_STRING);
-
-        /* Set standard property with edit level 0 should assert */
-        gobject_class->set_property(G_OBJECT(acc), 1, &value, NULL);
-
-        g_value_unset(&value);
-        g_object_unref(acc);
-        g_type_class_unref(gobject_class);
-        return;
-    }
-
-    g_test_trap_subprocess(NULL, 0, static_cast<GTestSubprocessFlags>(G_TEST_SUBPROCESS_INHERIT_STDOUT | G_TEST_SUBPROCESS_INHERIT_STDERR));
-    g_test_trap_assert_failed();
-    g_test_trap_assert_stderr("*qof_instance_get_editlevel*");
-}
-
-static void
-test_gnc_account_set_property_invalid_error (void)
-{
-    Account *acc = static_cast<Account*>(g_object_new (GNC_TYPE_ACCOUNT, NULL));
-    GObjectClass *gobject_class = G_OBJECT_CLASS(g_type_class_ref(GNC_TYPE_ACCOUNT));
-    GValue value = G_VALUE_INIT;
-    g_value_init(&value, G_TYPE_STRING);
-
-    if (g_test_subprocess())
-    {
-        GParamSpec *pspec = g_param_spec_string("test-prop", "Test", "Test", "default", G_PARAM_READWRITE);
-        gobject_class->set_property(G_OBJECT(acc), 9999, &value, pspec);
-
-        g_param_spec_unref(pspec);
-        g_value_unset(&value);
-        g_object_unref(acc);
-        g_type_class_unref(gobject_class);
-        return;
-    }
-
-    g_test_trap_subprocess(NULL, 0, static_cast<GTestSubprocessFlags>(0));
-    g_test_trap_assert_failed();
-    g_test_trap_assert_stderr("*invalid property id 9999 for*");
-
-    g_value_unset(&value);
-    g_object_unref(acc);
-    g_type_class_unref(gobject_class);
-}
-
-static void
-test_gnc_account_set_property_error (void)
-{
-    GObjectClass *gobject_class = G_OBJECT_CLASS(g_type_class_ref(GNC_TYPE_ACCOUNT));
-    GObject *dummy_obj = static_cast<GObject*>(g_object_new(G_TYPE_OBJECT, NULL));
-    GValue value = G_VALUE_INIT;
-    g_value_init(&value, G_TYPE_STRING);
-
-    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
-                           "*gnc_account_set_property*assertion*GNC_IS_ACCOUNT*");
-    gobject_class->set_property(dummy_obj, 1, &value, NULL);
-    g_test_assert_expected_messages();
-
-    g_value_unset(&value);
-    g_object_unref(dummy_obj);
-    g_type_class_unref(gobject_class);
-}
 
 static void
 test_gnc_account_create_and_destroy (void)
@@ -828,12 +720,6 @@ test_xaccMallocAccount (void)
 {
     QofBook *book = qof_book_new ();
     Account *acc;
-
-    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
-                           "*xaccMallocAccount*assertion*book*");
-    g_assert_null (xaccMallocAccount (nullptr));
-    g_test_assert_expected_messages ();
-
     TestSignal signal = test_signal_new (NULL, QOF_EVENT_CREATE, NULL);
     acc = xaccMallocAccount (book);
     g_assert_true (acc != NULL);
@@ -876,34 +762,23 @@ test_xaccCloneAccount (Fixture *fixture, gconstpointer pData)
 {
     Account *clone;
     QofBook *book = gnc_account_get_book (fixture->acct);
+    auto loglevel = static_cast<GLogLevelFlags>(G_LOG_LEVEL_CRITICAL | G_LOG_FLAG_FATAL);
+    auto msg1 = ": assertion 'GNC_IS_ACCOUNT(from)' failed";
+    auto msg2 = ": assertion 'QOF_IS_BOOK(book)' failed";
+    auto check = test_error_struct_new("gnc.engine", loglevel, msg1);
     AccountPrivate *acct_p, *clone_p;
-
-    GObject *dummy_obj = static_cast<GObject*>(g_object_new(G_TYPE_OBJECT, NULL));
-
-    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
-                           "*xaccCloneAccount*assertion*GNC_IS_ACCOUNT(from)*");
-    clone = xaccCloneAccount (nullptr, book);
-    g_assert_null (clone);
-    g_test_assert_expected_messages ();
-
-    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
-                           "*xaccCloneAccount*assertion*GNC_IS_ACCOUNT(from)*");
-    clone = xaccCloneAccount (reinterpret_cast<Account*>(dummy_obj), book);
-    g_assert_null (clone);
-    g_test_assert_expected_messages ();
-
-    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
-                           "*xaccCloneAccount*assertion*QOF_IS_BOOK(book)*");
-    clone = xaccCloneAccount (fixture->acct, nullptr);
-    g_assert_null (clone);
-    g_test_assert_expected_messages ();
-
-    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
-                           "*xaccCloneAccount*assertion*QOF_IS_BOOK(book)*");
-    clone = xaccCloneAccount (fixture->acct, reinterpret_cast<QofBook*>(dummy_obj));
-    g_assert_null (clone);
-    g_test_assert_expected_messages ();
-
+    auto oldlogger = g_log_set_default_handler ((GLogFunc)test_null_handler,
+                                                check);
+    g_test_log_set_fatal_handler ((GTestLogFatalFunc)test_checked_substring_handler, check);
+    clone = xaccCloneAccount (NULL, book);
+    g_assert_true (clone == NULL);
+    g_assert_cmpint (check->hits, ==, 1);
+    g_free(check->msg);
+    check->msg = g_strdup(msg2);
+    clone = xaccCloneAccount (fixture->acct, NULL);
+    g_assert_true (clone == NULL);
+    g_assert_cmpint (check->hits, ==, 2);
+    g_log_set_default_handler (oldlogger, NULL);
     /* Now test the real clone */
     clone = xaccCloneAccount (fixture->acct, book);
     g_assert_true (clone);
@@ -919,8 +794,9 @@ test_xaccCloneAccount (Fixture *fixture, gconstpointer pData)
     g_assert_true (clone_p->commodity_scu == acct_p->commodity_scu);
     g_assert_true (clone_p->non_standard_scu == acct_p->non_standard_scu);
     /* Clean Up */
+    test_error_struct_free(check);
     g_object_unref (clone);
-    g_object_unref (dummy_obj);
+
 }
 /* xaccFreeOneChildAccount
 static void
@@ -982,17 +858,6 @@ acc_free
 /* Aside from being broken (the assert at the end of freeing the splits fails),
    Account deallocation is implemented wrong. We don't run this test, and the function will be replaced when the time comes. */
 static void
-test_xaccFreeAccount_error (void)
-{
-    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
-                           "*xaccFreeAccount*assertion*GNC_IS_ACCOUNT*");
-    AccountTestFunctions *func = _utest_account_fill_functions ();
-    func->xaccFreeAccount (nullptr);
-    g_free (func);
-    g_test_assert_expected_messages();
-}
-
-static void
 test_xaccFreeAccount (Fixture *fixture, gconstpointer pData)
 {
     auto msg1 = "[xaccFreeAccount()]  instead of calling xaccFreeAccount(), please call\n"
@@ -1045,10 +910,14 @@ xaccAccountBeginEdit (Account *acc)// C: 80 in 29 SCM: 15 in 9
 
 No test, just a passthrough.
 */
-/* static void
-test_xaccAccountBeginEdit (Fixture *fixture, gconstpointer pData)
+static void
+test_xaccAccountBeginEdit_null (void)
 {
-}*/
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*xaccAccountBeginEdit*assertion*acc*");
+    xaccAccountBeginEdit (NULL);
+    g_test_assert_expected_messages();
+}
 /* on_done
 static void on_done (QofInstance *inst)// 2
 ***Callback for qof_commit_edit_part2
@@ -1095,11 +964,6 @@ Also tests:
 static void
 test_xaccAccountCommitEdit (Fixture *fixture, gconstpointer pData)
 {
-    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
-                           "*xaccAccountCommitEdit*assertion*acc*");
-    xaccAccountCommitEdit (nullptr);
-    g_test_assert_expected_messages();
-
     auto msg1 = "[xaccFreeAccount()]  instead of calling xaccFreeAccount(), please call\n"
                   " xaccAccountBeginEdit(); xaccAccountDestroy();\n";
     auto loglevel = static_cast<GLogLevelFlags>(G_LOG_LEVEL_CRITICAL | G_LOG_FLAG_FATAL);
@@ -1163,27 +1027,33 @@ test_xaccAccountCommitEdit (Fixture *fixture, gconstpointer pData)
     qof_book_destroy (book);
     g_free (fixture->func);
 }
-
-static void
-test_xaccAccountDestroy (Fixture *fixture, gconstpointer pData)
-{
-    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
-                           "*xaccAccountDestroy*assertion*GNC_IS_ACCOUNT(acc)*");
-    xaccAccountDestroy (nullptr);
-    g_test_assert_expected_messages();
-
-    GObject* dummy = static_cast<GObject*>(g_object_new(G_TYPE_OBJECT, NULL));
-    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
-                           "*xaccAccountDestroy*assertion*GNC_IS_ACCOUNT(acc)*");
-    xaccAccountDestroy(reinterpret_cast<Account*>(dummy));
-    g_test_assert_expected_messages();
-    g_object_unref(dummy);
-}
-
 /* xaccAcctChildrenEqual
 static gboolean
 xaccAcctChildrenEqual (const GList *na,// 2
 */
+static void
+test_xaccAccountCommitEdit_null (Fixture *fixture, gconstpointer pData)
+{
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*xaccAccountCommitEdit*assertion*acc*");
+    xaccAccountCommitEdit (nullptr);
+    g_test_assert_expected_messages();
+}
+
+static void
+test_xaccAccountCommitEdit_early_return (Fixture *fixture, gconstpointer pData)
+{
+    Account *parent = gnc_account_get_parent (fixture->acct);
+    TestSignal sig1 = test_signal_new (&parent->inst, QOF_EVENT_MODIFY, NULL);
+
+    xaccAccountBeginEdit (parent);
+    xaccAccountBeginEdit (parent);
+    xaccAccountCommitEdit (parent);
+
+    test_signal_assert_hits (sig1, 0);
+    xaccAccountCommitEdit (parent);
+}
+
 /* static void
 test_xaccAcctChildrenEqual (Fixture *fixture, gconstpointer pData)
 {
@@ -3000,12 +2870,6 @@ test_suite_account (void)
     GNC_TEST_ADD_FUNC (suitename, "gnc set account separator", test_gnc_set_account_separator);
     GNC_TEST_ADD_FUNC (suitename, "gnc account name violations errmsg", test_gnc_account_name_violations_errmsg);
     GNC_TEST_ADD (suitename, "gnc account list name violations", Fixture, &bad_data, setup, test_gnc_account_list_name_violations,  teardown);
-    GNC_TEST_ADD_FUNC (suitename, "gnc account set sort dirty error", test_gnc_account_set_sort_dirty_error);
-    GNC_TEST_ADD_FUNC (suitename, "gnc account set balance dirty error", test_gnc_account_set_balance_dirty_error);
-    GNC_TEST_ADD_FUNC (suitename, "account get property error", test_gnc_account_get_property_error);
-    GNC_TEST_ADD_FUNC (suitename, "account set property error", test_gnc_account_set_property_error);
-    GNC_TEST_ADD_FUNC (suitename, "account set property editlevel error", test_gnc_account_set_property_editlevel_error);
-    GNC_TEST_ADD_FUNC (suitename, "account set property invalid error", test_gnc_account_set_property_invalid_error);
     GNC_TEST_ADD_FUNC (suitename, "account create and destroy", test_gnc_account_create_and_destroy);
     GNC_TEST_ADD (suitename, "book set/get root account", Fixture, NULL, setup, test_gnc_book_set_get_root_account, teardown);
     GNC_TEST_ADD_FUNC (suitename, "xaccMallocAccount", test_xaccMallocAccount);
@@ -3016,8 +2880,9 @@ test_suite_account (void)
     GNC_TEST_ADD (suitename, "xaccFreeAccountChildren", Fixture,  &good_data, setup, test_xaccFreeAccountChildren,  NULL);
     /* See comment at the beginning of test_xaccFreeAccount */
     GNC_TEST_ADD (suitename, "xaccFreeAccount", Fixture, &good_data, setup, test_xaccFreeAccount,  NULL );
-    GNC_TEST_ADD_FUNC (suitename, "xaccFreeAccount error path", test_xaccFreeAccount_error);
     GNC_TEST_ADD (suitename, "xaccAccountCommitEdit", Fixture, &good_data, setup, test_xaccAccountCommitEdit,  NULL );
+    GNC_TEST_ADD (suitename, "xaccAccountCommitEdit null", Fixture, &good_data, setup, test_xaccAccountCommitEdit_null,  NULL );
+    GNC_TEST_ADD (suitename, "xaccAccountCommitEdit early return", Fixture, &good_data, setup, test_xaccAccountCommitEdit_early_return,  NULL );
     GNC_TEST_ADD (suitename, "xaccAccountDestroy", Fixture, &good_data, setup, test_xaccAccountDestroy,  NULL );
 // GNC_TEST_ADD (suitename, "xaccAcctChildrenEqual", Fixture, NULL, setup, test_xaccAcctChildrenEqual,  teardown );
 // GNC_TEST_ADD (suitename, "xaccAccountEqual", Fixture, NULL, setup, test_xaccAccountEqual,  teardown );
