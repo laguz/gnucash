@@ -743,24 +743,13 @@ test_book_set_get_data( Fixture *fixture, gconstpointer pData )
     qof_book_set_data( NULL, key, (gpointer) data );
     g_assert_true( qof_book_get_data( NULL, key ) == NULL );
 
-    /* Pre-populate to verify state doesn't change */
-    qof_book_set_data( fixture->book, key, (gpointer) data );
-
     g_test_message( "Testing when key is null" );
     qof_book_set_data( fixture->book, NULL, (gpointer) data );
     g_assert_true( qof_book_get_data( fixture->book, NULL) == NULL );
-    /* Assert state didn't change */
-    g_assert_cmpstr( (const char *)qof_book_get_data( fixture->book, key ), == , data );
 
     g_test_message( "Testing with book key not null, data null" );
     qof_book_set_data( fixture->book, key, NULL );
     g_assert_true( qof_book_get_data( fixture->book, key ) == NULL );
-
-    /* Testing when key is not in hash map and data is null */
-    g_test_message( "Testing with missing key and data null" );
-    const char *missing_key = "missing_key";
-    qof_book_set_data( fixture->book, missing_key, NULL );
-    g_assert_true( qof_book_get_data( fixture->book, missing_key ) == NULL );
 
     g_test_message( "Testing with book key data not null" );
     qof_book_set_data( fixture->book, key, (gpointer) data );

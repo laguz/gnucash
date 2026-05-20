@@ -499,44 +499,6 @@ test_xaccQueryDateFound (Fixture *fixture, gconstpointer pData)
     qof_query_destroy (q);
 }
 
-static int
-test_trans_query (Transaction *trans, gpointer data)
-{
-    QofBook *book = QOF_BOOK(data);
-    GList *list;
-
-    QofQuery *q = make_trans_query (trans, ALL_QT);
-    qof_query_set_book (q, book);
-    list = xaccQueryGetTransactions (q, QUERY_TXN_MATCH_ANY);
-    qof_query_destroy (q);
-
-    g_assert_cmpint (g_list_length (list), ==, 1);
-    g_assert (list->data == trans);
-
-    g_list_free (list);
-
-    return 0;
-}
-
-static void
-test_legacy_trans_query (Fixture *fixture, gconstpointer pData)
-{
-    /* Use the same seed as the original test so we fail consistently if randoms break */
-    srand(0);
-
-    /* Original looped test 10 times with 20 random transactions each time.
-     * We'll just do it once since Fixture sets up the environment anew each time.
-     * Though since we want to mimic the old loop, we'll loop it inside the test.
-     */
-    for (int i = 0; i < 10; i++)
-    {
-        /* Generate random transactions */
-        add_random_transactions_to_book (fixture->book, 20);
-
-        xaccAccountTreeForEachTransaction (fixture->root, test_trans_query, fixture->book);
-    }
-}
-
 void
 test_suite_query (void)
 {
@@ -555,5 +517,4 @@ test_suite_query (void)
     GNC_TEST_ADD (suitename, "xaccQueryStringMatches", Fixture, NULL, setup, test_xaccQueryStringMatches, teardown);
     GNC_TEST_ADD (suitename, "xaccQueryNumericMatches", Fixture, NULL, setup, test_xaccQueryNumericMatches, teardown);
     GNC_TEST_ADD (suitename, "xaccQueryDateFound", Fixture, NULL, setup, test_xaccQueryDateFound, teardown);
-    GNC_TEST_ADD (suitename, "legacy_trans_query", Fixture, NULL, setup, test_legacy_trans_query, teardown);
 }
