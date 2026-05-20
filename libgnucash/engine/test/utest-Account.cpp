@@ -995,10 +995,14 @@ xaccAccountBeginEdit (Account *acc)// C: 80 in 29 SCM: 15 in 9
 
 No test, just a passthrough.
 */
-/* static void
-test_xaccAccountBeginEdit (Fixture *fixture, gconstpointer pData)
+static void
+test_xaccAccountBeginEdit_null (void)
 {
-}*/
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*xaccAccountBeginEdit*assertion*acc*");
+    xaccAccountBeginEdit (NULL);
+    g_test_assert_expected_messages();
+}
 /* on_done
 static void on_done (QofInstance *inst)// 2
 ***Callback for qof_commit_edit_part2
