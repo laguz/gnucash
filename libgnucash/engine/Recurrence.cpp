@@ -38,6 +38,21 @@ static QofLogModule log_module = LOG_MOD;
 #undef G_LOG_DOMAIN
 #define G_LOG_DOMAIN LOG_MOD
 
+static Recurrence* recurrence_boxed_copy_func(const Recurrence *in)
+{
+    if (!in) return nullptr;
+    auto newvalue = static_cast<Recurrence*>(g_malloc(sizeof(Recurrence)));
+    memcpy(newvalue, in, sizeof(Recurrence));
+    return newvalue;
+}
+
+static void recurrence_boxed_free_func(Recurrence *in)
+{
+    g_free(in);
+}
+
+G_DEFINE_BOXED_TYPE(Recurrence, recurrence, recurrence_boxed_copy_func, recurrence_boxed_free_func)
+
 static GDate invalid_gdate;
 
 /* Do not intl. These are used for xml storage. */

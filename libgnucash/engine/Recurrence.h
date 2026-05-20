@@ -73,6 +73,9 @@ typedef enum
 
 /* Recurrences represent both the phase and period of a recurring event. */
 
+GType recurrence_get_type(void);
+#define GNC_TYPE_RECURRENCE (recurrence_get_type())
+
 typedef struct
 {
     GDate start;         /* First date in the recurrence; specifies phase. */

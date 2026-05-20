@@ -155,8 +155,7 @@ gnc_budget_get_property( GObject* object,
         g_value_set_uint(value, priv->num_periods);
         break;
     case PROP_RECURRENCE:
-        /* TODO: Make this a BOXED type */
-        g_value_set_pointer(value, &priv->recurrence);
+        g_value_set_boxed(value, &priv->recurrence);
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -190,7 +189,7 @@ gnc_budget_set_property( GObject* object,
         gnc_budget_set_num_periods(budget, g_value_get_uint(value));
         break;
     case PROP_RECURRENCE:
-        gnc_budget_set_recurrence (budget, static_cast<Recurrence*>(g_value_get_pointer(value)));
+        gnc_budget_set_recurrence (budget, static_cast<const Recurrence*>(g_value_get_boxed(value)));
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -247,10 +246,11 @@ gnc_budget_class_init(GncBudgetClass* klass)
     g_object_class_install_property(
         gobject_class,
         PROP_RECURRENCE,
-        g_param_spec_pointer( "recurrence",
-                              "Budget Recurrence",
-                              "about.",
-                              G_PARAM_READWRITE));
+        g_param_spec_boxed( "recurrence",
+                            "Budget Recurrence",
+                            "about.",
+                            GNC_TYPE_RECURRENCE,
+                            G_PARAM_READWRITE));
 }
 
 static void commit_err (QofInstance *inst, QofBackendError errcode)
