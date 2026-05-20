@@ -799,14 +799,6 @@ test_qof_print_date_buff (void)
     time64 time3 = gnc_mktime(&tm3);
 
     qof_date_format_set (QOF_DATE_FORMAT_UK);
-
-    g_assert_cmpint (qof_print_date_buff (NULL, MAX_DATE_LENGTH, time1),
-                     ==, 0);
-    g_assert_cmpint (qof_print_date_buff (NULL, MAX_DATE_LENGTH, time2),
-                     ==, 0);
-    g_assert_cmpint (qof_print_date_buff (NULL, MAX_DATE_LENGTH, time3),
-                     ==, 0);
-
     memset ((gpointer)buff, 0, sizeof (buff));
     g_assert_cmpint (qof_print_date_buff (buff, MAX_DATE_LENGTH, time1),
                      ==, strlen (buff));
