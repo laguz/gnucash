@@ -549,6 +549,32 @@ gboolean gncJobEqual(const GncJob * a, const GncJob *b)
     return TRUE;
 }
 
+static gint compare_job_guids(gconstpointer a, gconstpointer b)
+{
+    const GncGUID *guid_a = qof_instance_get_guid(QOF_INSTANCE(a));
+    const GncGUID *guid_b = qof_instance_get_guid(QOF_INSTANCE(b));
+    return guid_equal(guid_a, guid_b) ? 0 : 1;
+}
+
+gboolean gncJobListEqual(GList *a, GList *b)
+{
+    GList *la;
+
+    if (a == b) return TRUE;
+    if (!a || !b) return FALSE;
+    if (g_list_length(a) != g_list_length(b)) return FALSE;
+
+    for (la = a; la != NULL; la = la->next)
+    {
+        if (g_list_find_custom(b, la->data, compare_job_guids) == NULL)
+        {
+            return FALSE;
+        }
+    }
+
+    return TRUE;
+}
+
 /* ================================================================== */
 /* Package-Private functions */
 

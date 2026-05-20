@@ -869,7 +869,12 @@ gboolean gncVendorEqual(const GncVendor *a, const GncVendor *b)
         return FALSE;
     }
 
-//    GList *         jobs;
+    if (!gncJobListEqual(a->jobs, b->jobs))
+    {
+        PWARN("Jobs lists differ");
+        return FALSE;
+    }
+
     return TRUE;
 }
 
