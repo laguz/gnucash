@@ -284,7 +284,7 @@ iter_to_string (GtkTreeIter *iter)
                  gncOwnerGetName ((GncOwner *) iter->user_data),
                  iter->user_data2, GPOINTER_TO_INT(iter->user_data3));
     else
-        g_strlcpy(string, "(null)", ITER_STRING_LEN);
+        strcpy(string, "(null)");
     return string;
 }
 
