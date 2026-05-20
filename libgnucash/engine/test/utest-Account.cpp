@@ -1045,11 +1045,6 @@ Also tests:
 static void
 test_xaccAccountCommitEdit (Fixture *fixture, gconstpointer pData)
 {
-    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
-                           "*xaccAccountCommitEdit*assertion*acc*");
-    xaccAccountCommitEdit (nullptr);
-    g_test_assert_expected_messages();
-
     auto msg1 = "[xaccFreeAccount()]  instead of calling xaccFreeAccount(), please call\n"
                   " xaccAccountBeginEdit(); xaccAccountDestroy();\n";
     auto loglevel = static_cast<GLogLevelFlags>(G_LOG_LEVEL_CRITICAL | G_LOG_FLAG_FATAL);
@@ -1134,6 +1129,29 @@ test_xaccAccountDestroy (Fixture *fixture, gconstpointer pData)
 static gboolean
 xaccAcctChildrenEqual (const GList *na,// 2
 */
+static void
+test_xaccAccountCommitEdit_null (Fixture *fixture, gconstpointer pData)
+{
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*xaccAccountCommitEdit*assertion*acc*");
+    xaccAccountCommitEdit (nullptr);
+    g_test_assert_expected_messages();
+}
+
+static void
+test_xaccAccountCommitEdit_early_return (Fixture *fixture, gconstpointer pData)
+{
+    Account *parent = gnc_account_get_parent (fixture->acct);
+    TestSignal sig1 = test_signal_new (&parent->inst, QOF_EVENT_MODIFY, NULL);
+
+    xaccAccountBeginEdit (parent);
+    xaccAccountBeginEdit (parent);
+    xaccAccountCommitEdit (parent);
+
+    test_signal_assert_hits (sig1, 0);
+    xaccAccountCommitEdit (parent);
+}
+
 /* static void
 test_xaccAcctChildrenEqual (Fixture *fixture, gconstpointer pData)
 {
@@ -2966,6 +2984,8 @@ test_suite_account (void)
     GNC_TEST_ADD (suitename, "xaccFreeAccount", Fixture, &good_data, setup, test_xaccFreeAccount,  NULL );
     GNC_TEST_ADD_FUNC (suitename, "xaccFreeAccount error path", test_xaccFreeAccount_error);
     GNC_TEST_ADD (suitename, "xaccAccountCommitEdit", Fixture, &good_data, setup, test_xaccAccountCommitEdit,  NULL );
+    GNC_TEST_ADD (suitename, "xaccAccountCommitEdit null", Fixture, &good_data, setup, test_xaccAccountCommitEdit_null,  NULL );
+    GNC_TEST_ADD (suitename, "xaccAccountCommitEdit early return", Fixture, &good_data, setup, test_xaccAccountCommitEdit_early_return,  NULL );
     GNC_TEST_ADD (suitename, "xaccAccountDestroy", Fixture, &good_data, setup, test_xaccAccountDestroy,  NULL );
 // GNC_TEST_ADD (suitename, "xaccAcctChildrenEqual", Fixture, NULL, setup, test_xaccAcctChildrenEqual,  teardown );
 // GNC_TEST_ADD (suitename, "xaccAccountEqual", Fixture, NULL, setup, test_xaccAccountEqual,  teardown );
