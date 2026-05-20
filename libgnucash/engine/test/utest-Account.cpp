@@ -483,7 +483,10 @@ test_gnc_account_list_name_violations (Fixture *fixture, gconstpointer pData)
     g_assert_true (gnc_account_list_name_violations (book, NULL) == NULL);
     g_test_assert_expected_messages();
 
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*gnc_account_list_name_violations*assertion*book != nullptr*");
     g_assert_true (gnc_account_list_name_violations (NULL, sep) == NULL);
+    g_test_assert_expected_messages();
 
     results = gnc_account_list_name_violations (book, sep);
     g_assert_cmpuint (g_list_length (results), == , 2);
