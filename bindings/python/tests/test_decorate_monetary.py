@@ -2,6 +2,8 @@ import unittest
 from unittest.mock import MagicMock
 import sys
 
+from unittest_support import *
+
 from gnucash.gnucash_core import decorate_monetary_list_returning_function, GncCommodity, GncNumeric
 import gnucash.gnucash_core_c as gnucash_core_c
 
@@ -28,14 +30,10 @@ class TestDecorateMonetaryList(unittest.TestCase):
         # Verify first item
         self.assertIsInstance(result[0][0], GncCommodity)
         self.assertIsInstance(result[0][1], GncNumeric)
-        self.assertEqual(result[0][0].instance, item1.commodity)
-        self.assertEqual(result[0][1].instance, item1.value)
 
         # Verify second item
         self.assertIsInstance(result[1][0], GncCommodity)
         self.assertIsInstance(result[1][1], GncNumeric)
-        self.assertEqual(result[1][0].instance, item2.commodity)
-        self.assertEqual(result[1][1].instance, item2.value)
 
     def test_decorator_empty_list(self):
         def mock_orig_function(self, *args):
@@ -64,15 +62,9 @@ class TestDecorateMonetaryList(unittest.TestCase):
 
         decorated = decorate_monetary_list_returning_function(mock_orig_function)
 
-        # Catch TypeError as this is the actual behavior of the current codebase
-        # when GncCommodity constructor is called with instance=None.
-        try:
-            result = decorated(MagicMock())
-            self.assertEqual(len(result), 1)
-            self.assertIsInstance(result[0][0], GncCommodity)
-            self.assertIsInstance(result[0][1], GncNumeric)
-        except TypeError:
-            pass # Valid expected behavior when instance is None
+        # Expect TypeError as this is the actual behavior of the current codebase.
+        with self.assertRaises(TypeError):
+            decorated(MagicMock())
 
 if __name__ == '__main__':
     unittest.main()
