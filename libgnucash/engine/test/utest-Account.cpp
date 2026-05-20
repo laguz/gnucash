@@ -584,6 +584,59 @@ test_gnc_account_get_property_error (void)
 }
 
 static void
+test_gnc_account_set_property_editlevel_error (void)
+{
+    if (g_test_subprocess())
+    {
+        Account *acc = static_cast<Account*>(g_object_new (GNC_TYPE_ACCOUNT, NULL));
+        GObjectClass *gobject_class = G_OBJECT_CLASS(g_type_class_ref(GNC_TYPE_ACCOUNT));
+        GValue value = G_VALUE_INIT;
+        g_value_init(&value, G_TYPE_STRING);
+
+        /* Set standard property with edit level 0 should assert */
+        gobject_class->set_property(G_OBJECT(acc), 1, &value, NULL);
+
+        g_value_unset(&value);
+        g_object_unref(acc);
+        g_type_class_unref(gobject_class);
+        return;
+    }
+
+    g_test_trap_subprocess(NULL, 0, static_cast<GTestSubprocessFlags>(G_TEST_SUBPROCESS_INHERIT_STDOUT | G_TEST_SUBPROCESS_INHERIT_STDERR));
+    g_test_trap_assert_failed();
+    g_test_trap_assert_stderr("*qof_instance_get_editlevel*");
+}
+
+static void
+test_gnc_account_set_property_invalid_error (void)
+{
+    Account *acc = static_cast<Account*>(g_object_new (GNC_TYPE_ACCOUNT, NULL));
+    GObjectClass *gobject_class = G_OBJECT_CLASS(g_type_class_ref(GNC_TYPE_ACCOUNT));
+    GValue value = G_VALUE_INIT;
+    g_value_init(&value, G_TYPE_STRING);
+
+    if (g_test_subprocess())
+    {
+        GParamSpec *pspec = g_param_spec_string("test-prop", "Test", "Test", "default", G_PARAM_READWRITE);
+        gobject_class->set_property(G_OBJECT(acc), 9999, &value, pspec);
+
+        g_param_spec_unref(pspec);
+        g_value_unset(&value);
+        g_object_unref(acc);
+        g_type_class_unref(gobject_class);
+        return;
+    }
+
+    g_test_trap_subprocess(NULL, 0, static_cast<GTestSubprocessFlags>(0));
+    g_test_trap_assert_failed();
+    g_test_trap_assert_stderr("*invalid property id 9999 for*");
+
+    g_value_unset(&value);
+    g_object_unref(acc);
+    g_type_class_unref(gobject_class);
+}
+
+static void
 test_gnc_account_set_property_error (void)
 {
     GObjectClass *gobject_class = G_OBJECT_CLASS(g_type_class_ref(GNC_TYPE_ACCOUNT));
@@ -2951,6 +3004,8 @@ test_suite_account (void)
     GNC_TEST_ADD_FUNC (suitename, "gnc account set balance dirty error", test_gnc_account_set_balance_dirty_error);
     GNC_TEST_ADD_FUNC (suitename, "account get property error", test_gnc_account_get_property_error);
     GNC_TEST_ADD_FUNC (suitename, "account set property error", test_gnc_account_set_property_error);
+    GNC_TEST_ADD_FUNC (suitename, "account set property editlevel error", test_gnc_account_set_property_editlevel_error);
+    GNC_TEST_ADD_FUNC (suitename, "account set property invalid error", test_gnc_account_set_property_invalid_error);
     GNC_TEST_ADD_FUNC (suitename, "account create and destroy", test_gnc_account_create_and_destroy);
     GNC_TEST_ADD (suitename, "book set/get root account", Fixture, NULL, setup, test_gnc_book_set_get_root_account, teardown);
     GNC_TEST_ADD_FUNC (suitename, "xaccMallocAccount", test_xaccMallocAccount);
