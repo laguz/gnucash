@@ -1951,9 +1951,10 @@ gnc_ui_qif_import_load_progress_start_cb (GtkButton * button,
                                         _("An error occurred while loading the QIF file."));
         gnc_progress_dialog_set_sub (wind->load_progress, _("Failed"));
         gnc_progress_dialog_reset_value (wind->load_progress);
-        gnc_error_dialog (GTK_WINDOW(assistant), "%s",
-                          _("An error occurred while loading the QIF file."));
-        /* FIXME: How should we request that the user report this problem? */
+        gnc_error_dialog (GTK_WINDOW(assistant),
+                          _("%s\nPlease report this as a bug to %s."),
+                          _("An error occurred while loading the QIF file."),
+                          PACKAGE_BUGREPORT);
 
         wind->busy = FALSE;
         wind->load_stop = TRUE;
@@ -2032,9 +2033,10 @@ gnc_ui_qif_import_load_progress_start_cb (GtkButton * button,
                                         _("A bug was detected while parsing the QIF file."));
         gnc_progress_dialog_set_sub (wind->load_progress, _("Failed"));
         gnc_progress_dialog_reset_value (wind->load_progress);
-        gnc_error_dialog (GTK_WINDOW(assistant), "%s",
-                          _("A bug was detected while parsing the QIF file."));
-        /* FIXME: How should we request that the user report this problem? */
+        gnc_error_dialog (GTK_WINDOW(assistant),
+                          _("%s\nPlease report this as a bug to %s."),
+                          _("A bug was detected while parsing the QIF file."),
+                          PACKAGE_BUGREPORT);
 
         wind->busy = FALSE;
         wind->load_stop = TRUE;
@@ -3208,9 +3210,10 @@ gnc_ui_qif_import_convert_progress_start_cb (GtkButton * button,
                                         _("A bug was detected while converting the QIF data."));
         gnc_progress_dialog_set_sub (wind->convert_progress, _("Failed"));
         gnc_progress_dialog_reset_value (wind->convert_progress);
-        gnc_error_dialog (GTK_WINDOW(assistant), "%s",
-                          _("A bug was detected while converting the QIF data."));
-        /* FIXME: How should we request that the user report this problem? */
+        gnc_error_dialog (GTK_WINDOW(assistant),
+                          _("%s\nPlease report this as a bug to %s."),
+                          _("A bug was detected while converting the QIF data."),
+                          PACKAGE_BUGREPORT);
 
         wind->busy = FALSE;
         wind->load_stop = TRUE;
@@ -3278,8 +3281,9 @@ gnc_ui_qif_import_convert_progress_start_cb (GtkButton * button,
             gnc_progress_dialog_set_sub (wind->convert_progress, _("Failed"));
             gnc_progress_dialog_reset_value (wind->convert_progress);
             gnc_error_dialog (GTK_WINDOW(assistant),
-                              _("A bug was detected while detecting duplicates. Please report this as a bug.\n\n"
-                                "You can lookup and file bug reports at %s"), PACKAGE_BUGREPORT);
+                              _("%s\nPlease report this as a bug to %s."),
+                              _("A bug was detected while detecting duplicates."),
+                              PACKAGE_BUGREPORT);
 
             gtk_widget_set_sensitive (wind->convert_pause, FALSE);
             wind->busy = FALSE;
