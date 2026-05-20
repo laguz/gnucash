@@ -1063,10 +1063,30 @@ gboolean
 xaccAccountEqual (const Account *aa, const Account *ab, gboolean check_guids)// C: 8 in 6
 Test support only; don't test for now.
 */
-/* static void
+static void
 test_xaccAccountEqual (Fixture *fixture, gconstpointer pData)
 {
-}*/
+    Account *acc = fixture->acct;
+    GObject *dummy_obj = static_cast<GObject*>(g_object_new(G_TYPE_OBJECT, NULL));
+    Account *dummy_acc = reinterpret_cast<Account*>(dummy_obj);
+
+    // Test !aa && !ab
+    g_assert_true (xaccAccountEqual (NULL, NULL, FALSE));
+
+    // Test aa is invalid
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*xaccAccountEqual*assertion*GNC_IS_ACCOUNT*");
+    g_assert_false (xaccAccountEqual (dummy_acc, acc, FALSE));
+    g_test_assert_expected_messages ();
+
+    // Test ab is invalid
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*xaccAccountEqual*assertion*GNC_IS_ACCOUNT*");
+    g_assert_false (xaccAccountEqual (acc, dummy_acc, FALSE));
+    g_test_assert_expected_messages ();
+
+    g_object_unref(dummy_obj);
+}
 /*
   The following are getters and setters, unworthy of testing:
   gnc_account_get_sort_dirty *** Test Only ***
@@ -2885,7 +2905,7 @@ test_suite_account (void)
     GNC_TEST_ADD (suitename, "xaccAccountCommitEdit early return", Fixture, &good_data, setup, test_xaccAccountCommitEdit_early_return,  NULL );
     GNC_TEST_ADD (suitename, "xaccAccountDestroy", Fixture, &good_data, setup, test_xaccAccountDestroy,  NULL );
 // GNC_TEST_ADD (suitename, "xaccAcctChildrenEqual", Fixture, NULL, setup, test_xaccAcctChildrenEqual,  teardown );
-// GNC_TEST_ADD (suitename, "xaccAccountEqual", Fixture, NULL, setup, test_xaccAccountEqual,  teardown );
+    GNC_TEST_ADD (suitename, "xaccAccountEqual", Fixture, NULL, setup, test_xaccAccountEqual,  teardown );
     GNC_TEST_ADD (suitename, "gnc account kvp getters & setters", Fixture, NULL, setup, test_gnc_account_kvp_setters_getters,  teardown );
     GNC_TEST_ADD (suitename, "test_gnc_account_get_map_entry", Fixture, NULL, setup, test_gnc_account_get_map_entry,  teardown );
     GNC_TEST_ADD (suitename, "gnc account insert & remove split", Fixture, NULL, setup, test_gnc_account_insert_remove_split,  teardown );
