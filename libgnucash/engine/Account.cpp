@@ -4777,6 +4777,16 @@ xaccAccountGainsAccount (Account *acc, gnc_commodity *curr)
     return gains_account;
 }
 
+void
+xaccAccountSetGainsAccount (Account *acc, gnc_commodity *curr, Account *gains_acc)
+{
+    g_return_if_fail (GNC_IS_ACCOUNT (acc));
+    g_return_if_fail (curr != nullptr);
+
+    Path path {KEY_LOT_MGMT, "gains-acct", gnc_commodity_get_unique_name (curr)};
+    set_kvp_account_path (acc, path, gains_acc);
+}
+
 /********************************************************************\
 \********************************************************************/
 

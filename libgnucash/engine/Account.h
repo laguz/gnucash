@@ -464,14 +464,19 @@ typedef enum
     /** Retrieve the gains account used by this account for the indicated
      * currency, creating and recording a new one if necessary.
      *
-     * FIXME: There is at present no interface to designate an existing
-     * account, and the new account name is hard coded to
-     * "Orphaned Gains -- CUR"
-     *
      * FIXME: There is no provision for creating separate accounts for
      * anything other than currency, e.g. holding period of a security.
      */
     Account * xaccAccountGainsAccount (Account *acc, gnc_commodity *curr);
+
+    /** Designate an existing account as the gains account used by this account
+     * for the indicated currency.
+     *
+     * @param acc The account that tracks the gains
+     * @param curr The currency for the gains
+     * @param gains_acc The account to record the gains to
+     */
+    void xaccAccountSetGainsAccount (Account *acc, gnc_commodity *curr, Account *gains_acc);
     /** Set a string that identifies the Finance::Quote backend that
      *  should be used to retrieve online prices.  See price-quotes.scm
      *  for more information
