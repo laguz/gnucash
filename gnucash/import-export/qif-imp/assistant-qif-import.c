@@ -3277,7 +3277,7 @@ gnc_ui_qif_import_convert_progress_start_cb (GtkButton * button,
 
             /* Inform the user. */
             gnc_progress_dialog_append_log (wind->convert_progress,
-                                            _("A bug was detected while detecting duplicates."));
+                                            _("A bug was detected while detecting duplicates. Please report this as a bug."));
             gnc_progress_dialog_set_sub (wind->convert_progress, _("Failed"));
             gnc_progress_dialog_reset_value (wind->convert_progress);
             gnc_error_dialog (GTK_WINDOW(assistant),
