@@ -1426,47 +1426,40 @@ test_gnc_account_insert_remove_split (Fixture *fixture, gconstpointer pData)
     Split *split3 = xaccMallocSplit (book);
     TestSignal sig1, sig2, sig3;
     AccountPrivate *priv = fixture->func->get_private (fixture->acct);
-    auto msg1 = ": assertion 'GNC_IS_ACCOUNT(acc)' failed";
-    auto msg2 = ": assertion 'GNC_IS_SPLIT(s)' failed";
-    auto loglevel = static_cast<GLogLevelFlags>(G_LOG_LEVEL_CRITICAL | G_LOG_FLAG_FATAL);
-//    auto log_domain = "gnc.engine";
-    auto check1 = test_error_struct_new("gnc.engine", loglevel, msg1);
-    auto check2 = test_error_struct_new("gnc.engine", loglevel, msg2);
-    auto check3 = test_error_struct_new("gnc.engine", loglevel, NULL);
-    guint logger;
     sig1 = test_signal_new (&fixture->acct->inst, QOF_EVENT_MODIFY, NULL);
     sig2 = test_signal_new (&fixture->acct->inst, GNC_EVENT_ITEM_ADDED, split1);
 
-    test_add_error (check1);
-    test_add_error (check2);
-    logger = g_log_set_handler ("gnc.engine", loglevel,
-                                (GLogFunc)test_null_handler, check3);
-    g_test_log_set_fatal_handler ((GTestLogFatalFunc)test_list_substring_handler, NULL);
-
     /* Check that the call fails with invalid account and split (throws) */
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*gnc_account_insert_split*assertion*GNC_IS_ACCOUNT(acc)*");
     g_assert_true (!gnc_account_insert_split (NULL, split1));
+    g_test_assert_expected_messages();
     g_assert_cmpuint (priv->splits.size(), == , 0);
     g_assert_true (!priv->sort_dirty);
     g_assert_true (!priv->balance_dirty);
     test_signal_assert_hits (sig1, 0);
     test_signal_assert_hits (sig2, 0);
+
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*gnc_account_insert_split*assertion*GNC_IS_SPLIT(s)*");
     g_assert_true (!gnc_account_insert_split (fixture->acct, NULL));
+    g_test_assert_expected_messages();
     g_assert_cmpuint (priv->splits.size(), == , 0);
     g_assert_true (!priv->sort_dirty);
     g_assert_true (!priv->balance_dirty);
     test_signal_assert_hits (sig1, 0);
     test_signal_assert_hits (sig2, 0);
-    /* g_assert_true (!gnc_account_insert_split (fixture->acct, (Split*)priv)); */
-    /* g_assert_cmpuint (priv->splits.size(), == , 0); */
-    /* g_assert_true (!priv->sort_dirty); */
-    /* g_assert_true (!priv->balance_dirty); */
-    /* test_signal_assert_hits (sig1, 0); */
-    /* test_signal_assert_hits (sig2, 0); */
-    g_assert_cmpint (check1->hits, ==, 1);
-    g_assert_cmpint (check2->hits, ==, 1);
-    g_assert_cmpint (check3->hits, ==, 0);
-    g_log_remove_handler ("gnc.engine", logger);
-    test_clear_error_list ();
+
+    /* Test that inserting an incorrect GObject type fails gracefully without crashing */
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
+                           "*gnc_account_insert_split*assertion*GNC_IS_SPLIT(s)*");
+    g_assert_true (!gnc_account_insert_split (fixture->acct, reinterpret_cast<Split*>(book)));
+    g_test_assert_expected_messages();
+    g_assert_cmpuint (priv->splits.size(), == , 0);
+    g_assert_true (!priv->sort_dirty);
+    g_assert_true (!priv->balance_dirty);
+    test_signal_assert_hits (sig1, 0);
+    test_signal_assert_hits (sig2, 0);
 
     /* Check that it works the first time */
     g_assert_true (gnc_account_insert_split (fixture->acct, split1));
