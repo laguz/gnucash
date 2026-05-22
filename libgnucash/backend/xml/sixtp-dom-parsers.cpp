@@ -339,10 +339,9 @@ dom_tree_to_kvp_frame_given (xmlNodePtr node, KvpFrame* frame)
                 {
                     val = dom_tree_to_kvp_value (mark2);
                 }
-                else
+                else if (mark2->type != XML_TEXT_NODE)
                 {
-                    /* FIXME: should put some error here.
-                     *        But ignore text type! */
+                    PWARN ("unexpected node: %s", (char*)mark2->name);
                 }
             }
 
@@ -355,8 +354,12 @@ dom_tree_to_kvp_frame_given (xmlNodePtr node, KvpFrame* frame)
                 }
                 else
                 {
-                    /* FIXME: should put some error here */
+                    PWARN ("No value found for key '%s'", key);
                 }
+            }
+            else
+            {
+                PWARN ("No key found in slot");
             }
         }
     }
