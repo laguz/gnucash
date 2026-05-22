@@ -174,26 +174,6 @@ const char* gnc_get_doclink_flag_order (void);
  */
 const char* gnc_get_doclink_str (char link_flag);
 
-/** Get a string containing transaction type valid flags
- *
- *  @return a string containing the list of valid type flags
- */
-const char* gnc_get_type_valid_flags (void);
-
-/** Get a string containing transaction type flag order
- *
- * @return a string containing the transaction type flag change order
- */
-const char* gnc_get_type_flag_order (void);
-
-/** Get a string representing the transaction type
- *
- * @param  type_flag The flag to convert into a string
- *
- * @return the i18n'd type string
- */
-const char* gnc_get_type_str (char type_flag);
-
 typedef enum
 {
     EQUITY_OPENING_BALANCE,

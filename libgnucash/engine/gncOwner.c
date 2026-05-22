@@ -1552,11 +1552,17 @@ owner_from_lot (GNCLot *lot)
 
     if (!lot) return NULL;
 
-    owner = gncOwnerNew();
+    owner = g_object_get_data (G_OBJECT (lot), "cached-owner");
+    if (!owner)
+    {
+        owner = gncOwnerNew ();
+        g_object_set_data_full (G_OBJECT (lot), "cached-owner", owner,
+                                (GDestroyNotify) gncOwnerFree);
+    }
+
     if (gncOwnerGetOwnerFromLot (lot, owner))
         return owner;
 
-    gncOwnerFree(owner);
     return NULL;
 }
 
