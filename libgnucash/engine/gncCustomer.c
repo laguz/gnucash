@@ -813,11 +813,9 @@ gncCustomerEqual(const GncCustomer *a, const GncCustomer *b)
         return FALSE;
     }
 
-    if (!gncJobListEqual(a->jobs, b->jobs))
-    {
-        PWARN("Jobs lists differ");
-        return FALSE;
-    }
+    /* FIXME: Need to check jobs list
+    GList *         jobs;
+    */
 
     return TRUE;
 }

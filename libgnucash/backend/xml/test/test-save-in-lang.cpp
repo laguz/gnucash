@@ -69,7 +69,20 @@ const char* base_env = "C";
 static char*
 gen_new_file_name (const char* filename, const char* env)
 {
-    return g_strdup_printf ("%s-%s", filename, env);
+    char* ret;
+
+    ret = g_new (char, strlen (filename) + strlen (env) + 2);
+    strcpy (ret, filename);
+    strcat (ret, "-");
+    strcat (ret, env);
+
+    return ret;
+}
+
+static int
+run_command_get_return (const char* command)
+{
+    return system (command);
 }
 
 static int
@@ -90,7 +103,7 @@ test_file (const char* filename)
         char* cmd;
         char* new_file = gen_new_file_name (filename, possible_envs[i]);
 
-        session = qof_session_new (nullptr);
+        auto session = qof_session_new (nullptr);
 
         qof_session_begin (session, filename, SESSION_READ_ONLY);
         err = qof_session_pop_error (session);
