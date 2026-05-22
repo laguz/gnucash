@@ -3512,8 +3512,8 @@ xaccAccountGetPresentBalance (const Account *acc)
 
 /********************************************************************\
 \********************************************************************/
-/* XXX TODO: These 'GetBal' routines should be moved to some
- * utility area outside of the core account engine area.
+/* Note: These balance currency conversion routines remain in the core
+ * account engine due to historical reasons and extensive API usage.
  */
 
 /*
