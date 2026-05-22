@@ -35,5 +35,31 @@ class TestBook(BookSession):
         self.assertIsNotNone(looked_up_table)
         self.assertEqual(looked_up_table.GetName(), tax_table_name)
 
+    def test_tax_table_get_tables(self):
+        from gnucash import Account
+        from gnucash.gnucash_business import TaxTableEntry, TaxTable
+
+        root = self.book.get_root_account()
+        tax_account = Account(self.book)
+        tax_account.SetName("Tax Account")
+        root.append_child(tax_account)
+
+        entry = TaxTableEntry(tax_account)
+
+        tax_table_name1 = "Tax Table 1"
+        tax_table1 = TaxTable(self.book, tax_table_name1, entry)
+
+        tax_table_name2 = "Tax Table 2"
+        tax_table2 = TaxTable(self.book, tax_table_name2, entry)
+
+        tables = self.book.TaxTableGetTables()
+
+        self.assertIsInstance(tables, list)
+        self.assertEqual(len(tables), 2)
+
+        table_names = [table.GetName() for table in tables]
+        self.assertIn(tax_table_name1, table_names)
+        self.assertIn(tax_table_name2, table_names)
+
 if __name__ == '__main__':
     main()
