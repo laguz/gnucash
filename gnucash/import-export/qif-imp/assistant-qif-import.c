@@ -2472,8 +2472,15 @@ update_file_page (QIFImportWindow * wind)
     /* get the number of files in the list */
     num_of_files = gtk_tree_model_iter_n_children (GTK_TREE_MODEL(store), NULL);
 
+    gint num = gtk_assistant_get_current_page (assistant);
+    GtkWidget *page = gtk_assistant_get_nth_page (assistant, num);
+
     if (num_of_files > 0)
+    {
+        /* Set page type to PROGRESS to disable the back button while files are loaded */
+        gtk_assistant_set_page_type (assistant, page, GTK_ASSISTANT_PAGE_PROGRESS);
         mark_page_complete (assistant, TRUE);
+    }
     else
     {
         /*  It would be ideal to disable the back button at this point
