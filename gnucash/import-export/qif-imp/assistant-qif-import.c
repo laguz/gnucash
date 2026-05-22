@@ -1469,10 +1469,9 @@ static int gnc_ui_qif_import_assistant_page_forward (int current_page, gpointer 
         GtkWidget *page = gtk_assistant_get_nth_page (assistant, next_page);
 
         /* If the 'stop the presses' flag is set, move all the way to the end.
-           NOTE:  This does not allow for any chance to recover
-                  and try a different approach.  That is the historic
-                  behavior, and a moderately hard problem to solve.
-                  See bug 698804
+           We do not allow for any chance to recover and try a different
+           approach here, as preserving the historic behavior is intended
+           until the complex issue in bug 698804 is resolved.
         */
         if (wind->load_stop && next_page < (page_count - 1))
             continue;
