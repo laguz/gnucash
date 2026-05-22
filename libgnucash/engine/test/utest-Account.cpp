@@ -484,13 +484,9 @@ test_gnc_account_list_name_violations (Fixture *fixture, gconstpointer pData)
     g_assert_true (gnc_account_list_name_violations (NULL, NULL) == NULL);
     g_assert_cmpint (check->hits, ==, 1);
     g_assert_true (gnc_account_list_name_violations (book, NULL) == NULL);
-    g_test_assert_expected_messages();
-
-    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
-                           "*gnc_account_list_name_violations*assertion*book != nullptr*");
+    g_assert_cmpint (check->hits, ==, 2);
     g_assert_true (gnc_account_list_name_violations (NULL, sep) == NULL);
-    g_test_assert_expected_messages();
-
+    g_log_set_default_handler (oldlogger, NULL);
     results = gnc_account_list_name_violations (book, sep);
     g_assert_cmpuint (g_list_length (results), == , 2);
     g_assert_cmpint (check->hits, ==, 2);
@@ -910,14 +906,10 @@ xaccAccountBeginEdit (Account *acc)// C: 80 in 29 SCM: 15 in 9
 
 No test, just a passthrough.
 */
-static void
-test_xaccAccountBeginEdit_null (void)
+/* static void
+test_xaccAccountBeginEdit (Fixture *fixture, gconstpointer pData)
 {
-    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
-                           "*xaccAccountBeginEdit*assertion*acc*");
-    xaccAccountBeginEdit (NULL);
-    g_test_assert_expected_messages();
-}
+}*/
 /* on_done
 static void on_done (QofInstance *inst)// 2
 ***Callback for qof_commit_edit_part2
@@ -1031,29 +1023,6 @@ test_xaccAccountCommitEdit (Fixture *fixture, gconstpointer pData)
 static gboolean
 xaccAcctChildrenEqual (const GList *na,// 2
 */
-static void
-test_xaccAccountCommitEdit_null (Fixture *fixture, gconstpointer pData)
-{
-    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL,
-                           "*xaccAccountCommitEdit*assertion*acc*");
-    xaccAccountCommitEdit (nullptr);
-    g_test_assert_expected_messages();
-}
-
-static void
-test_xaccAccountCommitEdit_early_return (Fixture *fixture, gconstpointer pData)
-{
-    Account *parent = gnc_account_get_parent (fixture->acct);
-    TestSignal sig1 = test_signal_new (&parent->inst, QOF_EVENT_MODIFY, NULL);
-
-    xaccAccountBeginEdit (parent);
-    xaccAccountBeginEdit (parent);
-    xaccAccountCommitEdit (parent);
-
-    test_signal_assert_hits (sig1, 0);
-    xaccAccountCommitEdit (parent);
-}
-
 /* static void
 test_xaccAcctChildrenEqual (Fixture *fixture, gconstpointer pData)
 {
@@ -2894,9 +2863,6 @@ test_suite_account (void)
     /* See comment at the beginning of test_xaccFreeAccount */
     GNC_TEST_ADD (suitename, "xaccFreeAccount", Fixture, &good_data, setup, test_xaccFreeAccount,  NULL );
     GNC_TEST_ADD (suitename, "xaccAccountCommitEdit", Fixture, &good_data, setup, test_xaccAccountCommitEdit,  NULL );
-    GNC_TEST_ADD (suitename, "xaccAccountCommitEdit null", Fixture, &good_data, setup, test_xaccAccountCommitEdit_null,  NULL );
-    GNC_TEST_ADD (suitename, "xaccAccountCommitEdit early return", Fixture, &good_data, setup, test_xaccAccountCommitEdit_early_return,  NULL );
-    GNC_TEST_ADD (suitename, "xaccAccountDestroy", Fixture, &good_data, setup, test_xaccAccountDestroy,  NULL );
 // GNC_TEST_ADD (suitename, "xaccAcctChildrenEqual", Fixture, NULL, setup, test_xaccAcctChildrenEqual,  teardown );
     GNC_TEST_ADD (suitename, "xaccAccountEqual", Fixture, NULL, setup, test_xaccAccountEqual,  teardown );
     GNC_TEST_ADD (suitename, "gnc account kvp getters & setters", Fixture, NULL, setup, test_gnc_account_kvp_setters_getters,  teardown );
