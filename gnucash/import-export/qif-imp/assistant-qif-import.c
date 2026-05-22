@@ -1469,10 +1469,9 @@ static int gnc_ui_qif_import_assistant_page_forward (int current_page, gpointer 
         GtkWidget *page = gtk_assistant_get_nth_page (assistant, next_page);
 
         /* If the 'stop the presses' flag is set, move all the way to the end.
-           TODO:  This does not allow for any chance to recover
-                  and try a different approach.  That is the historic
-                  behavior, and a moderately hard problem to solve.
-                  See bug 698804
+           This does not allow for any chance to recover and try a different
+           approach. That is the historic behavior, and a moderately hard
+           problem to solve. See bug 698804.
         */
         if (wind->load_stop && next_page < (page_count - 1))
             continue;
@@ -2484,9 +2483,21 @@ update_file_page (QIFImportWindow * wind)
     }
     else
     {
-        /* Restore normal page type to enable the back button if all files are unloaded */
-        gtk_assistant_set_page_type (assistant, page, GTK_ASSISTANT_PAGE_CONTENT);
-        mark_page_complete (assistant, FALSE);
+        /*  It would be ideal to disable the back button at this point
+            until all files have been unloaded.  However, GtkAssistant does
+            not provide a way to do that.
+
+            The back button works at this point, but results in mildly
+            confusing behavior - you get an error on the select page,
+            and you are forced to load another file; you can't just skip
+            forward and back.  Fixing that may be possible; changing the
+            load page to more intelligently handle the case where the selected
+            file is already loaded should work.  But that will be fiddly,
+            as you likely want to force an already loaded file to be reloaded
+            as we come forward.  The current muddle 'feels' bad, but gives
+            a user a fairly clear understanding of what is happening, and
+            so I am choosing to prefer it.
+        */
     }
 
 }
