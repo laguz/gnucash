@@ -2984,9 +2984,11 @@ gnc_ui_qif_import_comm_valid (GtkAssistant *assistant, gpointer user_data)
         return FALSE;
     }
 
-    /* FIXME: Should check whether a commodity with this namespace and
-     *        mnemonic already exists. If so, ask the user whether to use
-     *        the existing one, or go back and change what they've entered.
+    /* We do not need to ask the user whether to use an existing commodity.
+     * If they enter the namespace and mnemonic of an existing commodity,
+     * gnc_ui_qif_import_commodity_update() will automatically look it up
+     * and map the imported transactions to the existing commodity, which
+     * is the intended behavior when matching records.
      */
 
     book = gnc_get_current_book ();
