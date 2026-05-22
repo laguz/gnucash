@@ -1956,6 +1956,7 @@ gnc_account_insert_split (Account *acc, Split *s)
     else
         priv->sort_dirty = true;
 
+    //FIXME: find better event
     qof_event_gen (&acc->inst, QOF_EVENT_MODIFY, nullptr);
     /* Also send an event based on the account */
     qof_event_gen(&acc->inst, GNC_EVENT_ITEM_ADDED, s);
@@ -1987,6 +1988,7 @@ gnc_account_remove_split (Account *acc, Split *s)
         priv->splits.erase (std::remove (priv->splits.begin(), priv->splits.end(), s),
                             priv->splits.end());
 
+    //FIXME: find better event type
     qof_event_gen(&acc->inst, QOF_EVENT_MODIFY, nullptr);
     // And send the account-based event, too
     qof_event_gen(&acc->inst, GNC_EVENT_ITEM_REMOVED, s);
@@ -4775,16 +4777,6 @@ xaccAccountGainsAccount (Account *acc, gnc_commodity *curr)
     }
 
     return gains_account;
-}
-
-void
-xaccAccountSetGainsAccount (Account *acc, gnc_commodity *curr, Account *gains_acc)
-{
-    g_return_if_fail (GNC_IS_ACCOUNT (acc));
-    g_return_if_fail (curr != nullptr);
-
-    Path path {KEY_LOT_MGMT, "gains-acct", gnc_commodity_get_unique_name (curr)};
-    set_kvp_account_path (acc, path, gains_acc);
 }
 
 /********************************************************************\

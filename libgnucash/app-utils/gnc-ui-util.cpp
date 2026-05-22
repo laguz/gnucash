@@ -542,37 +542,6 @@ gnc_get_doclink_flag_order (void)
     return flags;
 }
 
-const char*
-gnc_get_type_str (char type_flag)
-{
-    switch (type_flag)
-    {
-    case TXN_TYPE_INVOICE:
-        return C_("Transaction Type flag for 'invoice'", "I");
-    case TXN_TYPE_PAYMENT:
-        return C_("Transaction Type flag for 'payment'", "P");
-    case TXN_TYPE_UNCACHED:
-        return C_("Transaction Type flag for 'uncached'", "?");
-    default:
-        PERR("Bad type flag");
-        return nullptr;
-    }
-}
-
-const char*
-gnc_get_type_valid_flags (void)
-{
-    static const char flags[] = { TXN_TYPE_INVOICE, TXN_TYPE_PAYMENT, TXN_TYPE_UNCACHED, 0 };
-    return flags;
-}
-
-const char*
-gnc_get_type_flag_order (void)
-{
-    static const char flags[] = { TXN_TYPE_INVOICE, TXN_TYPE_PAYMENT, 0 };
-    return flags;
-}
-
 static const char*
 equity_base_name (GNCEquityType equity_type)
 {

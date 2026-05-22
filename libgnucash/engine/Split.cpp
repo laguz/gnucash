@@ -1012,6 +1012,7 @@ xaccSplitCommitEdit(Split *s)
 
     if (s->parent != s->orig_parent)
     {
+        //FIXME: find better event
         if (s->orig_parent)
             qof_event_gen(&s->orig_parent->inst, QOF_EVENT_MODIFY,
                           nullptr);
