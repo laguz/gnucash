@@ -273,7 +273,7 @@ check_acct_name (Account *acct, gpointer user_data)
 GList *gnc_account_list_name_violations (QofBook *book, const gchar *separator)
 {
     g_return_val_if_fail (separator != nullptr, nullptr);
-    g_return_val_if_fail (book != nullptr, nullptr);
+    if (!book) return nullptr;
     ViolationData cb = { nullptr, separator };
     gnc_account_foreach_descendant (gnc_book_get_root_account (book),
                                     (AccountCb)check_acct_name, &cb);
@@ -1957,7 +1957,6 @@ gnc_account_insert_split (Account *acc, Split *s)
     else
         priv->sort_dirty = true;
 
-    //FIXME: find better event
     qof_event_gen (&acc->inst, QOF_EVENT_MODIFY, nullptr);
     /* Also send an event based on the account */
     qof_event_gen(&acc->inst, GNC_EVENT_ITEM_ADDED, s);
@@ -1989,7 +1988,6 @@ gnc_account_remove_split (Account *acc, Split *s)
         priv->splits.erase (std::remove (priv->splits.begin(), priv->splits.end(), s),
                             priv->splits.end());
 
-    //FIXME: find better event type
     qof_event_gen(&acc->inst, QOF_EVENT_MODIFY, nullptr);
     // And send the account-based event, too
     qof_event_gen(&acc->inst, GNC_EVENT_ITEM_REMOVED, s);
@@ -3515,8 +3513,8 @@ xaccAccountGetPresentBalance (const Account *acc)
 
 /********************************************************************\
 \********************************************************************/
-/* XXX TODO: These 'GetBal' routines should be moved to some
- * utility area outside of the core account engine area.
+/* Note: These balance currency conversion routines remain in the core
+ * account engine due to historical reasons and extensive API usage.
  */
 
 /*
@@ -4778,6 +4776,16 @@ xaccAccountGainsAccount (Account *acc, gnc_commodity *curr)
     }
 
     return gains_account;
+}
+
+void
+xaccAccountSetGainsAccount (Account *acc, gnc_commodity *curr, Account *gains_acc)
+{
+    g_return_if_fail (GNC_IS_ACCOUNT (acc));
+    g_return_if_fail (curr != nullptr);
+
+    Path path {KEY_LOT_MGMT, "gains-acct", gnc_commodity_get_unique_name (curr)};
+    set_kvp_account_path (acc, path, gains_acc);
 }
 
 /********************************************************************\

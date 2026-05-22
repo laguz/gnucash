@@ -1545,23 +1545,17 @@ gncOwnerGetBalanceInCurrency (const GncOwner *owner,
 }
 
 
+/* XXX: Yea, this is broken, but it should work fine for Queries.
+ * We're single-threaded, right?
+ */
 static GncOwner *
 owner_from_lot (GNCLot *lot)
 {
-    GncOwner *owner;
+    static GncOwner owner;
 
     if (!lot) return NULL;
-
-    owner = g_object_get_data (G_OBJECT (lot), "cached-owner");
-    if (!owner)
-    {
-        owner = gncOwnerNew ();
-        g_object_set_data_full (G_OBJECT (lot), "cached-owner", owner,
-                                (GDestroyNotify) gncOwnerFree);
-    }
-
-    if (gncOwnerGetOwnerFromLot (lot, owner))
-        return owner;
+    if (gncOwnerGetOwnerFromLot (lot, &owner))
+        return &owner;
 
     return NULL;
 }
