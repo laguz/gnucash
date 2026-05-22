@@ -13,54 +13,27 @@ class TestBook(BookSession):
     def test_markclosed(self):
         self.ses.end()
 
-    def test_tax_table_get_tables(self):
-        import unittest.mock
-        import sys
+    def test_tax_table_lookup_by_name(self):
+        from gnucash import Account
+        from gnucash.gnucash_business import TaxTableEntry, TaxTable
 
-        # Setup mocks
-        mock_instance_1 = unittest.mock.MagicMock()
-        mock_instance_2 = unittest.mock.MagicMock()
+        # We need to setup an account to associate with the tax table entry
+        root = self.book.get_root_account()
+        tax_account = Account(self.book)
+        tax_account.SetName("Tax Account")
+        root.append_child(tax_account)
 
-        # When TaxTableGetTables is called, it uses gncTaxTableGetTables
-        # We need to test if we are running under the mock test suite.
-        # gnucash_mock_helper inserts 'gnucash' as a mocked ModuleType.
-        running_mock = type(sys.modules.get('gnucash')) == type(sys) and sys.modules.get('gnucash').__path__ == []
+        # TaxTableEntry constructor expects an Account object
+        entry = TaxTableEntry(tax_account)
 
-        if running_mock:
-            # We are running with gnucash_mock_helper in the test suite
-            gnucash_core_c = sys.modules['gnucash.gnucash_core_c']
+        tax_table_name = "My Test Tax Table"
+        # TaxTable constructor expects book, name, and an entry
+        tax_table = TaxTable(self.book, tax_table_name, entry)
 
-            import gnucash.gnucash_core
-            with unittest.mock.patch('gnucash.gnucash_core.gncTaxTableGetTables') as mock_core_get_tables:
-                mock_core_get_tables.return_value = [mock_instance_1, mock_instance_2]
-                gnucash_core_c.gncTaxTableGetTables.return_value = [mock_instance_1, mock_instance_2]
+        looked_up_table = self.book.TaxTableLookupByName(tax_table_name)
 
-                result = self.book.TaxTableGetTables()
-
-                # Assertions
-                if mock_core_get_tables.called:
-                    mock_core_get_tables.assert_called_once_with(self.book.instance)
-                else:
-                    gnucash_core_c.gncTaxTableGetTables.assert_called_once_with(self.book.instance)
-
-                self.assertEqual(len(result), 2)
-                sys.modules['gnucash.gnucash_business'].TaxTable.assert_has_calls([
-                    unittest.mock.call(instance=mock_instance_1),
-                    unittest.mock.call(instance=mock_instance_2),
-                ])
-        else:
-            # We are running under `ctest`, where gnucash is a real module and we patch real methods.
-            import gnucash.gnucash_core
-            with unittest.mock.patch('gnucash.gnucash_core.gncTaxTableGetTables', create=True) as mock_get_tables:
-                with unittest.mock.patch('gnucash.gnucash_business.TaxTable') as mock_taxtable:
-                    mock_get_tables.return_value = [mock_instance_1, mock_instance_2]
-                    mock_taxtable.side_effect = lambda instance: f"TaxTable({instance})"
-
-                    result = self.book.TaxTableGetTables()
-
-                    mock_get_tables.assert_called_once_with(self.book.instance)
-                    self.assertEqual(len(result), 2)
-                    self.assertEqual(result, [f"TaxTable({mock_instance_1})", f"TaxTable({mock_instance_2})"])
+        self.assertIsNotNone(looked_up_table)
+        self.assertEqual(looked_up_table.GetName(), tax_table_name)
 
 if __name__ == '__main__':
     main()
