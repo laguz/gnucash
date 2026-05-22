@@ -574,8 +574,16 @@ xaccSchedXactionGetStartDateTT(const SchedXaction *sx )
 void
 xaccSchedXactionSetStartDate( SchedXaction *sx, const GDate* newStart )
 {
-    g_return_if_fail(newStart != NULL && g_date_valid(newStart));
-
+    if ( newStart == NULL || !g_date_valid( newStart ))
+    {
+        /* XXX: I reject the bad data - is this the right
+         * thing to do <rgmerk>.
+         * This warning is only human readable - the caller
+         * doesn't know the call failed.  This is bad
+         */
+        g_critical("Invalid Start Date");
+        return;
+    }
     gnc_sx_begin_edit(sx);
     sx->start_date = *newStart;
     qof_instance_set_dirty(&sx->inst);
@@ -585,8 +593,16 @@ xaccSchedXactionSetStartDate( SchedXaction *sx, const GDate* newStart )
 void
 xaccSchedXactionSetStartDateTT( SchedXaction *sx, const time64 newStart )
 {
-    g_return_if_fail(newStart != INT64_MAX);
-
+    if ( newStart == INT64_MAX )
+    {
+        /* XXX: I reject the bad data - is this the right
+         * thing to do <rgmerk>.
+         * This warning is only human readable - the caller
+         * doesn't know the call failed.  This is bad
+         */
+        g_critical("Invalid Start Date");
+        return;
+    }
     gnc_sx_begin_edit(sx);
     gnc_gdate_set_time64(&sx->start_date, newStart);
     qof_instance_set_dirty(&sx->inst);
@@ -613,8 +629,17 @@ xaccSchedXactionSetEndDate( SchedXaction *sx, const GDate *newEnd )
  * the SX is to run "forever". See gnc_sxed_save_sx() and
  * schedXact_editor_populate() in dialog-sx-editor.c.
  */
-    g_return_if_fail(newEnd != NULL);
-    g_return_if_fail(!g_date_valid(newEnd) || g_date_compare(newEnd, &sx->start_date) >= 0);
+    if (newEnd == NULL ||
+        (g_date_valid(newEnd) && g_date_compare( newEnd, &sx->start_date ) < 0 ))
+    {
+        /* XXX: I reject the bad data - is this the right
+         * thing to do <rgmerk>.
+         * This warning is only human readable - the caller
+         * doesn't know the call failed.  This is bad
+         */
+        g_critical("Bad End Date: Invalid or before Start Date");
+        return;
+    }
 
     gnc_sx_begin_edit(sx);
     sx->end_date = *newEnd;

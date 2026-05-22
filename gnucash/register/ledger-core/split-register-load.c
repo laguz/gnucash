@@ -99,6 +99,7 @@ static void
 gnc_split_register_load_type_cells (SplitRegister* reg)
 {
     RecnCell* cell;
+    const char* s;
 
     if (!reg) return;
 
@@ -107,9 +108,10 @@ gnc_split_register_load_type_cells (SplitRegister* reg)
 
     if (!cell) return;
 
-    /* FIXME: These should get moved to an i18n function */
-    gnc_recn_cell_set_valid_flags (cell, "IP?", 'I');
-    gnc_recn_cell_set_flag_order (cell, "IP");
+    s = gnc_get_type_valid_flags ();
+    gnc_recn_cell_set_valid_flags (cell, s, 'I');
+    gnc_recn_cell_set_flag_order (cell, gnc_get_type_flag_order ());
+    gnc_recn_cell_set_string_getter (cell, gnc_get_type_str);
     gnc_recn_cell_set_read_only (cell, TRUE);
 }
 

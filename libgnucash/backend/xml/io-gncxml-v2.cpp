@@ -351,20 +351,6 @@ add_pricedb_local (sixtp_gdv2* data, GNCPriceDB* db)
     return TRUE;
 }
 
-static void
-counter (const GncXmlDataType_t& data, file_backend* be_data)
-{
-    g_return_if_fail (data.version == GNC_FILE_BACKEND_VERS);
-
-    if (be_data->ok == TRUE)
-        return;
-
-    if (!g_strcmp0 (be_data->tag, data.type_name))
-        be_data->ok = TRUE;
-
-    /* XXX: should we do anything with this counter? */
-}
-
 static gboolean
 gnc_counter_end_handler (gpointer data_for_children,
                          GSList* data_from_children, GSList* sibling_data,
@@ -430,14 +416,18 @@ gnc_counter_end_handler (gpointer data_for_children,
     }
     else
     {
-        struct file_backend be_data;
+        gboolean ok = FALSE;
 
-        be_data.ok = FALSE;
-        be_data.tag = type;
-        for(auto data : backend_registry)
-            counter(data, &be_data);
+        for (auto data : backend_registry)
+        {
+            if (data.version == GNC_FILE_BACKEND_VERS && !g_strcmp0 (type, data.type_name))
+            {
+                ok = TRUE;
+                break;
+            }
+        }
 
-        if (be_data.ok == FALSE)
+        if (ok == FALSE)
         {
             PERR ("Unknown type: %s", type ? type : "(null)");
             /* Do *NOT* flag this as an error. Gnucash 1.8 writes invalid
