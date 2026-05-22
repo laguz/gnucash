@@ -2984,11 +2984,9 @@ gnc_ui_qif_import_comm_valid (GtkAssistant *assistant, gpointer user_data)
         return FALSE;
     }
 
-    /* We do not need to ask the user whether to use an existing commodity.
-     * If they enter the namespace and mnemonic of an existing commodity,
-     * gnc_ui_qif_import_commodity_update() will automatically look it up
-     * and map the imported transactions to the existing commodity, which
-     * is the intended behavior when matching records.
+    /* FIXME: Should check whether a commodity with this namespace and
+     *        mnemonic already exists. If so, ask the user whether to use
+     *        the existing one, or go back and change what they've entered.
      */
 
     book = gnc_get_current_book ();
@@ -3279,7 +3277,7 @@ gnc_ui_qif_import_convert_progress_start_cb (GtkButton * button,
 
             /* Inform the user. */
             gnc_progress_dialog_append_log (wind->convert_progress,
-                                            _("A bug was detected while detecting duplicates."));
+                                            _("A bug was detected while detecting duplicates. Please report this as a bug."));
             gnc_progress_dialog_set_sub (wind->convert_progress, _("Failed"));
             gnc_progress_dialog_reset_value (wind->convert_progress);
             gnc_error_dialog (GTK_WINDOW(assistant),

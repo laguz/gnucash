@@ -282,6 +282,7 @@ guid_hash_table_new (void)
 static void
 gnc_string_to_guid (const GValue *src, GValue *dest)
 {
+    /* FIXME: add more checks*/
     GncGUID *guid;
     const gchar *as_string;
 
@@ -291,10 +292,7 @@ gnc_string_to_guid (const GValue *src, GValue *dest)
     as_string = g_value_get_string (src);
 
     guid = g_new0 (GncGUID, 1);
-    if (!string_to_guid (as_string, guid))
-    {
-        g_warning ("Failed to convert string '%s' to GUID", as_string ? as_string : "(null)");
-    }
+    string_to_guid (as_string, guid);
 
     g_value_take_boxed (dest, guid);
 }
