@@ -1956,8 +1956,7 @@ gnc_account_insert_split (Account *acc, Split *s)
     else
         priv->sort_dirty = true;
 
-    // Both QOF_EVENT_MODIFY and specific GNC_EVENT_ITEM_* events are intentionally emitted
-    // to satisfy both general state-change listeners and granular item-specific listeners.
+    //FIXME: find better event
     qof_event_gen (&acc->inst, QOF_EVENT_MODIFY, nullptr);
     /* Also send an event based on the account */
     qof_event_gen(&acc->inst, GNC_EVENT_ITEM_ADDED, s);
@@ -1989,8 +1988,7 @@ gnc_account_remove_split (Account *acc, Split *s)
         priv->splits.erase (std::remove (priv->splits.begin(), priv->splits.end(), s),
                             priv->splits.end());
 
-    // Both QOF_EVENT_MODIFY and specific GNC_EVENT_ITEM_* events are intentionally emitted
-    // to satisfy both general state-change listeners and granular item-specific listeners.
+    //FIXME: find better event type
     qof_event_gen(&acc->inst, QOF_EVENT_MODIFY, nullptr);
     // And send the account-based event, too
     qof_event_gen(&acc->inst, GNC_EVENT_ITEM_REMOVED, s);
@@ -3516,10 +3514,8 @@ xaccAccountGetPresentBalance (const Account *acc)
 
 /********************************************************************\
 \********************************************************************/
-/* Note: These 'GetBal' routines remain in the core account engine
- * area to avoid exposing internal Account structures (like
- * AccountPrivate) to utility modules and to maintain API stability
- * for existing consumers.
+/* XXX TODO: These 'GetBal' routines should be moved to some
+ * utility area outside of the core account engine area.
  */
 
 /*

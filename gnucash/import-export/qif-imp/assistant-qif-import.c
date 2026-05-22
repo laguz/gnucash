@@ -1469,8 +1469,10 @@ static int gnc_ui_qif_import_assistant_page_forward (int current_page, gpointer 
         GtkWidget *page = gtk_assistant_get_nth_page (assistant, next_page);
 
         /* If the 'stop the presses' flag is set, move all the way to the end.
-           Note: Recovering from this state to try a different approach is
-           unsupported due to historical architectural limitations (see bug 698804).
+           TODO:  This does not allow for any chance to recover
+                  and try a different approach.  That is the historic
+                  behavior, and a moderately hard problem to solve.
+                  See bug 698804
         */
         if (wind->load_stop && next_page < (page_count - 1))
             continue;
@@ -2471,27 +2473,24 @@ update_file_page (QIFImportWindow * wind)
     /* get the number of files in the list */
     num_of_files = gtk_tree_model_iter_n_children (GTK_TREE_MODEL(store), NULL);
 
-    gint num = gtk_assistant_get_current_page (assistant);
-    GtkWidget *page = gtk_assistant_get_nth_page (assistant, num);
-
     if (num_of_files > 0)
-    {
-        /* Set page type to PROGRESS to disable the back button while files are loaded */
-        gtk_assistant_set_page_type (assistant, page, GTK_ASSISTANT_PAGE_PROGRESS);
         mark_page_complete (assistant, TRUE);
-    }
     else
     {
-        /*  Note: Leaving the back button enabled here results in mildly
-            confusing behavior if the user goes back (they get an error on the
-            select page and are forced to load another file instead of just
-            skipping forward and back). While it is technically possible to
-            disable the back button dynamically (by temporarily setting the
-            page type to GTK_ASSISTANT_PAGE_PROGRESS), or to intelligently
-            handle re-loading files, the current behavior gives the user a
-            fairly clear understanding of what is happening. We intentionally
-            preserve this behavior over introducing fiddly architectural
-            changes.
+        /*  TODO: It would be ideal to disable the back button at this point
+            until all files have been unloaded.  However, GtkAssistant does
+            not provide a way to do that.
+
+            The back button works at this point, but results in mildly
+            confusing behavior - you get an error on the select page,
+            and you are forced to load another file; you can't just skip
+            forward and back.  Fixing that may be possible; changing the
+            load page to more intelligently handle the case where the selected
+            file is already loaded should work.  But that will be fiddly,
+            as you likely want to force an already loaded file to be reloaded
+            as we come forward.  The current muddle 'feels' bad, but gives
+            a user a fairly clear understanding of what is happening, and
+            so I am choosing to prefer it.
         */
     }
 

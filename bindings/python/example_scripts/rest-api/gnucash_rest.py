@@ -910,27 +910,13 @@ def getTransactions(book, account_guid, date_posted_from, date_posted_to):
 
     # Eagerly load only the accounts associated with the queried transactions
     accounts_to_load = {}
-
-    # By querying splits specifically for the transactions returned, we avoid N+1 queries.
-    if transactions_list:
-        split_query = gnucash.Query()
-        split_query.search_for('Split')
-        split_query.set_book(book)
-
-        # Match splits where the parent transaction is in our transaction list
-        for tx_instance in transactions_list:
-            tx = gnucash.gnucash_business.Transaction(instance=tx_instance)
-            split_query.add_guid_match(['trans', 'guid'], tx.GetGUID(), gnucash.QOF_QUERY_OR)
-
-        all_splits = split_query.run()
-
-        for sp_instance in all_splits:
+    for tx_instance in transactions_list:
+        tx = gnucash.gnucash_business.Transaction(instance=tx_instance)
+        for sp_instance in tx.GetSplitList():
             sp = gnucash.gnucash_business.Split(instance=sp_instance)
             acc = sp.GetAccount()
             if acc:
                 accounts_to_load[acc.GetGUID().to_string()] = acc
-
-        split_query.destroy()
 
     for acc_guid, acc in accounts_to_load.items():
         account_cache[acc_guid] = gnucash_simple.accountToDict(acc, gbp=gbp, lazy=True)
