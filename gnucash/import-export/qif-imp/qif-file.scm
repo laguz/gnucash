@@ -67,13 +67,10 @@
 ;;
 ;;  The return value will be:
 ;;    success:   ()
-;;    failure:   (#f error-message)
-;;    warning:   (#t error-message)
+;;    failure:   (#f error-message-1 error-message-2 ...)
+;;    warning:   (#t warning-message-1 warning-message-2 ...)
 ;;    cancel:    #t
 ;;    exception: #f
-;;
-;; FIXME: This function really should be able to return multiple
-;;        errors and warnings rather than a single one.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define (qif-file:read-file self path ticker-map progress-dialog)
@@ -88,7 +85,8 @@
           (default-split #f)
           (first-xtn #f)
           (ignore-accounts #f)
-          (private-retval '())
+          (warnings '())
+          (failures '())
           (line-num 0)
           (line #f)
           (tag #f)
@@ -103,7 +101,7 @@
       (define (mywarn . args)
         (let ((str (gnc:list-display-to-string
                      (append (list (G_ "Line") " " line-num ": ") args))))
-          (set! private-retval (list #t str))
+          (set! warnings (cons str warnings))
           (qif-import:log progress-dialog "qif-file:read-file" str)))
 
 
@@ -111,7 +109,7 @@
       (define (myfail . args)
         (let ((str (gnc:list-display-to-string
                          (append (list (G_ "Line") " " line-num ": ") args))))
-          (set! private-retval (list #f str))
+          (set! failures (cons str failures))
           (qif-import:log progress-dialog "qif-file:read-file"
                           (string-append str "\n" (G_ "Read aborted.")))
           (set! abort-read #t)))
@@ -549,7 +547,6 @@
                         (qif-import:check-pause progress-dialog)
                         (if qif-import:canceled
                             (begin
-                              (set! private-retval #t)
                               (set! abort-read #t)))))
 
                   ;; This is if we read a normal (non-null, non-eof) line...
@@ -565,7 +562,11 @@
       ;; they appeared in the file.  This is important in a few cases.
       (qif-file:set-xtns! self (reverse (qif-file:xtns self)))
 
-      private-retval))
+      (cond
+        (qif-import:canceled #t)
+        ((not (null? failures)) (cons #f (reverse failures)))
+        ((not (null? warnings)) (cons #t (reverse warnings)))
+        (else '()))))
 
 
   (gnc:backtrace-if-exception

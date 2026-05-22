@@ -44,6 +44,68 @@ class BusinessSession(BookSession):
             self.today, self.today, "", True, False)
 
 class TestBusiness(BusinessSession):
+    def test_bill_lookup_by_id(self):
+        from gnucash.gnucash_business import Bill
+
+        bill_id = "BillID"
+        bill = Bill(self.book, bill_id, self.currency, self.vendor)
+
+        found_bill = self.book.BillLookupByID(bill_id)
+
+        self.assertIsNotNone(found_bill)
+        self.assertEqual(bill.GetID(), found_bill.GetID())
+
+    def test_invoice_lookup_by_id(self):
+        found_invoice = self.book.InvoiceLookupByID(self.invoice.GetID())
+
+        self.assertIsNotNone(found_invoice)
+        self.assertEqual(self.invoice.GetID(), found_invoice.GetID())
+
+    def test_customer_lookup_by_id(self):
+        found_customer = self.book.CustomerLookupByID(self.customer.GetID())
+
+        self.assertIsNotNone(found_customer)
+        self.assertEqual(self.customer.GetID(), found_customer.GetID())
+
+    def test_vendor_lookup_by_id(self):
+        found_vendor = self.book.VendorLookupByID(self.vendor.GetID())
+
+        self.assertIsNotNone(found_vendor)
+        self.assertEqual(self.vendor.GetID(), found_vendor.GetID())
+
+    def test_job_lookup(self):
+        job_guid = self.job.GetGUID()
+        found_job = self.book.JobLookup(job_guid)
+        self.assertIsNotNone(found_job)
+        self.assertEqual(self.job.GetID(), found_job.GetID())
+
+    def test_employee_lookup(self):
+        employee_guid = self.employee.GetGUID()
+        found_employee = self.book.EmployeeLookup(employee_guid)
+        self.assertIsNotNone(found_employee)
+        self.assertEqual(self.employee.GetID(), found_employee.GetID())
+
+    def test_invoice_lookup(self):
+        invoice_guid = self.invoice.GetGUID()
+        found_invoice = self.book.InvoiceLookup(invoice_guid)
+
+        self.assertIsNotNone(found_invoice)
+        self.assertEqual(self.invoice.GetID(), found_invoice.GetID())
+
+    def test_customer_lookup(self):
+        customer_guid = self.customer.GetGUID()
+        found_customer = self.book.CustomerLookup(customer_guid)
+
+        self.assertIsNotNone(found_customer)
+        self.assertEqual(self.customer.GetID(), found_customer.GetID())
+
+    def test_vendor_lookup(self):
+        vendor_guid = self.vendor.GetGUID()
+        found_vendor = self.book.VendorLookup(vendor_guid)
+
+        self.assertIsNotNone(found_vendor)
+        self.assertEqual(self.vendor.GetID(), found_vendor.GetID())
+
     def test_equal(self):
         self.assertTrue( self.vendor.Equal( self.vendor.GetVendor() ) )
         self.assertTrue( self.customer.Equal( self.job.GetOwner() ) )
