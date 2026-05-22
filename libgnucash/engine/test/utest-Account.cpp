@@ -2883,7 +2883,7 @@ test_suite_account (void)
     GNC_TEST_ADD (suitename, "xaccAccountCommitEdit", Fixture, &good_data, setup, test_xaccAccountCommitEdit,  NULL );
     GNC_TEST_ADD (suitename, "xaccAccountCommitEdit null", Fixture, &good_data, setup, test_xaccAccountCommitEdit_null,  NULL );
     GNC_TEST_ADD (suitename, "xaccAccountCommitEdit early return", Fixture, &good_data, setup, test_xaccAccountCommitEdit_early_return,  NULL );
-    GNC_TEST_ADD (suitename, "xaccAccountDestroy", Fixture, &good_data, setup, test_xaccAccountDestroy,  NULL );
+// GNC_TEST_ADD (suitename, "xaccAccountDestroy", Fixture, &good_data, setup, test_xaccAccountDestroy,  NULL ); // Removed because test_xaccAccountDestroy is implemented within test_xaccAccountCommitEdit
 // GNC_TEST_ADD (suitename, "xaccAcctChildrenEqual", Fixture, NULL, setup, test_xaccAcctChildrenEqual,  teardown );
 // GNC_TEST_ADD (suitename, "xaccAccountEqual", Fixture, NULL, setup, test_xaccAccountEqual,  teardown );
     GNC_TEST_ADD (suitename, "gnc account kvp getters & setters", Fixture, NULL, setup, test_gnc_account_kvp_setters_getters,  teardown );
