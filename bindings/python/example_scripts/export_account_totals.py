@@ -28,12 +28,36 @@ from gnucash import GncNumeric, Session, SessionOpenMode
 def get_all_sub_accounts(account, prefix=''):
     "Iterate over all sub accounts of a given account."
 
-    for child in account.get_children_sorted():
-        name = child.GetName()
-        full_name = f"{prefix}::{name}" if prefix else name
-        yield child, full_name
-        yield from get_all_sub_accounts(child, full_name)
+    descendants = account.get_descendants_sorted()
+    if not descendants:
+        return
 
+    # Create a lookup mapping child to its parent
+    parents = {d: d.get_parent() for d in descendants}
+
+    # Memoize full names to avoid recomputing for deep trees
+    full_names = {}
+
+    def get_full_name(acc):
+        if acc in full_names:
+            return full_names[acc]
+
+        parent = parents.get(acc)
+        # If the parent is the root 'account' we were called with or not found
+        if parent is None or parent == account:
+            if prefix:
+                name = f"{prefix}::{acc.GetName()}"
+            else:
+                name = acc.GetName()
+        else:
+            parent_name = get_full_name(parent)
+            name = f"{parent_name}::{acc.GetName()}"
+
+        full_names[acc] = name
+        return name
+
+    for child in descendants:
+        yield child, get_full_name(child)
 
 def to_string_with_decimal_point_placed(number: GncNumeric):
     """Convert a GncNumeric to a string with decimal point placed if permissible.
@@ -49,11 +73,21 @@ def to_string_with_decimal_point_placed(number: GncNumeric):
     if point_place == 0:
         return nominator
 
+    # Handle negative numbers
+    is_negative = nominator.startswith('-')
+    if is_negative:
+        nominator = nominator[1:]
+
     if len(nominator) <= point_place:  # prepending zeros if the nominator is too short
-        nominator = '0' * (point_place - len(nominator)) + nominator
+        nominator = '0' * (point_place - len(nominator) + 1) + nominator
 
-    return '.'.join([nominator[:-point_place], nominator[-point_place:]])
+    result = '.'.join([nominator[:-point_place], nominator[-point_place:]])
+    if result.startswith('.'):
+        result = '0' + result
 
+    if is_negative:
+        return '-' + result
+    return result
 
 if __name__ == '__main__':
     print('Name,Commodity,Totals,Totals (USD)')

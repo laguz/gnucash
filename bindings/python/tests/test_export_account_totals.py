@@ -19,7 +19,20 @@ class TestExportAccountTotals(TestCase):
     def create_mock_account(self, name, children=None):
         account = MagicMock()
         account.GetName.return_value = name
+        account.get_parent.return_value = None
         account.get_children_sorted.return_value = children if children else []
+        for child in (children or []):
+            child.get_parent.return_value = account
+
+        # Build descendants list to mock get_descendants_sorted
+        def get_descendants(acc):
+            desc = []
+            for c in acc.get_children_sorted():
+                desc.append(c)
+                desc.extend(get_descendants(c))
+            return desc
+
+        account.get_descendants_sorted.return_value = get_descendants(account)
         return account
 
     def test_no_children(self):
