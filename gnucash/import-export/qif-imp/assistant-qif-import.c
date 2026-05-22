@@ -2475,20 +2475,19 @@ update_file_page (QIFImportWindow * wind)
         mark_page_complete (assistant, TRUE);
     else
     {
-        /*  TODO: It would be ideal to disable the back button at this point
+        /*  NOTE: It would be ideal to disable the back button at this point
             until all files have been unloaded.  However, GtkAssistant does
-            not provide a way to do that.
+            not provide a cleanly supported way to do that dynamically.
 
             The back button works at this point, but results in mildly
             confusing behavior - you get an error on the select page,
             and you are forced to load another file; you can't just skip
-            forward and back.  Fixing that may be possible; changing the
+            forward and back.  Fixing that may be possible by changing the
             load page to more intelligently handle the case where the selected
-            file is already loaded should work.  But that will be fiddly,
-            as you likely want to force an already loaded file to be reloaded
-            as we come forward.  The current muddle 'feels' bad, but gives
-            a user a fairly clear understanding of what is happening, and
-            so I am choosing to prefer it.
+            file is already loaded.  But that will be fiddly, as you likely
+            want to force an already loaded file to be reloaded as we come
+            forward.  The current behavior gives a user a fairly clear
+            understanding of what is happening, so it is preserved.
         */
     }
 
