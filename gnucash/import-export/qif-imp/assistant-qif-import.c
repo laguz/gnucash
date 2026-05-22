@@ -2469,25 +2469,22 @@ update_file_page (QIFImportWindow * wind)
     /* get the number of files in the list */
     num_of_files = gtk_tree_model_iter_n_children (GTK_TREE_MODEL(store), NULL);
 
+    /*  NOTE: It would be ideal to disable the back button when files are loaded
+        (num_of_files > 0) until all files have been unloaded.  However, GtkAssistant does
+        not provide a cleanly supported way to do that dynamically.
+
+        The back button works at this point, but results in mildly
+        confusing behavior - you get an error on the select page,
+        and you are forced to load another file; you can't just skip
+        forward and back.  Fixing that may be possible by changing the
+        load page to more intelligently handle the case where the selected
+        file is already loaded.  But that will be fiddly, as you likely
+        want to force an already loaded file to be reloaded as we come
+        forward.  The current behavior gives a user a fairly clear
+        understanding of what is happening, so it is preserved.
+    */
     if (num_of_files > 0)
         mark_page_complete (assistant, TRUE);
-    else
-    {
-        /*  NOTE: It would be ideal to disable the back button at this point
-            until all files have been unloaded.  However, GtkAssistant does
-            not provide a cleanly supported way to do that dynamically.
-
-            The back button works at this point, but results in mildly
-            confusing behavior - you get an error on the select page,
-            and you are forced to load another file; you can't just skip
-            forward and back.  Fixing that may be possible by changing the
-            load page to more intelligently handle the case where the selected
-            file is already loaded.  But that will be fiddly, as you likely
-            want to force an already loaded file to be reloaded as we come
-            forward.  The current behavior gives a user a fairly clear
-            understanding of what is happening, so it is preserved.
-        */
-    }
 
 }
 
