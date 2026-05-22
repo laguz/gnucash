@@ -158,7 +158,7 @@ gnc_num_cell_modify_verify (BasicCell *_cell,
         if (!is_num)
             number = cell->next_num;
 
-        buff[0] = '\0';
+        strcpy (buff, "");
         snprintf (buff, sizeof(buff), "%ld", number);
 
         if (g_strcmp0 (buff, "") == 0)

@@ -67,7 +67,6 @@ import gzip
 import xml.sax as sax
 import os.path, locale
 import time
-import re
 
 # ********************** OPENOFFICE.ORG-API *******************************
 # Component Context und Service Manager
@@ -295,10 +294,8 @@ def createdelete(create_statement, table_name):
     try:
         Stmt.execute(create_statement)
     except:
-        if table_name and re.match(r'^[A-Za-z0-9_]+$', str(table_name)):
-            Stmt.execute("DELETE FROM {}".format(table_name))
-        elif table_name:
-            raise ValueError("Invalid table name: " + str(table_name))
+        if table_name:
+            Stmt.execute("DELETE FROM " + table_name)
 
 def eval_fraction(cont):
     global crout
@@ -741,7 +738,7 @@ def fillGnuCashDB():
     crout = 'fillGnuCashDB'
     try:
         exec_fillGnuCashDB()
-    except Exception as args:
+    except Exception, args:
         issue_error_messages(args)
         return
     
@@ -750,7 +747,7 @@ def SetGnuCashFilePaths():
     crout = 'SetGnuCashFilePaths'
     try:
         exec_SetGnuCashFilePaths()
-    except Exception as args:
+    except Exception, args:
         issue_error_messages(args)
         return
     

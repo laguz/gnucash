@@ -282,11 +282,9 @@ guid_hash_table_new (void)
 static void
 gnc_string_to_guid (const GValue *src, GValue *dest)
 {
+    /* FIXME: add more checks*/
     GncGUID *guid;
     const gchar *as_string;
-
-    g_return_if_fail (src && G_IS_VALUE (src));
-    g_return_if_fail (dest && G_IS_VALUE (dest));
 
     g_return_if_fail (G_VALUE_HOLDS_STRING (src) &&
                       GNC_VALUE_HOLDS_GUID (dest));
@@ -294,10 +292,7 @@ gnc_string_to_guid (const GValue *src, GValue *dest)
     as_string = g_value_get_string (src);
 
     guid = g_new0 (GncGUID, 1);
-    if (!string_to_guid (as_string, guid))
-    {
-        g_warning ("Failed to convert string '%s' to GUID", as_string ? as_string : "(null)");
-    }
+    string_to_guid (as_string, guid);
 
     g_value_take_boxed (dest, guid);
 }
@@ -305,17 +300,14 @@ gnc_string_to_guid (const GValue *src, GValue *dest)
 static void
 gnc_guid_to_string (const GValue *src, GValue *dest)
 {
-    gchar *str;
-
-    g_return_if_fail (src && G_IS_VALUE (src));
-    g_return_if_fail (dest && G_IS_VALUE (dest));
+    const gchar *str;
 
     g_return_if_fail (G_VALUE_HOLDS_STRING (dest) &&
                       GNC_VALUE_HOLDS_GUID (src));
 
     str = guid_to_string (gnc_value_get_guid (src));
 
-    g_value_take_string (dest, str);
+    g_value_set_string (dest, str);
 }
 
 G_DEFINE_BOXED_TYPE_WITH_CODE (GncGUID, gnc_guid, guid_copy, guid_free,

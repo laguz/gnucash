@@ -542,6 +542,37 @@ gnc_get_doclink_flag_order (void)
     return flags;
 }
 
+const char*
+gnc_get_type_str (char type_flag)
+{
+    switch (type_flag)
+    {
+    case TXN_TYPE_INVOICE:
+        return C_("Transaction Type flag for 'invoice'", "I");
+    case TXN_TYPE_PAYMENT:
+        return C_("Transaction Type flag for 'payment'", "P");
+    case TXN_TYPE_UNCACHED:
+        return C_("Transaction Type flag for 'uncached'", "?");
+    default:
+        PERR("Bad type flag");
+        return nullptr;
+    }
+}
+
+const char*
+gnc_get_type_valid_flags (void)
+{
+    static const char flags[] = { TXN_TYPE_INVOICE, TXN_TYPE_PAYMENT, TXN_TYPE_UNCACHED, 0 };
+    return flags;
+}
+
+const char*
+gnc_get_type_flag_order (void)
+{
+    static const char flags[] = { TXN_TYPE_INVOICE, TXN_TYPE_PAYMENT, 0 };
+    return flags;
+}
+
 static const char*
 equity_base_name (GNCEquityType equity_type)
 {
@@ -1159,7 +1190,7 @@ PrintAmountInternal(char* buf, gnc_numeric val, const GNCPrintAmountInfo *info)
     auto num_whole_digits = strlen (temp_buf);
 
     if (!info->use_separators)
-        strcpy (buf, temp_buf);
+        g_strlcpy (buf, temp_buf, num_whole_digits + 1);
     else
     {
         char* separator;
@@ -1216,7 +1247,7 @@ PrintAmountInternal(char* buf, gnc_numeric val, const GNCPrintAmountInfo *info)
         *buf_ptr++ = *temp_ptr;
         *buf_ptr = '\0';
         auto rev_buf = g_utf8_strreverse(buf, -1);
-        strcpy (buf, rev_buf);
+        g_strlcpy (buf, rev_buf, (buf_ptr - buf) + 1);
         g_free(rev_buf);
     } /* endif */
 
