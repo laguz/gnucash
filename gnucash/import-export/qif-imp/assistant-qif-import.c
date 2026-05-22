@@ -2473,25 +2473,20 @@ update_file_page (QIFImportWindow * wind)
     /* get the number of files in the list */
     num_of_files = gtk_tree_model_iter_n_children (GTK_TREE_MODEL(store), NULL);
 
+    gint num = gtk_assistant_get_current_page (assistant);
+    GtkWidget *page = gtk_assistant_get_nth_page (assistant, num);
+
     if (num_of_files > 0)
+    {
+        /* Set page type to PROGRESS to disable the back button while files are loaded */
+        gtk_assistant_set_page_type (assistant, page, GTK_ASSISTANT_PAGE_PROGRESS);
         mark_page_complete (assistant, TRUE);
+    }
     else
     {
-        /*  TODO: It would be ideal to disable the back button at this point
-            until all files have been unloaded.  However, GtkAssistant does
-            not provide a way to do that.
-
-            The back button works at this point, but results in mildly
-            confusing behavior - you get an error on the select page,
-            and you are forced to load another file; you can't just skip
-            forward and back.  Fixing that may be possible; changing the
-            load page to more intelligently handle the case where the selected
-            file is already loaded should work.  But that will be fiddly,
-            as you likely want to force an already loaded file to be reloaded
-            as we come forward.  The current muddle 'feels' bad, but gives
-            a user a fairly clear understanding of what is happening, and
-            so I am choosing to prefer it.
-        */
+        /* Restore normal page type to enable the back button if all files are unloaded */
+        gtk_assistant_set_page_type (assistant, page, GTK_ASSISTANT_PAGE_CONTENT);
+        mark_page_complete (assistant, FALSE);
     }
 
 }
