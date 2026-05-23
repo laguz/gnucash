@@ -1,4 +1,6 @@
-#!/usr/bin/env python3
+import sys
+
+new_content = """#!/usr/bin/env python3
 
 ##  @file
 #   @brief Recurse over all accounts in a book and marks the first one having target_account_code as tax related
@@ -11,12 +13,12 @@ import gnucash
 TARGET_ACCOUNT_CODE = '1234'
 
 def mark_account_with_code_as_tax_related(account, target_code):
-    """Looks at account to see if it has the target_account_code, if so
+    \"\"\"Looks at account to see if it has the target_account_code, if so
     set the account tax related flag to True and return True.
     If not, tries to do the same to all descendant accounts
     of account.
     Returns False when it fails to find it.
-    """
+    \"\"\"
     if account.GetCode() == target_code:
         account.SetTaxRelated(True)
         return True
@@ -36,3 +38,7 @@ mark_account_with_code_as_tax_related(
 
 gnucash_session.save()
 gnucash_session.end()
+"""
+
+with open("bindings/python/example_scripts/change_tax_code.py", "w") as f:
+    f.write(new_content)

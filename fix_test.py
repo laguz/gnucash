@@ -1,4 +1,6 @@
 import sys
+
+new_content = """import sys
 import os
 from unittest import TestCase, main
 from unittest.mock import MagicMock
@@ -24,7 +26,7 @@ class TestChangeTaxCode(TestCase):
         self.root_account.get_descendants.return_value = []
 
     def test_root_match(self):
-        """Test that the function returns True and sets tax related when root matches."""
+        \"\"\"Test that the function returns True and sets tax related when root matches.\"\"\"
         target_code = "1234"
         self.root_account.GetCode.return_value = target_code
 
@@ -34,7 +36,7 @@ class TestChangeTaxCode(TestCase):
         self.root_account.SetTaxRelated.assert_called_once_with(True)
 
     def test_child_match(self):
-        """Test that the function finds a match in a direct child."""
+        \"\"\"Test that the function finds a match in a direct child.\"\"\"
         target_code = "1234"
         child = MagicMock()
         child.GetCode.return_value = target_code
@@ -51,7 +53,7 @@ class TestChangeTaxCode(TestCase):
         self.root_account.SetTaxRelated.assert_not_called()
 
     def test_grandchild_match(self):
-        """Test that the function finds a match in a nested grandchild."""
+        \"\"\"Test that the function finds a match in a nested grandchild.\"\"\"
         target_code = "1234"
         child = MagicMock()
         child.GetCode.return_value = "CHILD"
@@ -74,7 +76,7 @@ class TestChangeTaxCode(TestCase):
         self.root_account.SetTaxRelated.assert_not_called()
 
     def test_no_match(self):
-        """Test that the function returns False when no account matches the code."""
+        \"\"\"Test that the function returns False when no account matches the code.\"\"\"
         child = MagicMock()
         child.GetCode.return_value = "CHILD"
         child.get_children.return_value = []
@@ -89,7 +91,7 @@ class TestChangeTaxCode(TestCase):
         self.root_account.SetTaxRelated.assert_not_called()
 
     def test_branching_match(self):
-        """Test that the function continues searching if the first branch doesn't match."""
+        \"\"\"Test that the function continues searching if the first branch doesn't match.\"\"\"
         target_code = "1234"
         child1 = MagicMock()
         child1.GetCode.return_value = "CHILD1"
@@ -113,3 +115,7 @@ class TestChangeTaxCode(TestCase):
 
 if __name__ == "__main__":
     main()
+"""
+
+with open("bindings/python/tests/test_change_tax_code.py", "w") as f:
+    f.write(new_content)
