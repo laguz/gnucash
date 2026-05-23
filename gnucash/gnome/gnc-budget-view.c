@@ -1134,7 +1134,7 @@ budget_col_source (Account *account, GtkTreeViewColumn *col,
         numeric = gnc_budget_get_account_period_value (priv->budget, account,
                                                        period_num);
         if (gnc_numeric_check (numeric))
-            strcpy (amtbuff, "error");
+            g_strlcpy (amtbuff, "error", sizeof(amtbuff));
         else
         {
             if (gnc_reverse_balance (account))
