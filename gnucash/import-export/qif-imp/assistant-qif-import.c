@@ -2468,20 +2468,19 @@ update_file_page (QIFImportWindow * wind)
     /* get the number of files in the list */
     num_of_files = gtk_tree_model_iter_n_children (GTK_TREE_MODEL(store), NULL);
 
-    /*  NOTE: It would be ideal to disable the back button when files are loaded
-        (num_of_files > 0) until all files have been unloaded.  However, GtkAssistant does
-        not provide a cleanly supported way to do that dynamically.
-
-        The back button works at this point, but results in mildly
-        confusing behavior - you get an error on the select page,
-        and you are forced to load another file; you can't just skip
-        forward and back.  Fixing that may be possible by changing the
-        load page to more intelligently handle the case where the selected
-        file is already loaded.  But that will be fiddly, as you likely
-        want to force an already loaded file to be reloaded as we come
-        forward.  The current behavior gives a user a fairly clear
-        understanding of what is happening, so it is preserved.
-    */
+    /* We intentionally do not disable the back button when files are loaded
+     * (num_of_files > 0). While disabling it would prevent mildly confusing
+     * behavior (getting an error on the select page and being forced to load
+     * another file), GtkAssistant does not cleanly support dynamically
+     * disabling the back button without permanently erasing history or
+     * forcing unwanted page transitions (e.g., using GTK_ASSISTANT_PAGE_PROGRESS).
+     *
+     * Working around this by changing the load page to intelligently handle
+     * already-loaded files is overly complex and fiddly, as it requires
+     * forcing reloads when moving forward. The current behavior provides
+     * the user with a clear enough understanding of what is happening,
+     * so this design choice is preserved.
+     */
     if (num_of_files > 0)
         mark_page_complete (assistant, TRUE);
 
