@@ -493,7 +493,9 @@ void gnc_entry_ledger_load (GncEntryLedger* ledger, GList* entry_list)
     else
     {
         find_entry = gnc_entry_ledger_get_current_entry (ledger);
-        /* XXX: get current entry (cursor_hint_xxx) */
+        /* Note: Unlike split-register which requires complex cursor_hint_xxx
+         * state for multi-line transactions, GncEntryLedger handles single
+         * entries so we simply retrieve the current entry directly. */
     }
 
     /* If the current cursor has changed we save the values for later
