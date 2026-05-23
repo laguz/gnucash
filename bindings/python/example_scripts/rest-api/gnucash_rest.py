@@ -803,7 +803,7 @@ def getVendors(book):
 
     for result in query.run():
         vendors.append(gnucash_simple.vendorToDict(
-            gnucash.gnucash_business.Vendor(instance=result), lazy=True))
+            gnucash.gnucash_business.Vendor(instance=result)))
 
     query.destroy()
 
@@ -883,10 +883,7 @@ def getTransaction(book, guid):
     if transaction is None:
         return None
 
-    commod_table = book.get_table()
-    gbp = commod_table.lookup('CURRENCY', 'GBP')
-
-    transaction = gnucash_simple.transactionToDict(transaction, ['splits'], gbp=gbp)
+    transaction = gnucash_simple.transactionToDict(transaction, ['splits'])
 
     if transaction is None:
         return None
@@ -902,29 +899,9 @@ def getTransactions(book, account_guid, date_posted_from, date_posted_to):
 
     transactions = []
 
-    commod_table = book.get_table()
-    gbp = commod_table.lookup('CURRENCY', 'GBP')
-    account_cache = {}
-
-    transactions_list = query.run()
-
-    # Eagerly load only the accounts associated with the queried transactions
-    accounts_to_load = {}
-    for tx_instance in transactions_list:
-        tx = gnucash.gnucash_business.Transaction(instance=tx_instance)
-        for sp_instance in tx.GetSplitList():
-            sp = gnucash.gnucash_business.Split(instance=sp_instance)
-            acc = sp.GetAccount()
-            if acc:
-                accounts_to_load[acc.GetGUID().to_string()] = acc
-
-    for acc_guid, acc in accounts_to_load.items():
-        account_cache[acc_guid] = gnucash_simple.accountToDict(acc, gbp=gbp, lazy=True)
-
-    for transaction in transactions_list:
+    for transaction in query.run():
         transactions.append(gnucash_simple.transactionToDict(
-            gnucash.gnucash_business.Transaction(instance=transaction),
-            ['splits'], account_cache=account_cache, gbp=gbp))
+            gnucash.gnucash_business.Transaction(instance=transaction)))
 
     query.destroy()
 
@@ -967,15 +944,10 @@ def getAccountSplits(book, guid, date_posted_from, date_posted_to):
 
     splits = []
 
-    commod_table = book.get_table()
-    gbp = commod_table.lookup('CURRENCY', 'GBP')
-    account_cache = {}
-
     for split in query.run():
         splits.append(gnucash_simple.splitToDict(
             gnucash.gnucash_business.Split(instance=split),
-            ['account', 'transaction', 'other_split'],
-            account_cache=account_cache, gbp=gbp))
+            ['account', 'transaction', 'other_split']))
 
     query.destroy()
 
@@ -1760,9 +1732,9 @@ def addTransaction(book, num, description, date_posted, currency_mnumonic, split
 
     transaction.CommitEdit()
 
-    return gnucash_simple.transactionToDict(transaction, ['splits'], gbp=currency)
+    return gnucash_simple.transactionToDict(transaction, ['splits'])
 
-def getTransaction_internal(book, transaction_guid):
+def getTransaction(book, transaction_guid):
 
     guid = gnucash.gnucash_core.GUID() 
     gnucash.gnucash_core.GUIDString(transaction_guid, guid)
@@ -1772,9 +1744,7 @@ def getTransaction_internal(book, transaction_guid):
     if transaction is None:
         return None
     else:
-        commod_table = book.get_table()
-        gbp = commod_table.lookup('CURRENCY', 'GBP')
-        return gnucash_simple.transactionToDict(transaction, ['splits'], gbp=gbp)
+        return gnucash_simple.transactionToDict(transaction, ['splits'])
 
 def editTransaction(book, transaction_guid, num, description, date_posted,
     currency_mnumonic, splits):
@@ -1842,7 +1812,7 @@ def editTransaction(book, transaction_guid, num, description, date_posted,
 
     transaction.CommitEdit()
 
-    return gnucash_simple.transactionToDict(transaction, ['splits'], gbp=currency)
+    return gnucash_simple.transactionToDict(transaction, ['splits'])
 
 def gnc_numeric_from_decimal(decimal_value):
     sign, digits, exponent = decimal_value.as_tuple()

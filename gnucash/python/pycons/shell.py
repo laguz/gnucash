@@ -153,7 +153,7 @@ class Shell:
 
         try:
             try:
-                self.interpreter.runsource(self.command)
+                self.interpreter.runsource(self.command, symbol="single")
 
                 # Command output and prints
                 out = capture_out.getvalue()

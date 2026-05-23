@@ -595,10 +595,8 @@ class GncNumeric(GnuCashCoreClass):
         forward.__doc__ = monomorphic_operator.__doc__
 
         def reverse(b, a):
-            if isinstance(a, (int, float)):
-                return forward(GncNumeric(a), b)
-            if isinstance(a, GncNumeric):
-                return forward(a, b)
+            if isinstance(a, (GncNumeric, int, float)):
+                return forward(b, a)
             else:
                 return NotImplemented
         reverse.__name__ = '__r' + fallback_operator.__name__ + '__'

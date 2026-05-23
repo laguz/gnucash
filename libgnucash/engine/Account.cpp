@@ -223,13 +223,13 @@ gnc_set_account_separator (const gchar *separator)
     if ((uc == (gunichar) - 2) || (uc == (gunichar) - 1) || g_unichar_isalnum(uc))
     {
         account_uc_separator = ':';
-        g_strlcpy(account_separator, ":", sizeof(account_separator));
+        strcpy(account_separator, ":");
         return;
     }
 
     account_uc_separator = uc;
     count = g_unichar_to_utf8(uc, account_separator);
-    account_separator[std::min(static_cast<size_t>(count), sizeof(account_separator) - 1)] = '\0';
+    account_separator[count] = '\0';
 }
 
 gchar *gnc_account_name_violations_errmsg (const gchar *separator, GList* invalid_account_names)
@@ -1343,9 +1343,8 @@ xaccCloneAccount(const Account *from, QofBook *book)
 static void
 xaccFreeOneChildAccount (Account *acc)
 {
-    /* Force editlevel to 1 so xaccAccountDestroy will immediately destroy it. */
-    while (qof_instance_get_editlevel(acc) > 1)
-        qof_instance_decrease_editlevel(acc);
+    /* FIXME: this code is kind of hacky.  actually, all this code
+     * seems to assume that the account edit levels are all 1. */
     if (qof_instance_get_editlevel(acc) == 0)
         xaccAccountBeginEdit(acc);
     xaccAccountDestroy(acc);
@@ -1957,6 +1956,7 @@ gnc_account_insert_split (Account *acc, Split *s)
     else
         priv->sort_dirty = true;
 
+    //FIXME: find better event
     qof_event_gen (&acc->inst, QOF_EVENT_MODIFY, nullptr);
     /* Also send an event based on the account */
     qof_event_gen(&acc->inst, GNC_EVENT_ITEM_ADDED, s);
@@ -1988,6 +1988,7 @@ gnc_account_remove_split (Account *acc, Split *s)
         priv->splits.erase (std::remove (priv->splits.begin(), priv->splits.end(), s),
                             priv->splits.end());
 
+    //FIXME: find better event type
     qof_event_gen(&acc->inst, QOF_EVENT_MODIFY, nullptr);
     // And send the account-based event, too
     qof_event_gen(&acc->inst, GNC_EVENT_ITEM_REMOVED, s);
@@ -3513,8 +3514,8 @@ xaccAccountGetPresentBalance (const Account *acc)
 
 /********************************************************************\
 \********************************************************************/
-/* Note: These balance currency conversion routines remain in the core
- * account engine due to historical reasons and extensive API usage.
+/* XXX TODO: These 'GetBal' routines should be moved to some
+ * utility area outside of the core account engine area.
  */
 
 /*
@@ -4776,16 +4777,6 @@ xaccAccountGainsAccount (Account *acc, gnc_commodity *curr)
     }
 
     return gains_account;
-}
-
-void
-xaccAccountSetGainsAccount (Account *acc, gnc_commodity *curr, Account *gains_acc)
-{
-    g_return_if_fail (GNC_IS_ACCOUNT (acc));
-    g_return_if_fail (curr != nullptr);
-
-    Path path {KEY_LOT_MGMT, "gains-acct", gnc_commodity_get_unique_name (curr)};
-    set_kvp_account_path (acc, path, gains_acc);
 }
 
 /********************************************************************\

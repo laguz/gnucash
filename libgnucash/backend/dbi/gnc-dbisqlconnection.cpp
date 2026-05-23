@@ -154,8 +154,9 @@ GncDbiSqlConnection::lock_database (bool break_lock)
     /* Add an entry and commit the transaction */
     memset (hostname, 0, sizeof (hostname));
     gethostname (hostname, GNC_HOST_NAME_MAX);
-    std::string sql = "INSERT INTO " + quote_identifier(m_conn, lock_table) + " VALUES (" + quote_string(hostname) + ", " + std::to_string(GETPID()) + ")";
-    result = dbi_conn_query (m_conn, sql.c_str());
+    result = dbi_conn_queryf (m_conn,
+                              "INSERT INTO %s VALUES ('%s', '%d')",
+                              lock_table.c_str(), hostname, (int)GETPID ());
     if (!result)
     {
         qof_backend_set_error (m_qbe, ERR_BACKEND_SERVER_ERR);
@@ -189,9 +190,9 @@ GncDbiSqlConnection::unlock_database ()
         memset (hostname, 0, sizeof (hostname));
         gethostname (hostname, GNC_HOST_NAME_MAX);
         auto result = dbi_conn_queryf (m_conn,
-                                       "SELECT * FROM %s WHERE Hostname = %s "
+                                       "SELECT * FROM %s WHERE Hostname = '%s' "
                                        "AND PID = '%d'", lock_table.c_str(),
-                                       quote_string(hostname).c_str(),
+                                       hostname,
                                        (int)GETPID ());
         if (result && dbi_result_get_numrows (result))
         {
@@ -511,12 +512,6 @@ GncDbiSqlConnection::create_index(const std::string& index_name,
     }
 
     return true;
-}
-
-std::string
-GncDbiSqlConnection::quote_identifier (const std::string& identifier) const
-{
-    return m_provider->quote_identifier (identifier);
 }
 
 bool

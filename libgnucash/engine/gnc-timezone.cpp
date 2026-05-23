@@ -21,7 +21,6 @@
 \********************************************************************/
 
 #include "gnc-timezone.hpp"
-#include "gnc-timezone-p.hpp"
 
 #include <string>
 #include <cstdint>
@@ -45,6 +44,17 @@ using PTZ = boost::local_time::posix_time_zone;
 
 const unsigned int TimeZoneProvider::min_year = 1400;
 const unsigned int TimeZoneProvider::max_year = 9999;
+
+template<typename T>
+T*
+endian_swap(T* t)
+{
+#if ! WORDS_BIGENDIAN
+    auto memp = reinterpret_cast<unsigned char*>(t);
+    std::reverse(memp, memp + sizeof(T));
+#endif
+    return t;
+}
 
 #if PLATFORM(WINDOWS)
 /* libstdc++ to_string is broken on MinGW with no real interest in fixing it.
@@ -299,14 +309,48 @@ TimeZoneProvider::TimeZoneProvider (const std::string& identifier) :
 #elif PLATFORM(POSIX)
 using std::to_string;
 #include <istream>
-#include <fstream>
 #include <cstdlib>
 
 using boost::posix_time::ptime;
-
+//To enable using Transition with different meanings for IANA files
+//and for DSTRules.
 namespace IANAParser
 {
-    static std::vector<char>
+    struct TZHead
+    {
+	char magic[4];
+	char version;
+	uint8_t reserved[15];
+	uint8_t ttisgmtcnt[4];
+	uint8_t ttisstdcnt[4];
+	uint8_t leapcnt[4];
+	uint8_t timecnt[4];
+	uint8_t typecnt[4];
+	uint8_t charcnt[4];
+    };
+
+    struct TTInfo
+    {
+	int32_t gmtoff;
+	uint8_t isdst;
+	uint8_t abbrind;
+    };
+
+    struct TZInfo
+    {
+	TTInfo info;
+	std::string name;
+	bool isstd;
+	bool isgmt;
+    };
+
+    struct Transition
+    {
+	int64_t timestamp;
+	uint8_t index;
+    };
+
+    static std::unique_ptr<char[]>
     find_tz_file(const std::string& name)
     {
 	std::ifstream ifs;
@@ -314,17 +358,13 @@ namespace IANAParser
         if (tzname.empty())
             if (auto tzenv = std::getenv("TZ"))
                 tzname = std::string(tzenv);
-
+        //std::cout << "Testing tzname " << tzname << "\n";
         if (!tzname.empty())
         {
 //POSIX specifies that that identifier should begin with ':', but we
 //should be liberal. If it's there, it's not part of the filename.
 	    if (tzname[0] == ':')
 		tzname.erase(tzname.begin());
-
-            if (tzname.empty())
-                return {};
-
 	    if (tzname[0] == '/') //Absolute filename
 	    {
 		ifs.open(tzname, std::ios::in|std::ios::binary|std::ios::ate);
@@ -342,28 +382,29 @@ namespace IANAParser
 	if (! ifs.is_open())
 	    throw std::invalid_argument("The timezone string failed to resolve to a valid filename");
 	std::streampos filesize = ifs.tellg();
-        std::vector<char> fileblock(filesize);
+	std::unique_ptr<char[]>fileblock(new char[filesize]);
 	ifs.seekg(0, std::ios::beg);
-	ifs.read(fileblock.data(), filesize);
+	ifs.read(fileblock.get(), filesize);
 	ifs.close();
 	return fileblock;
     }
 
-    IANAParser::IANAParser(const std::string& name) : IANAParser(find_tz_file(name)) {}
+    using TZInfoVec = std::vector<TZInfo>;
+    using TZInfoIter = TZInfoVec::iterator;
 
-    IANAParser::IANAParser(std::vector<char> fileblock)
+    struct IANAParser
     {
-        if (fileblock.empty())
-             return;
+	IANAParser(const std::string& name) : IANAParser(find_tz_file(name)) {}
+	IANAParser(std::unique_ptr<char[]>);
+	std::vector<Transition>transitions;
+	TZInfoVec tzinfo;
+	int last_year;
+    };
+
+    IANAParser::IANAParser(std::unique_ptr<char[]>fileblock)
+    {
 	unsigned int fb_index = 0;
-        if (fileblock.size() < sizeof(TZHead))
-            throw std::invalid_argument("Zoneinfo file too small for header.");
-
-	TZHead tzh;
-        memcpy(&tzh, &fileblock[fb_index], sizeof(TZHead));
-        if (memcmp(tzh.magic, "TZif", 4) != 0)
-            throw std::invalid_argument("Zoneinfo file magic number mismatch.");
-
+	TZHead tzh = *reinterpret_cast<TZHead*>(&fileblock[fb_index]);
 	static constexpr int ttinfo_size = 6; //struct TTInfo gets padded
 	last_year = 2037; //Constrained by 32-bit time_t.
 	int transition_size = 4; // length of a transition time in the file
@@ -386,28 +427,16 @@ namespace IANAParser
 
 	    //This might change at some point in the probably very
 	    //distant future.
-            if (fileblock.size() < fb_index + sizeof(tzh))
-                throw std::invalid_argument("Zoneinfo file truncated before 64-bit header.");
-
-            memcpy(&tzh, &fileblock[fb_index], sizeof(TZHead));
+	    tzh = *reinterpret_cast<TZHead*>(&fileblock[fb_index]);
 	    last_year = 2499;
 	    time_count = *(endian_swap(reinterpret_cast<uint32_t*>(tzh.timecnt)));
 	    type_count = *(endian_swap(reinterpret_cast<uint32_t*>(tzh.typecnt)));
 	    char_count = *(endian_swap(reinterpret_cast<uint32_t*>(tzh.charcnt)));
 	    transition_size = 8;
-            fb_index += sizeof(tzh);
 	}
-        else
-        {
-            fb_index += sizeof(tzh);
-        }
-
+	fb_index += sizeof(tzh);
 	auto start_index = fb_index;
 	auto info_index_zero = start_index + time_count * transition_size;
-
-        if (fileblock.size() < info_index_zero + time_count)
-             throw std::invalid_argument("Zoneinfo file truncated before transition info.");
-
 	for(uint32_t index = 0; index < time_count; ++index)
 	{
 	    fb_index = start_index + index * transition_size;
@@ -416,8 +445,9 @@ namespace IANAParser
 	    {
                 int32_t transition_time;
                 // Ensure correct alignment for ARM.
-                memcpy(&transition_time, &fileblock[fb_index], sizeof(int32_t));
-                endian_swap(&transition_time);
+                memcpy(&transition_time,
+                       endian_swap(reinterpret_cast<int32_t*>(&fileblock[fb_index])),
+                       sizeof(int32_t));
                 auto info = static_cast<uint8_t>(fileblock[info_index]);
                 transitions.push_back({transition_time, info});
 	    }
@@ -425,8 +455,9 @@ namespace IANAParser
 	    {
                 int64_t transition_time;
                 // Ensure correct alignment for ARM.
-                memcpy(&transition_time, &fileblock[fb_index], sizeof(int64_t));
-                endian_swap(&transition_time);
+                memcpy(&transition_time,
+                       endian_swap(reinterpret_cast<int64_t*>(&fileblock[fb_index])),
+                       sizeof(int64_t));
                 auto info = static_cast<uint8_t>(fileblock[info_index]);
                 transitions.push_back({transition_time, info});
 	    }
@@ -437,10 +468,6 @@ namespace IANAParser
 	auto abbrev = start_index + type_count * ttinfo_size;
 	auto std_dist = abbrev + char_count;
 	auto gmt_dist = std_dist + type_count;
-
-        if (fileblock.size() < gmt_dist + type_count)
-             throw std::invalid_argument("Zoneinfo file truncated before end of data.");
-
 	for(uint32_t index = 0; index < type_count; ++index)
 	{
 	    fb_index = start_index + index * ttinfo_size;
@@ -459,6 +486,23 @@ namespace IANAParser
 
 namespace DSTRule
 {
+    using gregorian_date = boost::gregorian::date;
+    using IANAParser::TZInfoIter;
+    using ndate = boost::gregorian::nth_day_of_the_week_in_month;
+    using week_num =
+	boost::date_time::nth_kday_of_month<boost::gregorian::date>::week_num;
+
+    struct Transition
+    {
+	Transition() : month(1), dow(0), week(static_cast<week_num>(0)) {}
+	Transition(gregorian_date date);
+	bool operator==(const Transition& rhs) const noexcept;
+	ndate get();
+	boost::gregorian::greg_month month;
+	boost::gregorian::greg_weekday dow;
+	week_num week;
+    };
+
     Transition::Transition(gregorian_date date) :
 	month(date.month()), dow(date.day_of_week()),
 	week(static_cast<week_num>((6 + date.day() - date.day_of_week()) / 7))
@@ -475,6 +519,21 @@ namespace DSTRule
     {
 	return ndate(week, dow, month);
     }
+
+    struct DSTRule
+    {
+	DSTRule();
+	DSTRule(TZInfoIter info1, TZInfoIter info2,
+		ptime date1, ptime date2);
+	bool operator==(const DSTRule& rhs) const noexcept;
+	bool operator!=(const DSTRule& rhs) const noexcept;
+	Transition to_std;
+	Transition to_dst;
+	duration to_std_time;
+	duration to_dst_time;
+	TZInfoIter std_info;
+	TZInfoIter dst_info;
+    };
 
     DSTRule::DSTRule() : to_std(), to_dst(), to_std_time {}, to_dst_time {},
 	std_info (), dst_info () {};
@@ -576,8 +635,6 @@ void
 TimeZoneProvider::parse_file(const std::string& tzname)
 {
     IANAParser::IANAParser parser(tzname);
-    if (parser.tzinfo.empty())
-        return;
     using boost::posix_time::hours;
     const auto one_year = hours(366 * 24); //Might be a leap year.
     auto last_info = std::find_if(parser.tzinfo.begin(), parser.tzinfo.end(),
@@ -653,10 +710,7 @@ TimeZoneProvider::parse_file(const std::string& tzname)
  * period then the zone rescinded DST and we need a final no-dstzone.
  */
     if (last_time.is_not_a_date_time())
-    {
-        if (last_info != parser.tzinfo.end())
-            m_zone_vector.push_back(zone_no_dst(max_year, last_info));
-    }
+        m_zone_vector.push_back(zone_no_dst(max_year, last_info));
     else if (last_time.date().year() < parser.last_year)
         m_zone_vector.push_back(zone_no_dst(last_time.date().year(), last_info));
 }

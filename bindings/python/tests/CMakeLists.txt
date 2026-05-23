@@ -1,3 +1,4 @@
+
 if (WITH_PYTHON)
   find_path(test_core_dir "unittest_support.py" PATHS ${CMAKE_BINARY_DIR}/common/test-core ${CMAKE_SOURCE_DIR}/common/test-core)
   if (${test_core_dir} STREQUAL "test_core_dir-NOTFOUND")
@@ -10,7 +11,9 @@ if (WITH_PYTHON)
   set(PYTHON_ENV "GNC_UNINSTALLED=1;GNC_BUILDDIR=${CMAKE_BINARY_DIR};PYTHONPATH=${PYTHON_SYSCONFIG_BUILD}:${LIBDIR_BUILD}/gnucash:${test_core_dir}")
   set(ASAN_ENV "${ASAN_DYNAMIC_LIB_ENV};ASAN_OPTIONS=${ASAN_TEST_OPTIONS}")
   set_tests_properties(python-bindings PROPERTIES ENVIRONMENT "$<IF:$<CONFIG:Asan>,${PYTHON_ENV};${ASAN_ENV},${PYTHON_ENV}>")
+
 endif()
+
 set(test_python_bindings_DATA
         runTests.py.in
         test_gettext.py
@@ -19,16 +22,10 @@ set(test_python_bindings_DATA
         test_business.py
         test_commodity.py
         test_numeric.py
-        test_decorate_monetary.py
         test_session.py
         test_split.py
         test_transaction.py
         test_query.py
-        test_function_class.py
-        test_deprecation.py
-        test_export_account_totals.py
-        test_change_tax_code.py
-        test_latex_invoices.py
-        test_one_arg_default_none.py
-        )
+        test_function_class.py)
+
 set_dist_list(test_python_bindings_DIST CMakeLists.txt ${test_python_bindings_DATA})

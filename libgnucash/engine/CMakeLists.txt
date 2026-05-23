@@ -15,7 +15,6 @@ set(engine_noinst_HEADERS
   gnc-int128.hpp
   gnc-lot.h
   gnc-lot-p.h
-  gnc-timezone-p.hpp
   gnc-option-date.hpp
   gnc-option-impl.hpp
   gnc-option-ui.hpp
@@ -117,7 +116,6 @@ set (engine_HEADERS
   qofinstance-p.h
   qofinstance.h
   qoflog.h
-  qof-error-stack.hpp
   qofobject.h
   qofquery.h
   qofquerycore.h
@@ -202,7 +200,6 @@ set (engine_SOURCES
   qofid.cpp
   qofinstance.cpp
   qoflog.cpp
-  qof-error-stack.cpp
   qofobject.cpp
   qofquery.cpp
   qofquerycore.cpp

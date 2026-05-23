@@ -330,16 +330,6 @@
                    c)))
       (cons a b)))
 
-  (define (update-rate! unknown-coll un->known-coll known-pair to-be-updated-pair)
-    (let ((coll-target-unknown (caadr to-be-updated-pair))
-          (coll-target-report (cdadr to-be-updated-pair))
-          (known-rate-denom ((caadr known-pair) 'total #f)))
-      (coll-target-unknown 'add (unknown-coll 'total #f))
-      (unless (zero? known-rate-denom)
-        (coll-target-report 'add (/ (* (un->known-coll 'total #f)
-                                       ((cdadr known-pair) 'total #f))
-                                    known-rate-denom)))))
-
   ;; Go through sumlist.
   (let loop ((sumlist sumlist)
              (reportlist (cadr (assoc report-commodity sumlist))))
@@ -386,22 +376,9 @@
                                       (a 'add (gnc:gnc-monetary-amount euro-monetary))
                                       (list report-commodity
                                             (cons (cdadr pair) a)))))))
-                 ;; Find the pair's currency in reportlist.
-                 ;; Or try whether that's an Euro currency.
-                 (pair-b (or (assoc (car pair) reportlist)
-                             (let ((euro-monetary
-                                    (gnc:exchange-by-euro
-                                     (gnc:make-gnc-monetary
-                                      (car pair)
-                                      ((caadr pair) 'total #f))
-                                     report-commodity #f)))
-                               ;; If this is an Euro currency, create the
-                               ;; pair of appropriately exchanged amounts.
-                               (and euro-monetary
-                                    (let ((a (gnc:make-value-collector)))
-                                      (a 'add (gnc:gnc-monetary-amount euro-monetary))
-                                      (list report-commodity
-                                            (cons (caadr pair) a))))))))
+                 ;; Find the pair's currency in reportlist. FIXME:
+                 ;; Also try the Euro here.
+                 (pair-b (assoc (car pair) reportlist)))
 
             (cond
              ((and (not pair-a) (not pair-b))
@@ -421,11 +398,17 @@
               (innerloop (cdr pairs) reportlist))
 
              ((and pair-a pair-b)
-              ;; If both currencies are found then we use this
-              ;; transaction to update the exchange rate information
-              ;; for both currencies.
-              (update-rate! (caadr pair) (cdadr pair) pair-a pair-b)
-              (update-rate! (cdadr pair) (caadr pair) pair-b pair-a)
+              ;; If both currencies are found then something went
+              ;; wrong inside gnc:get-exchange-totals. FIXME: Find a
+              ;; better thing to do in this case.
+              (unless hide-warnings?
+                (warn "gnc:resolve-unknown-comm:"
+                      "Oops - exchange rate ambiguity error: "
+                      (gnc:monetary->string
+                       (gnc:make-gnc-monetary (car pair) ((caadr pair) 'total #f)))
+                      " = "
+                      (gnc:monetary->string
+                       (gnc:make-gnc-monetary (caar sumlist) ((cdadr pair) 'total #f)))))
               (innerloop (cdr pairs) reportlist))
 
              ;; Usual case: one of pair-{a,b} was found in reportlist,
@@ -652,7 +635,7 @@
 (define (gnc:exchange-by-euro foreign domestic date)
   (and (gnc-is-euro-currency domestic)
        (gnc-is-euro-currency (gnc:gnc-monetary-commodity foreign))
-       (or (not date) (>= (gnc:time64-get-year date) 1999))
+       ;; FIXME: implement the date check.
        (gnc:make-gnc-monetary
         domestic
         (gnc-convert-from-euro

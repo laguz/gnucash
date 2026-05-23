@@ -45,7 +45,7 @@ def addressToDict(address):
 
         return simple_address
 
-def vendorToDict(vendor, lazy=False):
+def vendorToDict(vendor):
 
     if vendor is None:
         return None
@@ -58,8 +58,7 @@ def vendorToDict(vendor, lazy=False):
         simple_vendor['active'] = vendor.GetActive()
         simple_vendor['currency'] = vendor.GetCurrency().get_mnemonic()
         #simple_vendor['tax_table_override'] = vendor.GetTaxTableOverride()
-        if not lazy:
-            simple_vendor['address'] = addressToDict(vendor.GetAddr())
+        simple_vendor['address'] = addressToDict(vendor.GetAddr())
         simple_vendor['tax_included'] = vendor.GetTaxIncluded()
 
         return simple_vendor
@@ -86,7 +85,7 @@ def customerToDict(customer):
 
         return simple_customer
 
-def transactionToDict(transaction, entities, account_cache=None, gbp=None):
+def transactionToDict(transaction, entities):
     if transaction is None:
         return None
     else:
@@ -102,7 +101,7 @@ def transactionToDict(transaction, entities, account_cache=None, gbp=None):
                 if type(split) != Split:
                     split=Split(instance=split) 
                 simple_transaction['splits'].append(
-                    splitToDict(split, ['account'], account_cache=account_cache, gbp=gbp))
+                    splitToDict(split, ['account']))
 
         simple_transaction['count_splits'] = transaction.CountSplits()
         simple_transaction['has_reconciled_splits'] = \
@@ -127,27 +126,20 @@ def transactionToDict(transaction, entities, account_cache=None, gbp=None):
 
         return simple_transaction
 
-def splitToDict(split, entities, account_cache=None, gbp=None):
+def splitToDict(split, entities):
     if split is None:
         return None
     else:
         simple_split = {}
         simple_split['guid'] = split.GetGUID().to_string()
         if 'account' in entities:
-            account = split.GetAccount()
-            if account_cache is not None:
-                account_guid = account.GetGUID().to_string()
-                if account_guid not in account_cache:
-                    account_cache[account_guid] = accountToDict(account, gbp=gbp, lazy=True)
-                simple_split['account'] = account_cache[account_guid]
-            else:
-                simple_split['account'] = accountToDict(account, gbp=gbp)
+            simple_split['account'] = accountToDict(split.GetAccount())
         if 'transaction' in entities:
             simple_split['transaction'] = transactionToDict(
-                split.GetParent(), [], account_cache=account_cache, gbp=gbp)
+                split.GetParent(), [])
         if 'other_split' in entities:
             simple_split['other_split'] = splitToDict(
-                split.GetOtherSplit(), ['account'], account_cache=account_cache, gbp=gbp)
+                split.GetOtherSplit(), ['account'])
         simple_split['amount'] = split.GetAmount().to_double()
         simple_split['value'] = split.GetValue().to_double()
         simple_split['balance'] = split.GetBalance().to_double()
@@ -285,59 +277,30 @@ def entryToDict(entry):
         return simple_entry
 
 
-def _accountToDictInternal(account, gbp, lazy, subaccounts_map):
-    simple_account = {}
-    simple_account['name'] = account.GetName()
-    simple_account['type_id'] = account.GetType()
-    simple_account['description'] = account.GetDescription()
-    simple_account['guid'] = account.GetGUID().to_string()
-    if account.GetCommodity() == None:
-        simple_account['currency'] = ''
-    else:
-        simple_account['currency'] = account.GetCommodity().get_mnemonic()
+def accountToDict(account):
 
-    simple_account['subaccounts'] = []
-    if not lazy:
-        # Instead of calling accountToDict recursively, append children from map
-        guid = account.GetGUID().to_string()
-        if guid in subaccounts_map:
-            for subaccount in subaccounts_map[guid]:
-                simple_account['subaccounts'].append(_accountToDictInternal(subaccount, gbp, lazy, subaccounts_map))
+    commod_table = account.get_book().get_table()
+    gbp = commod_table.lookup('CURRENCY', 'GBP')
+
+    if account is None:
+        return None
+    else:
+        simple_account = {}
+        simple_account['name'] = account.GetName()
+        simple_account['type_id'] = account.GetType()
+        simple_account['description'] = account.GetDescription()
+        simple_account['guid'] = account.GetGUID().to_string()
+        if account.GetCommodity() == None:
+            simple_account['currency'] = ''
+        else:
+            simple_account['currency'] = account.GetCommodity().get_mnemonic()
+        simple_account['subaccounts'] = []
+        for n, subaccount in enumerate(account.get_children_sorted()):
+            simple_account['subaccounts'].append(accountToDict(subaccount))
 
         simple_account['balance'] = account.GetBalance().to_double()
         simple_account['balance_gbp'] = account.GetBalanceInCurrency(
             gbp, True).to_double()
-    else:
-        simple_account['balance'] = 0.0
-        simple_account['balance_gbp'] = 0.0
+        simple_account['placeholder'] = account.GetPlaceholder()
 
-    simple_account['placeholder'] = account.GetPlaceholder()
-
-    return simple_account
-
-def accountToDict(account, gbp=None, lazy=False):
-
-    if account is None:
-        return None
-
-    if gbp is None:
-        commod_table = account.get_book().get_table()
-        gbp = commod_table.lookup('CURRENCY', 'GBP')
-
-    if lazy:
-        return _accountToDictInternal(account, gbp, lazy, {})
-
-    # Pre-fetch all descendants to avoid N+1 and sorting overhead recursively
-    subaccounts_map = {}
-
-    # We need a way to get all descendants. gnucash accounts are typically loaded
-    # in memory so we can traverse them iteratively.
-    queue = [account]
-    while queue:
-        curr = queue.pop(0)
-        children = curr.get_children_sorted()
-        if children:
-            subaccounts_map[curr.GetGUID().to_string()] = children
-            queue.extend(children)
-
-    return _accountToDictInternal(account, gbp, lazy, subaccounts_map)
+        return simple_account

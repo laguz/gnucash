@@ -190,7 +190,7 @@ gnc_bi_import_read_file (const gchar * filename, const gchar * parser_regexp,
 
             // fill in the values
             gtk_list_store_append (store, &iter);
-            FILL_IN_HELPER ("id", ID);
+            FILL_IN_HELPER ("id", ID); /* FIXME: Should "id" be translated? I don't think so. */
             FILL_IN_HELPER ("date_opened", DATE_OPENED);
             FILL_IN_HELPER ("owner_id", OWNER_ID);
             FILL_IN_HELPER ("billing_id", BILLING_ID);
@@ -313,18 +313,6 @@ gnc_bi_import_fix_bis (GtkListStore * store, guint * n_rows_fixed, guint * n_row
         //  If this is a row for a new invoice id, validate header values.
         if (on_first_row_of_invoice)
         {
-            g_free (id);
-            id = NULL;
-            g_free (date_opened);
-            date_opened = NULL;
-            g_free (date_posted);
-            date_posted = NULL;
-            g_free (due_date);
-            due_date = NULL;
-            g_free (account_posted);
-            account_posted = NULL;
-            g_free (owner_id);
-            owner_id = NULL;
             gtk_tree_model_get (GTK_TREE_MODEL (store), &iter,
                                 ID, &id,
                                 DATE_OPENED, &date_opened,
@@ -355,7 +343,7 @@ gnc_bi_import_fix_bis (GtkListStore * store, guint * n_rows_fixed, guint * n_row
                                         row, id, invoice_line);
             }
             // Verify that customer or vendor exists.
-            if (g_ascii_strcasecmp (type, GNC_BI_IMPORT_TYPE_BILL) == 0)
+            if (g_ascii_strcasecmp (type, "BILL") == 0)
             {
                 if (!gnc_search_vendor_on_id
                     (gnc_get_current_book (), owner_id))
@@ -367,7 +355,7 @@ gnc_bi_import_fix_bis (GtkListStore * store, guint * n_rows_fixed, guint * n_row
                                             row, id, invoice_line, owner_id);
                 }
             }
-            else if (g_ascii_strcasecmp (type, GNC_BI_IMPORT_TYPE_INVOICE) == 0)
+            else if (g_ascii_strcasecmp (type, "INVOICE") == 0)
             {
                 if (!gnc_search_customer_on_id
                     (gnc_get_current_book (), owner_id))
@@ -425,7 +413,7 @@ gnc_bi_import_fix_bis (GtkListStore * store, guint * n_rows_fixed, guint * n_row
                 }
                 else
                 {
-                    if (g_ascii_strcasecmp (type, GNC_BI_IMPORT_TYPE_BILL) == 0)
+                    if (g_ascii_strcasecmp (type, "BILL") == 0)
                     {
 
                         if (xaccAccountGetType (acc) != ACCT_TYPE_PAYABLE)
@@ -436,7 +424,7 @@ gnc_bi_import_fix_bis (GtkListStore * store, guint * n_rows_fixed, guint * n_row
                                                     row, id, invoice_line, account_posted);
                         }
                     }
-                    else if (g_ascii_strcasecmp (type, GNC_BI_IMPORT_TYPE_INVOICE) == 0)
+                    else if (g_ascii_strcasecmp (type, "INVOICE") == 0)
                     {
                         if (xaccAccountGetType (acc) != ACCT_TYPE_RECEIVABLE)
                         {
@@ -467,14 +455,6 @@ gnc_bi_import_fix_bis (GtkListStore * store, guint * n_rows_fixed, guint * n_row
         // Validate and fix item data for each row.
 
         // Get item data.
-        g_free (date);
-        date = NULL;
-        g_free (account);
-        account = NULL;
-        g_free (quantity);
-        quantity = NULL;
-        g_free (price);
-        price = NULL;
         gtk_tree_model_get (GTK_TREE_MODEL (store), &iter,
                             DATE, &date,
                             ACCOUNT, &account,
@@ -529,16 +509,13 @@ gnc_bi_import_fix_bis (GtkListStore * store, guint * n_rows_fixed, guint * n_row
 
         // Get the next row and its id.
         valid = gtk_tree_model_iter_next (GTK_TREE_MODEL (store), &iter);
-        g_free (id);
-        id = NULL;
         if (valid) gtk_tree_model_get (GTK_TREE_MODEL (store), &iter, ID, &id, -1);
 
 
         // If the id of the next row is blank, it takes the id of the previous row.
         if (valid && strlen(id) == 0)
         {
-            g_free (id);
-            id = g_strdup (running_id->str);
+            strcpy( id, running_id->str);
             gtk_list_store_set (store, &iter, ID, id, -1);
         }
 
@@ -553,8 +530,6 @@ gnc_bi_import_fix_bis (GtkListStore * store, guint * n_rows_fixed, guint * n_row
                 {
                     (*n_rows_ignored)++;
                     valid = gtk_list_store_remove (store, &iter);
-                    g_free (id);
-                    id = NULL;
                     if (valid) gtk_tree_model_get (GTK_TREE_MODEL (store), &iter, ID, &id, -1);
                 }
                 while (valid && (g_strcmp0 (id, running_id->str) == 0));
@@ -583,28 +558,18 @@ gnc_bi_import_fix_bis (GtkListStore * store, guint * n_rows_fixed, guint * n_row
             invoice_line = 0;
 
             g_free (id);
-            id = NULL;
             g_free (date_opened);
-            date_opened = NULL;
             g_free (date_posted);
-            date_posted = NULL;
             g_free (due_date);
-            due_date = NULL;
             g_free (account_posted);
-            account_posted = NULL;
             g_free (owner_id);
-            owner_id = NULL;
         }
         else on_first_row_of_invoice = FALSE;
 
         g_free (date);
-        date = NULL;
         g_free (account);
-        account = NULL;
         g_free (quantity);
-        quantity = NULL;
         g_free (price);
-        price = NULL;
 
         row++;
     }
@@ -668,8 +633,8 @@ gnc_bi_import_create_bis (GtkListStore * store, QofBook * book,
     // these arguments are needed
     g_return_if_fail (store && book);
     // logic of this function only works for bills or invoices
-    g_return_if_fail ((g_ascii_strcasecmp (type, GNC_BI_IMPORT_TYPE_INVOICE) == 0) ||
-            (g_ascii_strcasecmp (type, GNC_BI_IMPORT_TYPE_BILL) == 0));
+    g_return_if_fail ((g_ascii_strcasecmp (type, "INVOICE") == 0) ||
+            (g_ascii_strcasecmp (type, "BILL") == 0));
 
     // allow to call this function without statistics
     if (!n_invoices_created)
@@ -719,9 +684,9 @@ gnc_bi_import_create_bis (GtkListStore * store, QofBook * book,
             g_string_assign(running_id, id);
             first_row_of_invoice = iter;
 
-            if (g_ascii_strcasecmp (type, GNC_BI_IMPORT_TYPE_BILL) == 0)
+            if (g_ascii_strcasecmp (type, "BILL") == 0)
                 invoice = gnc_search_bill_on_id (book, id);
-            else if (g_ascii_strcasecmp (type, GNC_BI_IMPORT_TYPE_INVOICE) == 0)
+            else if (g_ascii_strcasecmp (type, "INVOICE") == 0)
                 invoice = gnc_search_invoice_on_id (book, id);
             DEBUG( "Existing %s ID: %s\n", type, gncInvoiceGetID(invoice));
 
@@ -736,10 +701,10 @@ gnc_bi_import_create_bis (GtkListStore * store, QofBook * book,
                 gncInvoiceBeginEdit (invoice);
                 gncInvoiceSetID (invoice, id);
                 owner = gncOwnerNew ();
-                if (g_ascii_strcasecmp (type, GNC_BI_IMPORT_TYPE_BILL) == 0)
+                if (g_ascii_strcasecmp (type, "BILL") == 0)
                     gncOwnerInitVendor (owner,
                                         gnc_search_vendor_on_id (book, owner_id));
-                else if (g_ascii_strcasecmp (type, GNC_BI_IMPORT_TYPE_INVOICE) == 0)
+                else if (g_ascii_strcasecmp (type, "INVOICE") == 0)
                     gncOwnerInitCustomer (owner,
                                           gnc_search_customer_on_id (book, owner_id));
                 gncInvoiceSetOwner (invoice, owner);
@@ -830,7 +795,7 @@ gnc_bi_import_create_bis (GtkListStore * store, QofBook * book,
         acc = gnc_account_lookup_for_register (gnc_get_current_root_account (),
                                                account);
 
-        if (g_ascii_strcasecmp (type, GNC_BI_IMPORT_TYPE_BILL) == 0)
+        if (g_ascii_strcasecmp (type, "BILL") == 0)
         {
             gncEntrySetBillAccount (entry, acc);
             value = gnc_numeric_zero();
@@ -841,7 +806,7 @@ gnc_bi_import_create_bis (GtkListStore * store, QofBook * book,
             gncEntrySetBillTaxTable (entry, gncTaxTableLookupByName (book, tax_table));
             gncBillAddEntry (invoice, entry);
         }
-        else if (g_ascii_strcasecmp (type, GNC_BI_IMPORT_TYPE_INVOICE) == 0)
+        else if (g_ascii_strcasecmp (type, "INVOICE") == 0)
         {
             gncEntrySetNotes (entry, notes);
             gncEntrySetInvAccount (entry, acc);
@@ -894,7 +859,7 @@ gnc_bi_import_create_bis (GtkListStore * store, QofBook * book,
                 scan_date_r = qof_scan_date (date_posted, &day, &month, &year);
                 DEBUG("Invoice %s is marked to be posted because...", id);
                 DEBUG("qof_scan_date = %d", scan_date_r);
-                if (g_ascii_strcasecmp (type, GNC_BI_IMPORT_TYPE_INVOICE) == 0)
+                if (g_ascii_strcasecmp (type, "INVOICE") == 0)
                     auto_pay = gnc_prefs_get_bool (GNC_PREFS_GROUP_INVOICE, GNC_PREF_AUTO_PAY);
                 else
                     auto_pay = gnc_prefs_get_bool (GNC_PREFS_GROUP_BILL, GNC_PREF_AUTO_PAY);
@@ -941,8 +906,8 @@ gnc_bi_import_create_bis (GtkListStore * store, QofBook * book,
             }
 
             // open new bill / invoice in a tab, if requested
-            if (g_ascii_strcasecmp(open_mode, GNC_BI_IMPORT_MODE_ALL) == 0
-                    || (g_ascii_strcasecmp(open_mode, GNC_BI_IMPORT_MODE_NOT_POSTED) == 0
+            if (g_ascii_strcasecmp(open_mode, "ALL") == 0
+                    || (g_ascii_strcasecmp(open_mode, "NOT_POSTED") == 0
                         && !invoice_posted))
             {
                 iw =  gnc_ui_invoice_edit (parent, invoice);

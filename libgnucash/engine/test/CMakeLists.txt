@@ -26,6 +26,7 @@ set(test_qof_SOURCES
   test-qof.c
   test-qofbook.c
   test-qofinstance.cpp
+  test-qofobject.c
   test-qof-string-cache.c
 )
 
@@ -37,8 +38,6 @@ set(test_engine_SOURCES
   utest-Budget.c
   utest-Entry.c
   utest-Invoice.c
-  utest-Query.cpp
-  utest-Policy.cpp
   utest-Split.cpp
   utest-Transaction.cpp
   utest-gnc-pricedb.c
@@ -60,6 +59,7 @@ add_engine_test(test-account-object test-account-object.cpp)
 add_engine_test(test-group-vs-book test-group-vs-book.cpp)
 add_engine_test(test-lots test-lots.cpp)
 add_engine_test(test-querynew test-querynew.c)
+add_engine_test(test-query test-query.cpp)
 add_engine_test(test-split-vs-account test-split-vs-account.cpp)
 add_engine_test(test-transaction-reversal test-transaction-reversal.cpp)
 add_engine_test(test-transaction-voiding test-transaction-voiding.cpp)
@@ -115,9 +115,6 @@ set(test_gnc_guid_SOURCES
   ${MODULEPATH}/guid.cpp
   test-gnc-guid.cpp)
 gnc_add_test(test-gnc-guid "${test_gnc_guid_SOURCES}"
-  gtest_engine_INCLUDES gtest_old_engine_LIBS)
-
-gnc_add_test(test-cashobjects gtest-cashobjects.cpp
   gtest_engine_INCLUDES gtest_old_engine_LIBS)
 
 set(test_kvp_value_SOURCES
@@ -203,19 +200,10 @@ gtest-qofevent.cpp)
 gnc_add_test(test-qofevent "${test_qofevent_SOURCES}"
   gtest_engine_INCLUDES gtest_old_engine_LIBS)
 
-set(test_qofobject_gtest_SOURCES
-  ${MODULEPATH}/qofobject.cpp
-  gtest-qofobject.cpp)
-gnc_add_test(gtest-qofobject "${test_qofobject_gtest_SOURCES}"
-  gtest_engine_INCLUDES gtest_old_engine_LIBS)
-
 set(test_gnc_option_SOURCES
   gtest-gnc-option.cpp
   gtest-gnc-optiondb.cpp)
 gnc_add_test(test-gnc-option "${test_gnc_option_SOURCES}"
-  gtest_engine_INCLUDES gtest_old_engine_LIBS)
-
-gnc_add_test(gtest-policy gtest-policy.cpp
   gtest_engine_INCLUDES gtest_old_engine_LIBS)
 
 set(test_engine_SOURCES_DIST
@@ -230,8 +218,6 @@ set(test_engine_SOURCES_DIST
         gtest-import-map.cpp
         gtest-qofquerycore.cpp
         gtest-qofevent.cpp
-        gtest-qofobject.cpp
-        gtest-policy.cpp
         test-account-object.cpp
         test-address.c
         test-business.c
@@ -255,9 +241,10 @@ set(test_engine_SOURCES_DIST
         test-qof.c
         test-qofbook.c
         test-qofinstance.cpp
+        test-qofobject.c
         test-qofsession.cpp
         test-qof-string-cache.c
-        utest-Query.cpp
+        test-query.cpp
         test-querynew.c
         test-recurrence.c
         test-split-vs-account.cpp
@@ -268,8 +255,6 @@ set(test_engine_SOURCES_DIST
         utest-Budget.c
         utest-Entry.c
         utest-Invoice.c
-  utest-Query.cpp
-        utest-Policy.cpp
         utest-Split.cpp
         utest-Transaction.cpp
         utest-gnc-pricedb.c
