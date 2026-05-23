@@ -332,12 +332,13 @@ def accountToDict(account, gbp=None, lazy=False):
 
     # We need a way to get all descendants. gnucash accounts are typically loaded
     # in memory so we can traverse them iteratively.
-    queue = [account]
-    while queue:
-        curr = queue.pop(0)
-        children = curr.get_children_sorted()
-        if children:
-            subaccounts_map[curr.GetGUID().to_string()] = children
-            queue.extend(children)
+    descendants = account.get_descendants_sorted()
+    for d in descendants:
+        p = d.get_parent()
+        if p:
+            guid = p.GetGUID().to_string()
+            if guid not in subaccounts_map:
+                subaccounts_map[guid] = []
+            subaccounts_map[guid].append(d)
 
     return _accountToDictInternal(account, gbp, lazy, subaccounts_map)
