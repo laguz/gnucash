@@ -2294,7 +2294,7 @@ loan_rev_update_view( LoanAssistantData *ldd, GDate *start, GDate *end )
                 continue;
             }
 
-            numPrinted = xaccSPrintAmount( tmpBuf, rrr->numCells[i], pai );
+            numPrinted = xaccSPrintAmount( tmpBuf, sizeof(tmpBuf), rrr->numCells[i], pai );
             g_assert( numPrinted < 50 );
             /* '+1' for the date cell */
             gtk_list_store_set( store, &iter,
@@ -2692,7 +2692,7 @@ ld_setup_repayment_sx( LoanAssistantData *ldd,
     gint GNCN_HOW = (GNC_HOW_DENOM_SIGFIGS(2) | GNC_HOW_RND_ROUND_HALF_UP);
 
     /* We're going to use this a lot, below, so just create it once. */
-    xaccSPrintAmount( amtBuf,
+    xaccSPrintAmount( amtBuf, sizeof(amtBuf),
                       double_to_gnc_numeric( rod->amount, 100,
                               GNCN_HOW ),
                       pricePAI );
