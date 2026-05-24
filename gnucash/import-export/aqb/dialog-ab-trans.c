@@ -216,8 +216,12 @@ gnc_ab_trans_dialog_fill_values(GncABTransDialog *td)
         trans, gtk_entry_get_text(GTK_ENTRY(td->purpose_cont2_entry)));
     value = AB_Value_fromDouble(gnc_amount_edit_get_damount(
                                     GNC_AMOUNT_EDIT(td->amount_edit)));
-    /* FIXME: Replace "EUR" by account-dependent string here. */
-    AB_Value_SetCurrency(value, "EUR");
+    {
+        const char *currency = AB_AccountSpec_GetCurrency(td->ab_acc);
+        if (!currency || !*currency)
+            currency = "EUR";
+        AB_Value_SetCurrency(value, currency);
+    }
     AB_Transaction_SetValue(trans, value);
     AB_Value_free(value);
 
