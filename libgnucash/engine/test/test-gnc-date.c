@@ -494,6 +494,21 @@ compute_noon_of_day (const time64 *t)
 }
 
 static void
+test_gnc_gdate_set_today (void)
+{
+    GDate* gd = g_date_new ();
+    GDate* expected = g_date_new ();
+
+    g_date_set_time_t (expected, time (NULL));
+    gnc_gdate_set_today (gd);
+
+    g_assert_cmpint (g_date_compare (gd, expected), ==, 0);
+
+    g_date_free (gd);
+    g_date_free (expected);
+}
+
+static void
 test_time64CanonicalDayTime (void)
 {
     const int sec_per_day = 24 * 3600;
@@ -1891,6 +1906,7 @@ test_suite_gnc_date (void)
     GNC_TEST_ADD_FUNC (suitename, "gnc date monthformat to string", test_gnc_date_monthformat_to_string);
     GNC_TEST_ADD_FUNC (suitename, "gnc date string to monthformat", test_gnc_date_string_to_monthformat);
     GNC_TEST_ADD_FUNC (suitename, "time64CanonicalDayTime", test_time64CanonicalDayTime);
+    GNC_TEST_ADD_FUNC (suitename, "gnc gdate set today", test_gnc_gdate_set_today);
     GNC_TEST_ADD_FUNC (suitename, "date get last mday", test_gnc_date_get_last_mday);
     GNC_TEST_ADD_FUNC (suitename, "qof date format get", test_qof_date_format_get);
     GNC_TEST_ADD_FUNC (suitename, "qof date format set", test_qof_date_format_set);
