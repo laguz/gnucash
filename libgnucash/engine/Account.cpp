@@ -1344,10 +1344,8 @@ static void
 xaccFreeOneChildAccount (Account *acc)
 {
     /* Force editlevel to 1 so xaccAccountDestroy will immediately destroy it. */
-    while (qof_instance_get_editlevel(acc) > 1)
-        qof_instance_decrease_editlevel(acc);
-    if (qof_instance_get_editlevel(acc) == 0)
-        xaccAccountBeginEdit(acc);
+    qof_instance_reset_editlevel(acc);
+    xaccAccountBeginEdit(acc);
     xaccAccountDestroy(acc);
 }
 
