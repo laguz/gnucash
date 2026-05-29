@@ -1,6 +1,4 @@
-🧹 [code health] Task already complete
+chore: N+1 query issue already resolved
 
-🎯 **What:** The requested code health improvement to clean up the unused chart title placeholder in `gnucash/report/html-chart.scm:263` was already implemented.
-💡 **Why:** N/A - no changes were needed.
-✅ **Verification:** Verified the file and git history that the commit `35cbf9d84c95316005b84a9163dda471ad44ac81` had already addressed the issue, replacing `"XXX"` with `""`. The user requested to terminate and mark the task as complete.
-✨ **Result:** The task is finished and closed with no further changes required.
+The requested N+1 query optimization in `accountToDict` in `bindings/python/example_scripts/rest-api/gnucash_simple.py` was already resolved in the codebase's main branch.
+The code now leverages `get_descendants_sorted()` natively rather than performing recursive `get_children_sorted()` calls. No further code changes are required as the execution path is already optimal.
