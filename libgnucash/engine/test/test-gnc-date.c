@@ -1458,6 +1458,19 @@ test_dateSeparator (void)
     qof_date_format_set (QOF_DATE_FORMAT_UNSET);
     g_assert_cmpint (dateSeparator (), ==, '/');
 
+    /* Verify an out-of-bounds format acts like default */
+    if (g_test_subprocess())
+    {
+        /* Need to catch the critical warning to not fail the test when it's emitted */
+        g_log_set_always_fatal (G_LOG_LEVEL_ERROR);
+        qof_date_format_set ((QofDateFormat)999);
+        g_assert_cmpint (dateSeparator (), ==, '-');
+        return;
+    }
+    g_test_trap_subprocess(NULL, 0, G_TEST_SUBPROCESS_INHERIT_STDOUT | G_TEST_SUBPROCESS_INHERIT_STDERR);
+    g_test_trap_assert_passed();
+    g_test_trap_assert_stderr("*non-existent date format set attempted*");
+
     qof_date_format_set (original_format);
 }
 /* qof_time_format_from_utf8
