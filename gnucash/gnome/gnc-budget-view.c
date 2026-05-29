@@ -1114,7 +1114,7 @@ budget_col_source (Account *account, GtkTreeViewColumn *col,
             if (gnc_reverse_balance (account))
                 numeric = gnc_numeric_neg (numeric);
 
-            xaccSPrintAmount (amtbuff, numeric, gnc_account_print_info (account, FALSE));
+            xaccSPrintAmount (amtbuff, sizeof(amtbuff), numeric, gnc_account_print_info (account, FALSE));
             if (gnc_is_dark_theme (&color))
                 g_object_set (cell, "foreground",
                               priv->use_red_color && gnc_numeric_negative_p (numeric)
@@ -1140,7 +1140,7 @@ budget_col_source (Account *account, GtkTreeViewColumn *col,
             if (gnc_reverse_balance (account))
                 numeric = gnc_numeric_neg (numeric);
 
-            xaccSPrintAmount (amtbuff, numeric,
+            xaccSPrintAmount (amtbuff, sizeof(amtbuff), numeric,
                               gnc_account_print_info (account, FALSE));
 
             if (priv->use_red_color && gnc_numeric_negative_p (numeric))
@@ -1234,7 +1234,7 @@ budget_total_col_source (Account *account, GtkTreeViewColumn *col,
     if (gnc_reverse_balance (account))
         total = gnc_numeric_neg (total);
 
-    xaccSPrintAmount (amtbuff, total, gnc_account_print_info (account, TRUE));
+    xaccSPrintAmount (amtbuff, sizeof(amtbuff), total, gnc_account_print_info (account, TRUE));
 
     if (priv->use_red_color && gnc_numeric_negative_p (total))
     {

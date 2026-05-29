@@ -1886,7 +1886,7 @@ gnc_invoice_reset_total_label (GtkLabel *label, gnc_numeric amt, gnc_commodity *
     gchar *bidi_string;
 
     amt = gnc_numeric_convert (amt, gnc_commodity_get_fraction(com), GNC_HOW_RND_ROUND_HALF_UP);
-    xaccSPrintAmount (string, amt, gnc_commodity_print_info (com, TRUE));
+    xaccSPrintAmount (string, sizeof(string), amt, gnc_commodity_print_info (com, TRUE));
 
     bidi_string = gnc_wrap_text_with_bidi_ltr_isolate (string);
     gtk_label_set_text (label, bidi_string);
