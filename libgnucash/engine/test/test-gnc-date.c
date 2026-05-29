@@ -1848,10 +1848,47 @@ test_gnc_time64_get_today_end (void)
 void
 gnc_dow_abbrev(gchar *buf, int buf_len, int dow)// C: 4 in 2  Local: 0:0:0
 */
-/* static void
+static void
 test_gnc_dow_abbrev (void)
 {
-}*/
+    gchar buf[MIN_BUF_LEN];
+    gchar ans[MIN_BUF_LEN];
+    struct tm tm;
+    gchar *locale;
+
+    memset(&tm, 0, sizeof(struct tm));
+    locale = g_strdup (setlocale (LC_TIME, NULL));
+
+    test_gnc_setlocale (LC_TIME, "en_US");
+    for (int i = 0; i < 7; i++)
+    {
+        tm.tm_wday = i;
+        strftime (ans, MIN_BUF_LEN, "%a", &tm);
+        gnc_dow_abbrev (buf, MIN_BUF_LEN, i);
+        g_assert_cmpstr (buf, ==, ans);
+    }
+
+    test_gnc_setlocale (LC_TIME, "en_GB");
+    for (int i = 0; i < 7; i++)
+    {
+        tm.tm_wday = i;
+        strftime (ans, MIN_BUF_LEN, "%a", &tm);
+        gnc_dow_abbrev (buf, MIN_BUF_LEN, i);
+        g_assert_cmpstr (buf, ==, ans);
+    }
+
+    test_gnc_setlocale (LC_TIME, "fr_FR");
+    for (int i = 0; i < 7; i++)
+    {
+        tm.tm_wday = i;
+        strftime (ans, MIN_BUF_LEN, "%a", &tm);
+        gnc_dow_abbrev (buf, MIN_BUF_LEN, i);
+        g_assert_cmpstr (buf, ==, ans);
+    }
+
+    setlocale (LC_TIME, locale);
+    g_free (locale);
+}
 /* time64_boxed_copy_func
 static gpointer
 time64_boxed_copy_func( gpointer in_time64 )// Local: 0:1:0
@@ -1925,7 +1962,7 @@ test_suite_gnc_date (void)
 // GNC_TEST_ADD_FUNC (suitename, "gnc tm get today start", test_gnc_tm_get_today_start);
 // GNC_TEST_ADD_FUNC (suitename, "gnc timet get today start", test_gnc_time64_get_today_start);
 // GNC_TEST_ADD_FUNC (suitename, "gnc timet get today end", test_gnc_time64_get_today_end);
-// GNC_TEST_ADD_FUNC (suitename, "gnc dow abbrev", test_gnc_dow_abbrev);
+    GNC_TEST_ADD_FUNC (suitename, "gnc dow abbrev", test_gnc_dow_abbrev);
 // GNC_TEST_ADD_FUNC (suitename, "time64 boxed copy func", test_time64_boxed_copy_func);
 // GNC_TEST_ADD_FUNC (suitename, "time64 boxed free func", test_time64_boxed_free_func);
     g_time_zone_unref(tz);
