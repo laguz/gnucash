@@ -17,6 +17,23 @@ if script_dir not in sys.path:
 from account_analysis import period_end, next_period_start
 
 class TestAccountAnalysis(TestCase):
+    def test_next_period_start_monthly(self):
+        """Test next_period_start for monthly period"""
+        self.assertEqual(next_period_start(2010, 1, "monthly"), (2010, 2))
+        self.assertEqual(next_period_start(2010, 12, "monthly"), (2011, 1))
+
+    def test_next_period_start_quarterly(self):
+        """Test next_period_start for quarterly period"""
+        self.assertEqual(next_period_start(2010, 1, "quarterly"), (2010, 4))
+        self.assertEqual(next_period_start(2010, 10, "quarterly"), (2011, 1))
+        self.assertEqual(next_period_start(2010, 11, "quarterly"), (2011, 2))
+        self.assertEqual(next_period_start(2010, 12, "quarterly"), (2011, 3))
+
+    def test_next_period_start_yearly(self):
+        """Test next_period_start for yearly period"""
+        self.assertEqual(next_period_start(2010, 1, "yearly"), (2011, 1))
+        self.assertEqual(next_period_start(2010, 6, "yearly"), (2011, 6))
+
     def test_period_end_monthly(self):
         """Test period_end for monthly period"""
         self.assertEqual(period_end(2010, 1, "monthly"), date(2010, 1, 31))
