@@ -504,6 +504,11 @@ test_gnc_gdate_set_today (void)
 
     g_assert_cmpint (g_date_compare (gd, expected), ==, 0);
 
+    /* Test boundary/error conditions */
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL, "*gd != nullptr*");
+    gnc_gdate_set_today (NULL);
+    g_test_assert_expected_messages ();
+
     g_date_free (gd);
     g_date_free (expected);
 }
