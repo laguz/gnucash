@@ -39,5 +39,15 @@ class TestAccountAnalysis(TestCase):
         with self.assertRaises(Exception):
             period_end(2010, 1, "weekly")
 
+    def test_period_end_year_wrap(self):
+        """Test period_end when the period crosses into the next year"""
+        # Monthly crossing into next year
+        self.assertEqual(period_end(2010, 12, "monthly"), date(2010, 12, 31))
+        # Quarterly crossing into next year
+        self.assertEqual(period_end(2010, 11, "quarterly"), date(2011, 1, 31))
+        self.assertEqual(period_end(2010, 12, "quarterly"), date(2011, 2, 28))
+        # Yearly starting mid-year
+        self.assertEqual(period_end(2010, 2, "yearly"), date(2011, 1, 31))
+
 if __name__ == "__main__":
     main()
