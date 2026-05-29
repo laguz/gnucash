@@ -556,6 +556,23 @@ test_gnc_date_get_last_mday (void)
 /* Getter, no testing needed.
 QofDateFormat qof_date_format_get (void)// C: 5 in 3  Local: 0:0:0
 */
+static void
+test_qof_date_format_get (void)
+{
+    /* Test getter matches setter for explicit valid formats */
+    qof_date_format_set(QOF_DATE_FORMAT_US);
+    g_assert_cmpint(qof_date_format_get(), ==, QOF_DATE_FORMAT_US);
+
+    qof_date_format_set(QOF_DATE_FORMAT_UK);
+    g_assert_cmpint(qof_date_format_get(), ==, QOF_DATE_FORMAT_UK);
+
+    qof_date_format_set(QOF_DATE_FORMAT_CE);
+    g_assert_cmpint(qof_date_format_get(), ==, QOF_DATE_FORMAT_CE);
+
+    qof_date_format_set(QOF_DATE_FORMAT_ISO);
+    g_assert_cmpint(qof_date_format_get(), ==, QOF_DATE_FORMAT_ISO);
+}
+
 /* qof_date_format_set
 set date format to one of US, UK, CE, ISO OR UTC
 checks to make sure it's a legal value
@@ -1854,6 +1871,7 @@ test_suite_gnc_date (void)
     GNC_TEST_ADD_FUNC (suitename, "gnc date string to monthformat", test_gnc_date_string_to_monthformat);
     GNC_TEST_ADD_FUNC (suitename, "time64CanonicalDayTime", test_time64CanonicalDayTime);
     GNC_TEST_ADD_FUNC (suitename, "date get last mday", test_gnc_date_get_last_mday);
+    GNC_TEST_ADD_FUNC (suitename, "qof date format get", test_qof_date_format_get);
     GNC_TEST_ADD_FUNC (suitename, "qof date format set", test_qof_date_format_set);
 // GNC_TEST_ADD_FUNC (suitename, "qof date completion set", test_qof_date_completion_set);
     GNC_TEST_ADD_FUNC (suitename, "qof print date dmy buff", test_qof_print_date_dmy_buff);
