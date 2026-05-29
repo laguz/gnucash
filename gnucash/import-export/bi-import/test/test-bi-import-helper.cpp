@@ -82,6 +82,9 @@ TEST_F(BiImportHelperTest, isDateValid) {
     EXPECT_TRUE(isDateValid(date_uk_3));
 
     // Invalid dates for UK format
+    char date_uk_garbage[] = "15/01/2023 ABC";
+    EXPECT_FALSE(isDateValid(date_uk_garbage));
+
     char invalid_1[] = "invalid";
     EXPECT_FALSE(isDateValid(invalid_1));
 
