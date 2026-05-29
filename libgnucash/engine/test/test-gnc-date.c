@@ -509,6 +509,41 @@ test_gnc_gdate_set_today (void)
 }
 
 static void
+test_gnc_g_date_new_today (void)
+{
+    GDate* gd = gnc_g_date_new_today ();
+    GDate* expected = g_date_new ();
+
+    g_date_set_time_t (expected, time (NULL));
+
+    g_assert_cmpint (g_date_compare (gd, expected), ==, 0);
+
+    g_date_free (gd);
+    g_date_free (expected);
+}
+
+static void
+test_gnc_gdate_set_time64 (void)
+{
+    GDate* gd = g_date_new ();
+    GDate* expected = g_date_new ();
+    time64 test_time = 1609459200; /* 2021-01-01 00:00:00 UTC */
+
+    struct tm tm;
+    gnc_localtime_r(&test_time, &tm);
+    g_date_set_dmy (expected, tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900);
+
+    gnc_gdate_set_time64 (gd, test_time);
+
+    g_assert_cmpint (g_date_compare (gd, expected), ==, 0);
+
+    g_date_free (gd);
+    g_date_free (expected);
+}
+
+
+
+static void
 test_time64CanonicalDayTime (void)
 {
     const int sec_per_day = 24 * 3600;
@@ -1961,6 +1996,8 @@ test_suite_gnc_date (void)
     GNC_TEST_ADD_FUNC (suitename, "gnc date string to monthformat", test_gnc_date_string_to_monthformat);
     GNC_TEST_ADD_FUNC (suitename, "time64CanonicalDayTime", test_time64CanonicalDayTime);
     GNC_TEST_ADD_FUNC (suitename, "gnc gdate set today", test_gnc_gdate_set_today);
+    GNC_TEST_ADD_FUNC (suitename, "gnc g date new today", test_gnc_g_date_new_today);
+    GNC_TEST_ADD_FUNC (suitename, "gnc gdate set time64", test_gnc_gdate_set_time64);
     GNC_TEST_ADD_FUNC (suitename, "date get last mday", test_gnc_date_get_last_mday);
     GNC_TEST_ADD_FUNC (suitename, "qof date format get", test_qof_date_format_get);
     GNC_TEST_ADD_FUNC (suitename, "qof date format set", test_qof_date_format_set);
