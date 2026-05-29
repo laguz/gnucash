@@ -502,6 +502,7 @@ test_gnc_gdate_set_today (void)
     g_date_set_time_t (expected, time (NULL));
     gnc_gdate_set_today (gd);
 
+    g_assert_true (g_date_valid (gd));
     g_assert_cmpint (g_date_compare (gd, expected), ==, 0);
 
     /* Test boundary/error conditions */
@@ -521,6 +522,7 @@ test_gnc_g_date_new_today (void)
 
     g_date_set_time_t (expected, time (NULL));
 
+    g_assert_true (g_date_valid (gd));
     g_assert_cmpint (g_date_compare (gd, expected), ==, 0);
 
     g_date_free (gd);
