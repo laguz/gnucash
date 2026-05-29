@@ -1440,7 +1440,10 @@ test_dateSeparator (void)
     g_assert_cmpint (dateSeparator (), ==, '/');
 
     qof_date_format_set (QOF_DATE_FORMAT_LOCALE);
-    g_assert_cmpint (dateSeparator (), !=, '\0');
+    char locale_sep = dateSeparator ();
+    g_assert_cmpint (locale_sep, !=, '\0');
+    /* Second call should return the cached separator */
+    g_assert_cmpint (dateSeparator (), ==, locale_sep);
 
     qof_date_format_set (QOF_DATE_FORMAT_CUSTOM);
     g_assert_cmpint (dateSeparator (), ==, '/');

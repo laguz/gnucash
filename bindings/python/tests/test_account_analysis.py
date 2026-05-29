@@ -34,6 +34,11 @@ class TestAccountAnalysis(TestCase):
         self.assertEqual(next_period_start(2010, 1, "yearly"), (2011, 1))
         self.assertEqual(next_period_start(2010, 6, "yearly"), (2011, 6))
 
+    def test_next_period_start_invalid_period(self):
+        """Test next_period_start with invalid period_type"""
+        with self.assertRaises(KeyError):
+            next_period_start(2010, 1, "weekly")
+
     def test_period_end_monthly(self):
         """Test period_end for monthly period"""
         self.assertEqual(period_end(2010, 1, "monthly"), date(2010, 1, 31))
