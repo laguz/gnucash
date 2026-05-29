@@ -591,8 +591,9 @@ typedef enum
        date argument is only used for commodity conversion and may have
        nothing to do with supplied balance.
 
-       Since they really have nothing to do with Accounts, there's
-       probably some better place for them, but where?  gnc-commodity.h?
+       Note: Since they really have nothing to do with Accounts, they might
+       logically belong elsewhere (e.g., gnc-commodity.h), but they are kept
+       here for historical reasons and API backward compatibility.
     */
     gnc_numeric xaccAccountConvertBalanceToCurrency(
         const Account *account, /* for book */

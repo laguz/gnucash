@@ -869,7 +869,24 @@ gboolean gncVendorEqual(const GncVendor *a, const GncVendor *b)
         return FALSE;
     }
 
-//    GList *         jobs;
+    if (g_list_length(a->jobs) != g_list_length(b->jobs))
+    {
+        PWARN("Jobs list lengths differ");
+        return FALSE;
+    }
+
+    {
+        GList *node_a, *node_b;
+        for (node_a = a->jobs, node_b = b->jobs; node_a && node_b; node_a = node_a->next, node_b = node_b->next)
+        {
+            if (!guid_equal(qof_instance_get_guid(QOF_INSTANCE(node_a->data)),
+                            qof_instance_get_guid(QOF_INSTANCE(node_b->data))))
+            {
+                PWARN("Jobs lists differ in content");
+                return FALSE;
+            }
+        }
+    }
     return TRUE;
 }
 

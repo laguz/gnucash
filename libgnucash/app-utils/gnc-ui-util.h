@@ -332,7 +332,7 @@ const char*  xaccPrintAmount (gnc_numeric val, GNCPrintAmountInfo info);
  * buffer will be unchanged. It is up to the calling function to
  * ensure that buf is large enough for the results.
  */
-int xaccSPrintAmount (char* buf, size_t buf_len, gnc_numeric val, GNCPrintAmountInfo info);
+int xaccSPrintAmount (char* buf, gnc_numeric val, GNCPrintAmountInfo info);
 
 const char* printable_value(gdouble val, gint denom);
 char* number_to_words(gdouble val, gint64 denom);

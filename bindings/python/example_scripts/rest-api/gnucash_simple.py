@@ -285,15 +285,7 @@ def entryToDict(entry):
         return simple_entry
 
 
-def accountToDict(account, gbp=None, lazy=False):
-
-    if account is None:
-        return None
-
-    if gbp is None:
-        commod_table = account.get_book().get_table()
-        gbp = commod_table.lookup('CURRENCY', 'GBP')
-
+def _accountToDictInternal(account, gbp, lazy, subaccounts_map):
     simple_account = {}
     simple_account['name'] = account.GetName()
     simple_account['type_id'] = account.GetType()
@@ -306,8 +298,11 @@ def accountToDict(account, gbp=None, lazy=False):
 
     simple_account['subaccounts'] = []
     if not lazy:
-        for n, subaccount in enumerate(account.get_children_sorted()):
-            simple_account['subaccounts'].append(accountToDict(subaccount, gbp=gbp, lazy=lazy))
+        # Instead of calling accountToDict recursively, append children from map
+        guid = account.GetGUID().to_string()
+        if guid in subaccounts_map:
+            for subaccount in subaccounts_map[guid]:
+                simple_account['subaccounts'].append(_accountToDictInternal(subaccount, gbp, lazy, subaccounts_map))
 
         simple_account['balance'] = account.GetBalance().to_double()
         simple_account['balance_gbp'] = account.GetBalanceInCurrency(
@@ -319,3 +314,31 @@ def accountToDict(account, gbp=None, lazy=False):
     simple_account['placeholder'] = account.GetPlaceholder()
 
     return simple_account
+
+def accountToDict(account, gbp=None, lazy=False):
+
+    if account is None:
+        return None
+
+    if gbp is None:
+        commod_table = account.get_book().get_table()
+        gbp = commod_table.lookup('CURRENCY', 'GBP')
+
+    if lazy:
+        return _accountToDictInternal(account, gbp, lazy, {})
+
+    # Pre-fetch all descendants to avoid N+1 and sorting overhead recursively
+    subaccounts_map = {}
+
+    # We need a way to get all descendants. gnucash accounts are typically loaded
+    # in memory so we can traverse them iteratively.
+    descendants = account.get_descendants_sorted()
+    for d in descendants:
+        p = d.get_parent()
+        if p:
+            guid = p.GetGUID().to_string()
+            if guid not in subaccounts_map:
+                subaccounts_map[guid] = []
+            subaccounts_map[guid].append(d)
+
+    return _accountToDictInternal(account, gbp, lazy, subaccounts_map)

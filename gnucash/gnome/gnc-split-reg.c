@@ -564,12 +564,12 @@ gsr_update_summary_label( GtkWidget *label,
         amount = gnc_numeric_neg( amount );
     }
 
-    xaccSPrintAmount( string, sizeof(string), amount, print_info );
+    xaccSPrintAmount( string, amount, print_info );
 
     if ( euroFlag )
     {
         strcat( string, " / " );
-        xaccSPrintAmount( string + strlen( string ), sizeof(string) - strlen(string),
+        xaccSPrintAmount( string + strlen( string ),
                           gnc_convert_to_euro( cmdty, amount ),
                           gnc_commodity_print_info( gnc_get_euro(), TRUE ) );
     }
@@ -729,7 +729,7 @@ gsr_redraw_all_cb (GnucashRegister *g_reg, gpointer data)
     {
         char string[256];
         print_info = gnc_account_print_info( leader, TRUE );
-        xaccSPrintAmount( string, sizeof(string), amount, print_info );
+        xaccSPrintAmount( string, amount, print_info );
         gnc_set_label_color( gsr->shares_label, amount );
         gtk_label_set_text( GTK_LABEL(gsr->shares_label), string );
     }
@@ -745,7 +745,7 @@ gsr_redraw_all_cb (GnucashRegister *g_reg, gpointer data)
             gnc_pricedb_convert_balance_latest_price (pricedb, amount,
                                                       commodity, currency);
         print_info = gnc_commodity_print_info (currency, TRUE);
-        xaccSPrintAmount (string, sizeof(string), value, print_info);
+        xaccSPrintAmount (string, value, print_info);
         gnc_set_label_color (gsr->value_label, amount);
         gtk_label_set_text (GTK_LABEL (gsr->value_label), string);
 

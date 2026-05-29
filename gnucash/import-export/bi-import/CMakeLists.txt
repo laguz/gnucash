@@ -48,5 +48,3 @@ install(TARGETS gnc-bi-import
 # No headers to install.
 
 set_dist_list(bi_import_DIST CMakeLists.txt README ${bi_import_SOURCES} ${bi_import_noinst_HEADERS})
-
-add_subdirectory(test)

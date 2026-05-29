@@ -62,7 +62,7 @@ def get_splits_without_lot(account=None,split_list=None):
 
 
 def find_account(account,name,account_list=None):
-  """Recursively searches full names of account and descendents
+  """Searches full names of account and descendents
 
   returns a list of accounts which contain name.
   
@@ -77,14 +77,16 @@ def find_account(account,name,account_list=None):
   if not account_list:
     account_list=[]
 
-  for child in account.get_children():
-    if type(child) != Account:
-      child=Account(instance=child)
-    account_list=find_account(child,name,account_list)
-
   account_name=account.GetName()
   if name in account_name:
     account_list.append(account)
+
+  for child in account.get_descendants():
+    if type(child) != Account:
+      child=Account(instance=child)
+    account_name=child.GetName()
+    if name in account_name:
+      account_list.append(child)
   
   return account_list
 
@@ -152,13 +154,14 @@ def find_split_recursive(account, search_string):
   child_account_splits = []
   
   # Get all splits in descendants
-  for child in account.get_children():
+  for child in account.get_descendants():
       if type(child) != Account:
           child = Account(instance=child)
-      childsplits = find_split_recursive(child, search_string)
-      for split in childsplits:
+      splits = child.GetSplitList()
+      for split in splits:
           if type(split) != Split:
               split = Split(instance=split)
+      childsplits = find_split(splits, search_string)
       child_account_splits += childsplits
 
   # Get all splits in account
