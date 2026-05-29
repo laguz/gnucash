@@ -108,7 +108,7 @@ def next_period_start(start_year, start_month, period_type):
     #
     # A the super nice thing is that you can add all kinds of period lengths
     # to PERIODS
-    end_year = start_year + ( (end_month-1) / NUM_MONTHS )
+    end_year = start_year + ( (end_month-1) // NUM_MONTHS )
     end_month = ( (end_month-1) % NUM_MONTHS ) + 1
 
     return end_year, end_month
