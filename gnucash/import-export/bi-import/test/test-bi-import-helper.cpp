@@ -104,6 +104,44 @@ TEST_F(BiImportHelperTest, isDateValid) {
     char date_us_invalid_1[] = "15/01/2023"; // month 15 is invalid
     EXPECT_FALSE(isDateValid(date_us_invalid_1));
 
+    // Test CE format: DD.MM.YYYY
+    qof_date_format_set(QOF_DATE_FORMAT_CE);
+
+    // Valid dates
+    char date_ce_1[] = "15.01.2023";
+    EXPECT_TRUE(isDateValid(date_ce_1));
+
+    char date_ce_2[] = "29.02.2024"; // Leap year
+    EXPECT_TRUE(isDateValid(date_ce_2));
+
+    // Invalid dates for CE format
+    char date_ce_invalid_1[] = "2023-01-15"; // Wrong format
+    EXPECT_FALSE(isDateValid(date_ce_invalid_1));
+
+    char date_ce_invalid_2[] = "32.01.2023"; // Day out of bounds
+    EXPECT_FALSE(isDateValid(date_ce_invalid_2));
+
+    char date_ce_invalid_3[] = "15.13.2023"; // Month out of bounds
+    EXPECT_FALSE(isDateValid(date_ce_invalid_3));
+
+    // Test ISO format: YYYY-MM-DD
+    qof_date_format_set(QOF_DATE_FORMAT_ISO);
+
+    // Valid dates
+    char date_iso_1[] = "2023-01-15";
+    EXPECT_TRUE(isDateValid(date_iso_1));
+
+    char date_iso_2[] = "2024-02-29"; // Leap year
+    EXPECT_TRUE(isDateValid(date_iso_2));
+
+    // Invalid dates for ISO format
+    char date_iso_invalid_1[] = "2023-15-01"; // Wrong format (month 15)
+    EXPECT_FALSE(isDateValid(date_iso_invalid_1));
+
+    // Empty string
+    char empty_string[] = "";
+    EXPECT_FALSE(isDateValid(empty_string));
+
     // Null pointer
     EXPECT_FALSE(isDateValid(nullptr));
 }
