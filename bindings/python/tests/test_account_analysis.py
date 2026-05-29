@@ -14,7 +14,7 @@ if script_dir not in sys.path:
     sys.path.append(script_dir)
 
 # Now we can import the function to be tested
-from account_analysis import period_end
+from account_analysis import period_end, next_period_start
 
 class TestAccountAnalysis(TestCase):
     def test_period_end_monthly(self):
