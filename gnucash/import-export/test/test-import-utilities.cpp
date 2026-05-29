@@ -80,6 +80,10 @@ test_split_has_online_id (Fixture *fixture, gconstpointer pData)
     /* Should be false after setting an empty ID */
     gnc_import_set_split_online_id (fixture->split, "");
     g_assert_false (gnc_import_split_has_online_id (fixture->split));
+
+    /* Should be false after setting a NULL ID */
+    gnc_import_set_split_online_id (fixture->split, NULL);
+    g_assert_false (gnc_import_split_has_online_id (fixture->split));
 }
 
 static void
@@ -118,6 +122,8 @@ test_trans_has_online_id (Fixture *fixture, gconstpointer pData)
     gnc_import_set_trans_online_id (fixture->txn, "12345");
     g_assert_true (gnc_import_trans_has_online_id (fixture->txn));
     gnc_import_set_trans_online_id (fixture->txn, "");
+    g_assert_false (gnc_import_trans_has_online_id (fixture->txn));
+    gnc_import_set_trans_online_id (fixture->txn, NULL);
     g_assert_false (gnc_import_trans_has_online_id (fixture->txn));
 }
 
