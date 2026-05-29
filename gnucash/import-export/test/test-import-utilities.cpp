@@ -111,6 +111,54 @@ test_split_get_set_online_id (Fixture *fixture, gconstpointer pData)
     g_assert_true (id == NULL);
 }
 
+static void
+test_trans_has_online_id (Fixture *fixture, gconstpointer pData)
+{
+    g_assert_false (gnc_import_trans_has_online_id (fixture->txn));
+    gnc_import_set_trans_online_id (fixture->txn, "12345");
+    g_assert_true (gnc_import_trans_has_online_id (fixture->txn));
+    gnc_import_set_trans_online_id (fixture->txn, "");
+    g_assert_false (gnc_import_trans_has_online_id (fixture->txn));
+}
+
+static void
+test_trans_get_set_online_id (Fixture *fixture, gconstpointer pData)
+{
+    gchar *id;
+    id = gnc_import_get_trans_online_id (fixture->txn);
+    g_assert_true (id == NULL);
+    gnc_import_set_trans_online_id (fixture->txn, "test_id_123");
+    id = gnc_import_get_trans_online_id (fixture->txn);
+    g_assert_cmpstr (id, ==, "test_id_123");
+    g_free (id);
+    gnc_import_set_trans_online_id (fixture->txn, "");
+    id = gnc_import_get_trans_online_id (fixture->txn);
+    g_assert_cmpstr (id, ==, "");
+    g_free (id);
+    gnc_import_set_trans_online_id (fixture->txn, NULL);
+    id = gnc_import_get_trans_online_id (fixture->txn);
+    g_assert_true (id == NULL);
+}
+
+static void
+test_acc_get_set_online_id (Fixture *fixture, gconstpointer pData)
+{
+    gchar *id;
+    id = gnc_import_get_acc_online_id (fixture->account);
+    g_assert_true (id == NULL);
+    gnc_import_set_acc_online_id (fixture->account, "test_id_123");
+    id = gnc_import_get_acc_online_id (fixture->account);
+    g_assert_cmpstr (id, ==, "test_id_123");
+    g_free (id);
+    gnc_import_set_acc_online_id (fixture->account, "");
+    id = gnc_import_get_acc_online_id (fixture->account);
+    g_assert_cmpstr (id, ==, "");
+    g_free (id);
+    gnc_import_set_acc_online_id (fixture->account, NULL);
+    id = gnc_import_get_acc_online_id (fixture->account);
+    g_assert_true (id == NULL);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -122,6 +170,12 @@ main (int argc, char *argv[])
                   test_split_has_online_id, teardown);
     GNC_TEST_ADD (suitename, "split_get_set_online_id", Fixture, NULL, setup,
                   test_split_get_set_online_id, teardown);
+    GNC_TEST_ADD (suitename, "trans_has_online_id", Fixture, NULL, setup,
+                  test_trans_has_online_id, teardown);
+    GNC_TEST_ADD (suitename, "trans_get_set_online_id", Fixture, NULL, setup,
+                  test_trans_get_set_online_id, teardown);
+    GNC_TEST_ADD (suitename, "acc_get_set_online_id", Fixture, NULL, setup,
+                  test_acc_get_set_online_id, teardown);
 
     result = g_test_run();
 
