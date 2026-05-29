@@ -609,6 +609,10 @@ QofDateFormat qof_date_format_get (void)// C: 5 in 3  Local: 0:0:0
 static void
 test_qof_date_format_get (void)
 {
+    /* Test getter default format */
+    QofDateFormat original_format = qof_date_format_get();
+    g_assert_cmpint(original_format, ==, QOF_DATE_FORMAT_LOCALE);
+
     /* Test getter matches setter for explicit valid formats */
     qof_date_format_set(QOF_DATE_FORMAT_US);
     g_assert_cmpint(qof_date_format_get(), ==, QOF_DATE_FORMAT_US);
@@ -639,6 +643,9 @@ test_qof_date_format_get (void)
     qof_date_format_set(100);
     g_assert_cmpint(qof_date_format_get(), ==, QOF_DATE_FORMAT_ISO);
     g_test_assert_expected_messages();
+
+    /* Restore original format */
+    qof_date_format_set(original_format);
 }
 
 /* qof_date_format_set
