@@ -1918,6 +1918,28 @@ test_gnc_dow_abbrev (void)
         g_assert_cmpstr (buf, ==, ans);
     }
 
+    /* Test boundary/error conditions */
+    /* dow out of bounds */
+    gnc_dow_abbrev (buf, MIN_BUF_LEN, -1);
+    g_assert_cmpstr (buf, ==, "");
+
+    gnc_dow_abbrev (buf, MIN_BUF_LEN, 7);
+    g_assert_cmpstr (buf, ==, "");
+
+    /* small buffer */
+    gchar small_buf[2];
+    gnc_dow_abbrev (small_buf, 2, 1); /* Monday, expected 'M' potentially depending on locale but it should not overflow */
+    g_assert_cmpint (small_buf[1], ==, '\0');
+
+    /* Invalid params with GLib warnings */
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL, "*buf != nullptr*");
+    gnc_dow_abbrev (NULL, MIN_BUF_LEN, 1);
+    g_test_assert_expected_messages ();
+
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL, "*buf_len > 0*");
+    gnc_dow_abbrev (buf, 0, 1);
+    g_test_assert_expected_messages ();
+
     setlocale (LC_TIME, locale);
     g_free (locale);
 }
