@@ -82,6 +82,35 @@ test_split_has_online_id (Fixture *fixture, gconstpointer pData)
     g_assert_false (gnc_import_split_has_online_id (fixture->split));
 }
 
+static void
+test_split_get_set_online_id (Fixture *fixture, gconstpointer pData)
+{
+    gchar *id;
+
+    /* Should be NULL initially since no ID is set */
+    id = gnc_import_get_split_online_id (fixture->split);
+    g_assert_true (id == NULL);
+
+    /* Should return the set value after setting a valid ID */
+    gnc_import_set_split_online_id (fixture->split, "test_id_123");
+    id = gnc_import_get_split_online_id (fixture->split);
+    g_assert_true (id != NULL);
+    g_assert_cmpstr (id, ==, "test_id_123");
+    g_free (id);
+
+    /* Should return empty string after setting an empty ID */
+    gnc_import_set_split_online_id (fixture->split, "");
+    id = gnc_import_get_split_online_id (fixture->split);
+    g_assert_true (id != NULL);
+    g_assert_cmpstr (id, ==, "");
+    g_free (id);
+
+    /* Should return NULL after setting a NULL ID */
+    gnc_import_set_split_online_id (fixture->split, NULL);
+    id = gnc_import_get_split_online_id (fixture->split);
+    g_assert_true (id == NULL);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -91,6 +120,8 @@ main (int argc, char *argv[])
 
     GNC_TEST_ADD (suitename, "split_has_online_id", Fixture, NULL, setup,
                   test_split_has_online_id, teardown);
+    GNC_TEST_ADD (suitename, "split_get_set_online_id", Fixture, NULL, setup,
+                  test_split_get_set_online_id, teardown);
 
     result = g_test_run();
 
