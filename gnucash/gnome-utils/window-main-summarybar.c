@@ -403,11 +403,11 @@ gnc_main_window_summary_refresh (GNCMainSummary * summary)
 
             currency_accum = current->data;
 
-            xaccSPrintAmount(asset_amount_string,
+            xaccSPrintAmount(asset_amount_string, sizeof(asset_amount_string),
                              currency_accum->assets,
                              gnc_commodity_print_info(currency_accum->currency, TRUE));
 
-            xaccSPrintAmount(profit_amount_string,
+            xaccSPrintAmount(profit_amount_string, sizeof(profit_amount_string),
                              currency_accum->profits,
                              gnc_commodity_print_info(currency_accum->currency, TRUE));
 

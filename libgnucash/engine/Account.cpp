@@ -1343,10 +1343,9 @@ xaccCloneAccount(const Account *from, QofBook *book)
 static void
 xaccFreeOneChildAccount (Account *acc)
 {
-    /* FIXME: this code is kind of hacky.  actually, all this code
-     * seems to assume that the account edit levels are all 1. */
-    if (qof_instance_get_editlevel(acc) == 0)
-        xaccAccountBeginEdit(acc);
+    /* Force editlevel to 1 so xaccAccountDestroy will immediately destroy it. */
+    qof_instance_reset_editlevel(acc);
+    xaccAccountBeginEdit(acc);
     xaccAccountDestroy(acc);
 }
 

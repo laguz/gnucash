@@ -153,29 +153,6 @@ get_num_xactions_before_date(QofBook *book, time64 close_date)
 
 /* =============================================================== */
 
-static const char *
-get_close_status_str (AcctPeriodInfo *info)
-{
-    const char * str;
-
-    /* Tell user about how the previous book closing went. */
-    switch (info->close_status)
-    {
-    case -1:
-        str = "";
-        break;
-    case 0:
-        str = _("The book was closed successfully.");
-        break;
-    default:
-        str = "";
-        break;
-    }
-    return str;
-}
-
-/* =============================================================== */
-
 static void
 ap_assistant_destroy_cb (GtkWidget *object, gpointer data)
 {
@@ -324,7 +301,16 @@ ap_assistant_book_prepare (GtkAssistant *assistant, gpointer user_data)
     ENTER ("info=%p", info);
 
     /* Tell user about how the previous book closing went. */
-    cstr = get_close_status_str (info);
+    switch (info->close_status)
+    {
+    case 0:
+        cstr = _("The book was closed successfully.");
+        break;
+    default:
+        cstr = "";
+        break;
+    }
+
     gtk_label_set_text (GTK_LABEL(info->close_results), cstr);
     info->close_status = -1;
 
@@ -494,20 +480,20 @@ void
 ap_assistant_summary_prepare (GtkAssistant *assistant, gpointer user_data)
 {
     const char *msg;
-    char *str;
     AcctPeriodInfo *info = user_data;
     ENTER ("info=%p", info);
 
-    /* Translation FIXME: Can this %s-containing message please be
-       replaced by one single message? Either this closing went
-       successfully ("success", "congratulations") or something else
-       should be displayed anyway. */
-    msg = _("%s\nCongratulations! You are done closing books!\n");
+    if (info->close_status == 0)
+    {
+        msg = _("The book was closed successfully.\n"
+                "Congratulations! You are done closing books!\n");
+    }
+    else
+    {
+        msg = _("\nCongratulations! You are done closing books!\n");
+    }
 
-    str = g_strdup_printf (msg, get_close_status_str (info));
-    gtk_label_set_text (GTK_LABEL(info->summary), str);
-    g_free (str);
-
+    gtk_label_set_text (GTK_LABEL(info->summary), msg);
 }
 
 /* =============================================================== */
