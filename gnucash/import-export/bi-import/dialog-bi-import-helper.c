@@ -55,9 +55,14 @@ gboolean
 isDateValid(char * date_string)
 {
     char  *tmp;
-    const gchar* date_format_string = qof_date_format_get_string (qof_date_format_get()); // Get the user set date format string
-    
+    const gchar* date_format_string;
     struct tm time_struct;
+
+    if (!date_string)
+        return FALSE;
+
+    date_format_string = qof_date_format_get_string (qof_date_format_get()); // Get the user set date format string
+
     memset(&time_struct, 0, sizeof(struct tm));
 
    tmp = strptime(date_string, date_format_string, &time_struct);
