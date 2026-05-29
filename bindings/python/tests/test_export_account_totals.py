@@ -20,17 +20,6 @@ class TestExportAccountTotals(TestCase):
         account = MagicMock()
         account.GetName.return_value = name
         account.get_children_sorted.return_value = children if children else []
-        account.GetGUID.return_value.to_string.return_value = name + "_guid"
-
-        # recursively populate descendants (flat list in mock)
-        descendants = []
-        for child in account.get_children_sorted():
-            descendants.append(child)
-            child.get_parent.return_value = account
-            # Use get_descendants to simulate the new flat descendant fetch behavior
-            descendants.extend(child.get_descendants())
-        account.get_descendants.return_value = descendants
-        account.get_descendants_sorted.return_value = descendants
         return account
 
     def test_no_children(self):

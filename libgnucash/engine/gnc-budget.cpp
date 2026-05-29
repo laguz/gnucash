@@ -590,7 +590,7 @@ gnc_budget_get_account_period_value (const GncBudget *budget,
                                      guint period_num)
 {
     g_return_val_if_fail (period_num < GET_PRIVATE(budget)->num_periods,
-                          gnc_numeric_error(GNC_ERROR_ARG));
+                          gnc_numeric_zero());
     auto& data = get_perioddata (budget, account, period_num);
 
     return data.opt_value.has_value() ? data.opt_value.value() : gnc_numeric_zero();
@@ -662,7 +662,8 @@ gnc_numeric
 gnc_budget_get_account_period_actual_value(
     const GncBudget *budget, Account *acc, guint period_num)
 {
-    g_return_val_if_fail(GNC_IS_BUDGET(budget) && acc, gnc_numeric_error(GNC_ERROR_ARG));
+    // FIXME: maybe zero is not best error return val.
+    g_return_val_if_fail(GNC_IS_BUDGET(budget) && acc, gnc_numeric_zero());
     return recurrenceGetAccountPeriodValue(&GET_PRIVATE(budget)->recurrence,
                                            acc, period_num);
 }

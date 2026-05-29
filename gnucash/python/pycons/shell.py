@@ -32,8 +32,6 @@ import re
 import rlcompleter
 import traceback
 import tempfile
-import code
-import io
 
 if not hasattr(sys, 'ps1'): sys.ps1 = '>>> '
 if not hasattr(sys, 'ps2'): sys.ps2 = '... '
@@ -49,7 +47,6 @@ class Shell:
         self.command = ''
         self.globals = ns_globals
         self.locals = ns_locals
-        self.interpreter = code.InteractiveInterpreter(self.locals)
         self.complete_sep = re.compile(r'[\s\{\}\[\]\(\)]')
         self.prompt = sys.ps1
 
@@ -142,39 +139,35 @@ class Shell:
     def execute (self, console):
         if not self.command:
             return
-
-        old_stdout = sys.stdout
-        sys.stdout = capture_out = io.StringIO()
-
-        old_write = self.interpreter.write
-        def custom_write(data):
-            console.write(data, 'output')
-        self.interpreter.write = custom_write
-
         try:
             try:
-                self.interpreter.runsource(self.command)
-
-                # Command output and prints
-                out = capture_out.getvalue()
-                if out:
-                    console.write(out, 'output')
-
-                # System output (if any)
-                while True:
-                    try:
-                        import fcntl
-                        flags = fcntl.fcntl(console.piperead, fcntl.F_GETFL)
-                        fcntl.fcntl(console.piperead, fcntl.F_SETFL, flags | os.O_NONBLOCK)
-                        buf = os.read(console.piperead, 256)
-                    except:
-                        break
-                    else:
-                        console.write(buf, 'output')
-                        if len(buf) < 256: break
-            except SystemExit:
+                r = eval (self.command, self.globals, self.locals)
+                if r is not None:
+                    # System output (if any)
+                    while True:
+                        try:
+                            buf = os.read(console.piperead, 256)
+                        except:
+                            break
+                        else:
+                            console.write (buf, 'output')
+                            if len(buf) < 256: break
+                    # Command output
+                    print(repr(r))
+            except SyntaxError:
+                exec(str(self.command), self.globals)
+        except:
+            if hasattr (sys, 'last_type') and sys.last_type == SystemExit:
                 console.quit()
-        finally:
-            sys.stdout = old_stdout
-            self.interpreter.write = old_write
+            elif hasattr (sys, 'exc_type') and sys.exc_type == SystemExit:
+                console.quit()
+            else:
+                try:
+                    tb = sys.exc_info()[2]
+                    if tb:
+                        tb=tb.tb_next
+                    traceback.print_exception(sys.exc_info()[0], sys.exc_info()[1], tb)
+                except:
+                    sys.stderr, console.stderr = console.stderr, sys.stderr
+                    traceback.print_exc()
 

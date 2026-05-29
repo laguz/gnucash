@@ -44,6 +44,17 @@ class BusinessSession(BookSession):
             self.today, self.today, "", True, False)
 
 class TestBusiness(BusinessSession):
+    def test_bill_lookup_by_id(self):
+        from gnucash.gnucash_business import Bill
+
+        bill_id = "BillID"
+        bill = Bill(self.book, bill_id, self.currency, self.vendor)
+
+        found_bill = self.book.BillLookupByID(bill_id)
+
+        self.assertIsNotNone(found_bill)
+        self.assertEqual(bill.GetID(), found_bill.GetID())
+
     def test_equal(self):
         self.assertTrue( self.vendor.Equal( self.vendor.GetVendor() ) )
         self.assertTrue( self.customer.Equal( self.job.GetOwner() ) )
