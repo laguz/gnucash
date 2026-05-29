@@ -31,5 +31,6 @@ set(test_python_bindings_DATA
         test_latex_invoices.py
         test_one_arg_default_none.py
         test_account_analysis.py
+        test_console.py
         )
 set_dist_list(test_python_bindings_DIST CMakeLists.txt ${test_python_bindings_DATA})
