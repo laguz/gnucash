@@ -66,7 +66,7 @@ isDateValid(char * date_string)
     memset(&time_struct, 0, sizeof(struct tm));
 
    tmp = strptime(date_string, date_format_string, &time_struct);
-   if (tmp == NULL) return FALSE;
+   if (tmp == NULL || *tmp != '\0') return FALSE;
    return TRUE; 
 }
 
