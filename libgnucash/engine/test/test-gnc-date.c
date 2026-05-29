@@ -1286,10 +1286,31 @@ return date character
 char dateSeparator (void)// C: 1  Local: 0:0:0
 src/register/register-gnome/datecell-gnome.h
 */
-/* static void
+static void
 test_dateSeparator (void)
 {
-}*/
+    QofDateFormat original_format = qof_date_format_get ();
+
+    qof_date_format_set (QOF_DATE_FORMAT_CE);
+    g_assert_cmpint (dateSeparator (), ==, '.');
+
+    qof_date_format_set (QOF_DATE_FORMAT_ISO);
+    g_assert_cmpint (dateSeparator (), ==, '-');
+
+    qof_date_format_set (QOF_DATE_FORMAT_UTC);
+    g_assert_cmpint (dateSeparator (), ==, '-');
+
+    qof_date_format_set (QOF_DATE_FORMAT_US);
+    g_assert_cmpint (dateSeparator (), ==, '/');
+
+    qof_date_format_set (QOF_DATE_FORMAT_UK);
+    g_assert_cmpint (dateSeparator (), ==, '/');
+
+    qof_date_format_set (QOF_DATE_FORMAT_LOCALE);
+    g_assert_cmpint (dateSeparator (), !=, '\0');
+
+    qof_date_format_set (original_format);
+}
 /* qof_time_format_from_utf8
 gchar *
 qof_time_format_from_utf8(const gchar *utf8_format)// C: 1  Local: 1:0:0
@@ -1863,7 +1884,7 @@ test_suite_gnc_date (void)
 // GNC_TEST_ADD_FUNC (suitename, "floordiv", test_floordiv);
 // GNC_TEST_ADD_FUNC (suitename, "qof scan date internal", test_qof_scan_date_internal);
     GNC_TEST_ADD_FUNC (suitename, "qof scan date", test_qof_scan_date);
-// GNC_TEST_ADD_FUNC (suitename, "dateSeparator", test_dateSeparator);
+    GNC_TEST_ADD_FUNC (suitename, "dateSeparator", test_dateSeparator);
 // GNC_TEST_ADD_FUNC (suitename, "qof time format from utf8", test_qof_time_format_from_utf8);
 // GNC_TEST_ADD_FUNC (suitename, "qof formatted time to utf8", test_qof_formatted_time_to_utf8);
 // GNC_TEST_ADD_FUNC (suitename, "qof format time", test_qof_format_time);

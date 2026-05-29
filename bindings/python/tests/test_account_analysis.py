@@ -1,40 +1,43 @@
-import unittest
+import sys
+import os
+from unittest import TestCase, main
+from unittest.mock import MagicMock
 from datetime import date
-from ..example_scripts.account_analysis import next_period_start
 
-class TestAccountAnalysis(unittest.TestCase):
-    def test_next_period_start_monthly(self):
-        # Monthly from Jan
-        year, month = next_period_start(2010, 1, "monthly")
-        self.assertEqual(year, 2010)
-        self.assertEqual(month, 2)
+# Mock the gnucash module before importing the script that uses it
+mock_gnucash = MagicMock()
+sys.modules["gnucash"] = mock_gnucash
 
-        # Monthly from Dec (wraps to next year)
-        year, month = next_period_start(2010, 12, "monthly")
-        self.assertEqual(year, 2011)
-        self.assertEqual(month, 1)
+# Add the example_scripts directory to sys.path to find the script
+script_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'example_scripts'))
+if script_dir not in sys.path:
+    sys.path.append(script_dir)
 
-    def test_next_period_start_quarterly(self):
-        # Quarterly from Jan
-        year, month = next_period_start(2010, 1, "quarterly")
-        self.assertEqual(year, 2010)
-        self.assertEqual(month, 4)
+# Now we can import the function to be tested
+from account_analysis import period_end
 
-        # Quarterly from Oct (wraps to next year)
-        year, month = next_period_start(2010, 10, "quarterly")
-        self.assertEqual(year, 2011)
-        self.assertEqual(month, 1)
+class TestAccountAnalysis(TestCase):
+    def test_period_end_monthly(self):
+        """Test period_end for monthly period"""
+        self.assertEqual(period_end(2010, 1, "monthly"), date(2010, 1, 31))
 
-    def test_next_period_start_yearly(self):
-        # Yearly from Jan
-        year, month = next_period_start(2010, 1, "yearly")
-        self.assertEqual(year, 2011)
-        self.assertEqual(month, 1)
+    def test_period_end_quarterly(self):
+        """Test period_end for quarterly period"""
+        self.assertEqual(period_end(2010, 1, "quarterly"), date(2010, 3, 31))
 
-        # Yearly from June
-        year, month = next_period_start(2010, 6, "yearly")
-        self.assertEqual(year, 2011)
-        self.assertEqual(month, 6)
+    def test_period_end_yearly(self):
+        """Test period_end for yearly period"""
+        self.assertEqual(period_end(2010, 1, "yearly"), date(2010, 12, 31))
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_period_end_leap_year(self):
+        """Test period_end for leap year"""
+        self.assertEqual(period_end(2012, 2, "monthly"), date(2012, 2, 29))
+        self.assertEqual(period_end(2011, 2, "monthly"), date(2011, 2, 28))
+
+    def test_period_end_invalid_period(self):
+        """Test period_end with invalid period_type"""
+        with self.assertRaises(Exception):
+            period_end(2010, 1, "weekly")
+
+if __name__ == "__main__":
+    main()
