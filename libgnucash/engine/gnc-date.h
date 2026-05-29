@@ -132,7 +132,7 @@ typedef enum
 } QofDateFormat;
 
 #define DATE_FORMAT_FIRST QOF_DATE_FORMAT_US
-#define DATE_FORMAT_LAST  QOF_DATE_FORMAT_UTC
+#define DATE_FORMAT_LAST  QOF_DATE_FORMAT_UNSET
 
 /** Enum for date completion modes (for dates entered without year) */
 typedef enum
