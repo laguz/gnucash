@@ -629,13 +629,14 @@ test_qof_date_format_get (void)
     g_assert_cmpint(qof_date_format_get(), ==, QOF_DATE_FORMAT_UTC);
 
     /* Test getter defaults to ISO for out of bounds formats */
-    g_test_expect_message("qof.engine", G_LOG_LEVEL_CRITICAL, "*non-existent date format*");
     qof_date_format_set(QOF_DATE_FORMAT_CUSTOM);
-    g_assert_cmpint(qof_date_format_get(), ==, QOF_DATE_FORMAT_ISO);
-    g_test_assert_expected_messages();
+    g_assert_cmpint(qof_date_format_get(), ==, QOF_DATE_FORMAT_CUSTOM);
+
+    qof_date_format_set(QOF_DATE_FORMAT_UNSET);
+    g_assert_cmpint(qof_date_format_get(), ==, QOF_DATE_FORMAT_UNSET);
 
     g_test_expect_message("qof.engine", G_LOG_LEVEL_CRITICAL, "*non-existent date format*");
-    qof_date_format_set(QOF_DATE_FORMAT_UNSET);
+    qof_date_format_set(100);
     g_assert_cmpint(qof_date_format_get(), ==, QOF_DATE_FORMAT_ISO);
     g_test_assert_expected_messages();
 }
@@ -1433,6 +1434,12 @@ test_dateSeparator (void)
 
     qof_date_format_set (QOF_DATE_FORMAT_LOCALE);
     g_assert_cmpint (dateSeparator (), !=, '\0');
+
+    qof_date_format_set (QOF_DATE_FORMAT_CUSTOM);
+    g_assert_cmpint (dateSeparator (), ==, '/');
+
+    qof_date_format_set (QOF_DATE_FORMAT_UNSET);
+    g_assert_cmpint (dateSeparator (), ==, '/');
 
     qof_date_format_set (original_format);
 }
