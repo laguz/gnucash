@@ -37,8 +37,8 @@ class TestChangeTaxCode(TestCase):
         target_code = "1234"
         child = MagicMock()
         child.GetCode.return_value = target_code
-        child.get_descendants.return_value = []
-        self.root_account.get_descendants.return_value = [child]
+        child.get_children.return_value = []
+        self.root_account.get_children.return_value = [child]
 
         result = mark_account_with_code_as_tax_related(self.root_account, target_code)
 
@@ -55,10 +55,10 @@ class TestChangeTaxCode(TestCase):
 
         grandchild = MagicMock()
         grandchild.GetCode.return_value = target_code
-        grandchild.get_descendants.return_value = []
+        grandchild.get_children.return_value = []
 
-        child.get_descendants.return_value = [grandchild]
-        self.root_account.get_descendants.return_value = [child, grandchild]
+        child.get_children.return_value = [grandchild]
+        self.root_account.get_children.return_value = [child]
 
         result = mark_account_with_code_as_tax_related(self.root_account, target_code)
 
@@ -71,8 +71,8 @@ class TestChangeTaxCode(TestCase):
         """Test that the function returns False when no account matches the code."""
         child = MagicMock()
         child.GetCode.return_value = "CHILD"
-        child.get_descendants.return_value = []
-        self.root_account.get_descendants.return_value = [child]
+        child.get_children.return_value = []
+        self.root_account.get_children.return_value = [child]
 
         result = mark_account_with_code_as_tax_related(self.root_account, "NOMATCH")
 
@@ -85,13 +85,13 @@ class TestChangeTaxCode(TestCase):
         target_code = "1234"
         child1 = MagicMock()
         child1.GetCode.return_value = "CHILD1"
-        child1.get_descendants.return_value = []
+        child1.get_children.return_value = []
 
         child2 = MagicMock()
         child2.GetCode.return_value = target_code
-        child2.get_descendants.return_value = []
+        child2.get_children.return_value = []
 
-        self.root_account.get_descendants.return_value = [child1, child2]
+        self.root_account.get_children.return_value = [child1, child2]
 
         result = mark_account_with_code_as_tax_related(self.root_account, target_code)
 

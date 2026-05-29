@@ -273,7 +273,7 @@ check_acct_name (Account *acct, gpointer user_data)
 GList *gnc_account_list_name_violations (QofBook *book, const gchar *separator)
 {
     g_return_val_if_fail (separator != nullptr, nullptr);
-    if (!book) return nullptr;
+    g_return_val_if_fail (book != nullptr, nullptr);
     ViolationData cb = { nullptr, separator };
     gnc_account_foreach_descendant (gnc_book_get_root_account (book),
                                     (AccountCb)check_acct_name, &cb);
@@ -1343,9 +1343,8 @@ xaccCloneAccount(const Account *from, QofBook *book)
 static void
 xaccFreeOneChildAccount (Account *acc)
 {
-    /* Force editlevel to 1 so xaccAccountDestroy will immediately destroy it. */
-    while (qof_instance_get_editlevel(acc) > 1)
-        qof_instance_decrease_editlevel(acc);
+    /* FIXME: this code is kind of hacky.  actually, all this code
+     * seems to assume that the account edit levels are all 1. */
     if (qof_instance_get_editlevel(acc) == 0)
         xaccAccountBeginEdit(acc);
     xaccAccountDestroy(acc);
