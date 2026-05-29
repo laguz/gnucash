@@ -14,7 +14,7 @@ if script_dir not in sys.path:
     sys.path.append(script_dir)
 
 # Now we can import the function to be tested
-from account_analysis import period_end
+from account_analysis import period_end, next_period_start
 
 class TestAccountAnalysis(TestCase):
     def test_period_end_monthly(self):
@@ -38,6 +38,27 @@ class TestAccountAnalysis(TestCase):
         """Test period_end with invalid period_type"""
         with self.assertRaises(Exception):
             period_end(2010, 1, "weekly")
+
+    def test_next_period_start_monthly(self):
+        """Test next_period_start for monthly period"""
+        self.assertEqual(next_period_start(2010, 1, "monthly"), (2010, 2))
+        # Test rollover
+        self.assertEqual(next_period_start(2010, 12, "monthly"), (2011, 1))
+
+    def test_next_period_start_quarterly(self):
+        """Test next_period_start for quarterly period"""
+        self.assertEqual(next_period_start(2010, 1, "quarterly"), (2010, 4))
+        # Test rollover
+        self.assertEqual(next_period_start(2010, 10, "quarterly"), (2011, 1))
+
+    def test_next_period_start_yearly(self):
+        """Test next_period_start for yearly period"""
+        self.assertEqual(next_period_start(2010, 1, "yearly"), (2011, 1))
+
+    def test_next_period_start_invalid_period(self):
+        """Test next_period_start with invalid period_type"""
+        with self.assertRaises(KeyError):
+            next_period_start(2010, 1, "weekly")
 
 if __name__ == "__main__":
     main()
