@@ -103,4 +103,7 @@ TEST_F(BiImportHelperTest, isDateValid) {
     // it will fail if it cannot match the month first.
     char date_us_invalid_1[] = "15/01/2023"; // month 15 is invalid
     EXPECT_FALSE(isDateValid(date_us_invalid_1));
+
+    // Null pointer
+    EXPECT_FALSE(isDateValid(nullptr));
 }
