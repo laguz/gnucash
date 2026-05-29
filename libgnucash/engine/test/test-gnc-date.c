@@ -709,6 +709,47 @@ static void tm_set_dmy (struct tm *tm, gint year, gint month, gint mday)
     tm->tm_mday = mday;
 }
 
+
+static void
+test_qof_date_format_get_string (void)
+{
+    QofDateFormat original_format = qof_date_format_get ();
+
+    g_assert_cmpstr(qof_date_format_get_string(QOF_DATE_FORMAT_US), ==, "%m/%d/%Y");
+    g_assert_cmpstr(qof_date_format_get_string(QOF_DATE_FORMAT_UK), ==, "%d/%m/%Y");
+    g_assert_cmpstr(qof_date_format_get_string(QOF_DATE_FORMAT_CE), ==, "%d.%m.%Y");
+    g_assert_cmpstr(qof_date_format_get_string(QOF_DATE_FORMAT_UTC), ==, "%Y-%m-%dT%H:%M:%SZ");
+    g_assert_cmpstr(qof_date_format_get_string(QOF_DATE_FORMAT_ISO), ==, "%Y-%m-%d");
+
+    qof_date_format_set(QOF_DATE_FORMAT_UK);
+    g_assert_cmpstr(qof_date_format_get_string(QOF_DATE_FORMAT_UNSET), ==, "%d/%m/%Y");
+
+    g_assert_cmpstr(qof_date_format_get_string(QOF_DATE_FORMAT_LOCALE), ==, GNC_D_FMT);
+    g_assert_cmpstr(qof_date_format_get_string((QofDateFormat)((guint)DATE_FORMAT_LAST + 97)), ==, GNC_D_FMT);
+
+    qof_date_format_set(original_format);
+}
+
+static void
+test_qof_date_text_format_get_string (void)
+{
+    QofDateFormat original_format = qof_date_format_get ();
+
+    g_assert_cmpstr(qof_date_text_format_get_string(QOF_DATE_FORMAT_US), ==, "%b %d, %Y");
+    g_assert_cmpstr(qof_date_text_format_get_string(QOF_DATE_FORMAT_UK), ==, "%d %b %Y");
+    g_assert_cmpstr(qof_date_text_format_get_string(QOF_DATE_FORMAT_CE), ==, "%d %b %Y");
+    g_assert_cmpstr(qof_date_text_format_get_string(QOF_DATE_FORMAT_UTC), ==, "%Y-%m-%dT%H:%M:%SZ");
+    g_assert_cmpstr(qof_date_text_format_get_string(QOF_DATE_FORMAT_ISO), ==, "%Y-%b-%d");
+
+    qof_date_format_set(QOF_DATE_FORMAT_UK);
+    g_assert_cmpstr(qof_date_text_format_get_string(QOF_DATE_FORMAT_UNSET), ==, "%d %b %Y");
+
+    g_assert_cmpstr(qof_date_text_format_get_string(QOF_DATE_FORMAT_LOCALE), ==, GNC_D_FMT);
+    g_assert_cmpstr(qof_date_text_format_get_string((QofDateFormat)((guint)DATE_FORMAT_LAST + 97)), ==, GNC_D_FMT);
+
+    qof_date_format_set(original_format);
+}
+
 static void
 test_qof_print_date_dmy_buff (void)
 {
@@ -2023,6 +2064,8 @@ test_suite_gnc_date (void)
     GNC_TEST_ADD_FUNC (suitename, "date get last mday", test_gnc_date_get_last_mday);
     GNC_TEST_ADD_FUNC (suitename, "qof date format get", test_qof_date_format_get);
     GNC_TEST_ADD_FUNC (suitename, "qof date format set", test_qof_date_format_set);
+    GNC_TEST_ADD_FUNC (suitename, "qof date format get string", test_qof_date_format_get_string);
+    GNC_TEST_ADD_FUNC (suitename, "qof date text format get string", test_qof_date_text_format_get_string);
 // GNC_TEST_ADD_FUNC (suitename, "qof date completion set", test_qof_date_completion_set);
     GNC_TEST_ADD_FUNC (suitename, "qof print date dmy buff", test_qof_print_date_dmy_buff);
     GNC_TEST_ADD_FUNC (suitename, "qof print date buff", test_qof_print_date_buff);
