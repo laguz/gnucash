@@ -160,7 +160,7 @@ fi_to_gui (FinCalcDialog *fcd)
 
     total = gnc_numeric_mul (npp, pmt, GNC_DENOM_AUTO, GNC_HOW_RND_ROUND);
 
-    xaccSPrintAmount (string, total, gnc_share_print_info_places (precision));
+    xaccSPrintAmount (string, sizeof(string), total, gnc_share_print_info_places (precision));
     gtk_label_set_text (GTK_LABEL(fcd->payment_total_label), string);
 
     i = normalize_period (&fcd->financial_info.CF);

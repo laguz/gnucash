@@ -415,13 +415,13 @@ gnc_lot_viewer_fill (GNCLotViewer *lv)
         gtk_list_store_set(store, &iter, LOT_COL_TITLE, gnc_lot_get_title(lot), -1);
 
         /* Amount */
-        xaccSPrintAmount (baln_buff, amt_baln,
+        xaccSPrintAmount (baln_buff, sizeof(baln_buff), amt_baln,
                           gnc_account_print_info (lv->account, TRUE));
         gtk_list_store_set(store, &iter, LOT_COL_BALN, baln_buff, -1);
         gtk_list_store_set(store, &iter, LOT_COL_BALN_DOUBLE, gnc_numeric_to_double (amt_baln), -1);
 
         /* Capital Gains/Losses Appreciation/Depreciation */
-        xaccSPrintAmount (gain_buff, gains_baln,
+        xaccSPrintAmount (gain_buff, sizeof(gain_buff), gains_baln,
                           gnc_commodity_print_info (currency, TRUE));
         gtk_list_store_set(store, &iter, LOT_COL_GAINS, gain_buff, -1);
         gtk_list_store_set(store, &iter, LOT_COL_GAINS_DOUBLE, gnc_numeric_to_double (gains_baln), -1);
@@ -538,7 +538,7 @@ gnc_split_viewer_fill (GNCLotViewer *lv, GtkListStore *store, SplitList *split_l
 
         /* Amount */
         amnt = xaccSplitGetAmount (split);
-        xaccSPrintAmount (amtbuff, amnt,
+        xaccSPrintAmount (amtbuff, sizeof(amtbuff), amnt,
                           gnc_account_print_info (lv->account, TRUE));
         gtk_list_store_set (store, &iter, SPLIT_COL_AMOUNT, amtbuff, -1);
         gtk_list_store_set (store, &iter, SPLIT_COL_AMOUNT_DOUBLE, gnc_numeric_to_double (amnt), -1);
@@ -550,7 +550,7 @@ gnc_split_viewer_fill (GNCLotViewer *lv, GtkListStore *store, SplitList *split_l
         value = xaccSplitGetValue (split);
         if (lv->selected_lot && !is_business_lot && (node != split_list))
                 value = gnc_numeric_neg (value);
-        xaccSPrintAmount (valbuff, value,
+        xaccSPrintAmount (valbuff, sizeof(valbuff), value,
                           gnc_commodity_print_info (currency, TRUE));
         gtk_list_store_set (store, &iter, SPLIT_COL_VALUE, valbuff, -1);
         gtk_list_store_set (store, &iter, SPLIT_COL_VALUE_DOUBLE, gnc_numeric_to_double (value), -1);
@@ -563,7 +563,7 @@ gnc_split_viewer_fill (GNCLotViewer *lv, GtkListStore *store, SplitList *split_l
         }
         else
         {
-            xaccSPrintAmount (gainbuff, gains,
+            xaccSPrintAmount (gainbuff, sizeof(gainbuff), gains,
                               gnc_commodity_print_info (currency, TRUE));
         }
         gtk_list_store_set (store, &iter, SPLIT_COL_GAIN_LOSS, gainbuff, -1);
@@ -577,7 +577,7 @@ gnc_split_viewer_fill (GNCLotViewer *lv, GtkListStore *store, SplitList *split_l
         }
         else
         {
-            xaccSPrintAmount (balnbuff, baln,
+            xaccSPrintAmount (balnbuff, sizeof(balnbuff), baln,
                               gnc_account_print_info (lv->account, TRUE));
         }
         gtk_list_store_set (store, &iter, SPLIT_COL_BALANCE, balnbuff, -1);

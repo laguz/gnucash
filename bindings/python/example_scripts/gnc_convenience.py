@@ -81,7 +81,7 @@ def find_account(account,name,account_list=None):
     if type(child) != Account:
       child=Account(instance=child)
     account_list=find_account(child,name,account_list)
-  
+
   account_name=account.GetName()
   if name in account_name:
     account_list.append(account)

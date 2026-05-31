@@ -1108,21 +1108,21 @@ gnc_integral_print_info (void)
 }
 
 /* Utility function for printing non-negative amounts */
-static int
-PrintAmountInternal(char* buf, gnc_numeric val, const GNCPrintAmountInfo *info)
+static std::string
+PrintAmountInternal(gnc_numeric val, const GNCPrintAmountInfo *info)
 {
     auto *lc = gnc_localeconv();
     constexpr size_t buf_size = 128;
     char temp_buf[buf_size];
+    std::string result = "";
 
-    g_return_val_if_fail (info != nullptr, 0);
+    g_return_val_if_fail (info != nullptr, "");
 
     if (gnc_numeric_check (val))
     {
         PWARN ("Bad numeric: %s.",
                gnc_numeric_errorCode_to_string(gnc_numeric_check (val)));
-        *buf = '\0';
-        return 0;
+        return "";
     }
 
     /* Print the absolute value, but remember sign */
@@ -1167,8 +1167,7 @@ PrintAmountInternal(char* buf, gnc_numeric val, const GNCPrintAmountInfo *info)
         {
             PWARN ("Bad numeric from rounding: %s.",
                    gnc_numeric_errorCode_to_string(gnc_numeric_check (val)));
-            *buf = '\0';
-            return 0;
+            return "";
         }
     }
 
@@ -1179,8 +1178,7 @@ PrintAmountInternal(char* buf, gnc_numeric val, const GNCPrintAmountInfo *info)
     {
         PWARN ("Problem with remainder: %s.",
                gnc_numeric_errorCode_to_string(gnc_numeric_check (val)));
-        *buf = '\0';
-        return 0;
+        return "";
     }
 
     // Value may now be decimal, for example if the factional part is zero
@@ -1190,7 +1188,7 @@ PrintAmountInternal(char* buf, gnc_numeric val, const GNCPrintAmountInfo *info)
     auto num_whole_digits = strlen (temp_buf);
 
     if (!info->use_separators)
-        strcpy (buf, temp_buf);
+        result += temp_buf;
     else
     {
         char* separator;
@@ -1207,13 +1205,13 @@ PrintAmountInternal(char* buf, gnc_numeric val, const GNCPrintAmountInfo *info)
             group = lc->grouping;
         }
 
-        auto buf_ptr = buf;
+        std::string buf_str = "";
         auto temp_ptr = &temp_buf[num_whole_digits - 1];
         auto group_count = 0;
 
         while (temp_ptr != temp_buf)
         {
-            *buf_ptr++ = *temp_ptr--;
+            buf_str += *temp_ptr--;
 
             if (*group != CHAR_MAX)
             {
@@ -1221,8 +1219,7 @@ PrintAmountInternal(char* buf, gnc_numeric val, const GNCPrintAmountInfo *info)
 
                 if (group_count == *group)
                 {
-                    g_utf8_strncpy(buf_ptr, separator, 1);
-                    buf_ptr = g_utf8_find_next_char(buf_ptr, nullptr);
+                    buf_str += separator;
                     group_count = 0;
 
                     /* Peek ahead at the next group code */
@@ -1244,14 +1241,13 @@ PrintAmountInternal(char* buf, gnc_numeric val, const GNCPrintAmountInfo *info)
         }
 
         /* We built the string backwards, now reverse */
-        *buf_ptr++ = *temp_ptr;
-        *buf_ptr = '\0';
-        auto rev_buf = g_utf8_strreverse(buf, -1);
-        strcpy (buf, rev_buf);
+        buf_str += *temp_ptr;
+        char* rev_buf = g_utf8_strreverse(buf_str.c_str(), -1);
+        result += rev_buf;
         g_free(rev_buf);
     } /* endif */
 
-    /* at this point, buf contains the whole part of the number */
+    /* at this point, result contains the whole part of the number */
 
     /* If it's not decimal, print the fraction as an expression. */
     if (!value_is_decimal)
@@ -1266,13 +1262,13 @@ PrintAmountInternal(char* buf, gnc_numeric val, const GNCPrintAmountInfo *info)
                      val.num, -val.denom);
 
         if (whole.num == 0)
-            *buf = '\0';
+            result = "";
         else if (value_is_negative)
-            strcat(buf, " - ");
+            result += " - ";
         else
-            strcat(buf, " + ");
+            result += " + ";
 
-        strcat (buf, temp_buf);
+        result += temp_buf;
     }
     else
     {
@@ -1320,22 +1316,22 @@ PrintAmountInternal(char* buf, gnc_numeric val, const GNCPrintAmountInfo *info)
         if (num_decimal_places > max_dp)
         {
             PWARN ("max_decimal_places too small; limit %d, value %s%s",
-                   info->max_decimal_places, buf, temp_buf);
+                   info->max_decimal_places, result.c_str(), temp_buf);
         }
 
-        strcat (buf, temp_buf);
+        result += temp_buf;
     }
 
-    return strlen(buf);
+    return result;
 }
 
 /**
  * @param bufp Should be at least 64 chars.
  **/
 int
-xaccSPrintAmount (char*  bufp, gnc_numeric val, GNCPrintAmountInfo info)
+xaccSPrintAmount (char*  bufp, size_t buf_len, gnc_numeric val, GNCPrintAmountInfo info)
 {
-    auto orig_bufp = bufp;
+    std::string result = "";
     auto currency_symbol = "";
     const char* sign;
 
@@ -1346,7 +1342,7 @@ xaccSPrintAmount (char*  bufp, gnc_numeric val, GNCPrintAmountInfo info)
     bool print_sign = true;
     bool print_absolute = false;
 
-    if (!bufp)
+    if (!bufp || buf_len == 0)
         return 0;
 
     auto lc = gnc_localeconv();
@@ -1393,68 +1389,67 @@ xaccSPrintAmount (char*  bufp, gnc_numeric val, GNCPrintAmountInfo info)
 
     /* See if we print sign now */
     if (print_sign && (sign_posn == 1))
-        bufp = g_stpcpy(bufp, sign);
+        result += sign;
 
     /* Now see if we print currency */
     if (cs_precedes)
     {
         /* See if we print sign now */
         if (print_sign && (sign_posn == 3))
-            bufp = g_stpcpy(bufp, sign);
+            result += sign;
 
         if (info.use_symbol)
         {
-            bufp = g_stpcpy(bufp, currency_symbol);
+            result += currency_symbol;
             if (sep_by_space)
-                bufp = g_stpcpy(bufp, " ");
+                result += " ";
         }
 
         /* See if we print sign now */
         if (print_sign && (sign_posn == 4))
-            bufp = g_stpcpy(bufp, sign);
+            result += sign;
     }
 
     /* Now see if we print parentheses */
     if (print_sign && (sign_posn == 0))
     {
-        bufp = g_stpcpy(bufp, "(");
+        result += "(";
         print_absolute = TRUE;
     }
 
     /* Now print the value */
-    bufp += PrintAmountInternal(bufp,
-                                print_absolute ? gnc_numeric_abs(val) : val,
+    result += PrintAmountInternal(print_absolute ? gnc_numeric_abs(val) : val,
                                 &info);
 
     /* Now see if we print parentheses */
     if (print_sign && (sign_posn == 0))
-        bufp = g_stpcpy(bufp, ")");
+        result += ")";
 
     /* Now see if we print currency */
     if (!cs_precedes)
     {
         /* See if we print sign now */
         if (print_sign && (sign_posn == 3))
-            bufp = g_stpcpy(bufp, sign);
+            result += sign;
 
         if (info.use_symbol)
         {
             if (sep_by_space)
-                bufp = g_stpcpy(bufp, " ");
-            bufp = g_stpcpy(bufp, currency_symbol);
+                result += " ";
+            result += currency_symbol;
         }
 
         /* See if we print sign now */
         if (print_sign && (sign_posn == 4))
-            bufp = g_stpcpy(bufp, sign);
+            result += sign;
     }
 
     /* See if we print sign now */
     if (print_sign && (sign_posn == 2))
-        bufp = g_stpcpy(bufp, sign);
+        result += sign;
 
-    /* return length of printed string */
-    return (bufp - orig_bufp);
+    g_strlcpy(bufp, result.c_str(), buf_len);
+    return strlen(bufp);
 }
 
 #define BUFLEN 1024
@@ -1465,7 +1460,7 @@ xaccPrintAmount (gnc_numeric val, GNCPrintAmountInfo info)
     /* hack alert -- this is not thread safe ... */
     static char buf[BUFLEN];
 
-    if (!xaccSPrintAmount (buf, val, info))
+    if (!xaccSPrintAmount (buf, sizeof(buf), val, info))
         buf[0] = '\0';
 
     /* its OK to return buf, since we declared it static */
@@ -1485,7 +1480,7 @@ gnc_print_amount_with_bidi_ltr_isolate (gnc_numeric val, GNCPrintAmountInfo info
         offset = 0;
 
     memset (buf, 0, BUFLEN);
-    if (!xaccSPrintAmount (buf + offset, val, info))
+    if (!xaccSPrintAmount (buf + offset, sizeof(buf) - offset, val, info))
     {
         buf[0] = '\0';
         return buf;
