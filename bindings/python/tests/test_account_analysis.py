@@ -52,6 +52,28 @@ class TestAccountAnalysis(TestCase):
         # e.g., start_month 10 + 3 months (quarterly) = 13 (next year, month 1)
         self.assertEqual(next_period_start(2010, 10, "quarterly"), (2011, 1))
 
+    def test_next_period_start_custom_period(self):
+        """Test next_period_start with a dynamically added custom period length"""
+        import account_analysis
+        from account_analysis import next_period_start
+
+        # Add a custom 18-month period to PERIODS
+        account_analysis.PERIODS["eighteen_months"] = 18
+
+        # 18 months from 2010-01 should be 2011-07
+        self.assertEqual(next_period_start(2010, 1, "eighteen_months"), (2011, 7))
+
+        # 18 months from 2010-10 should be 2012-04
+        self.assertEqual(next_period_start(2010, 10, "eighteen_months"), (2012, 4))
+
+        # 36 months from 2010-01 should be 2013-01
+        account_analysis.PERIODS["three_years"] = 36
+        self.assertEqual(next_period_start(2010, 1, "three_years"), (2013, 1))
+
+        # Clean up
+        del account_analysis.PERIODS["eighteen_months"]
+        del account_analysis.PERIODS["three_years"]
+
     def test_next_period_start_invalid_period(self):
         """Test next_period_start with invalid period_type"""
         from account_analysis import next_period_start
