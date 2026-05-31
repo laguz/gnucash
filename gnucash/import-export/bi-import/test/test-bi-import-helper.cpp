@@ -127,6 +127,20 @@ TEST_F(BiImportHelperTest, isDateValid) {
     char date_ce_invalid_3[] = "15.13.2023"; // Month out of bounds
     EXPECT_FALSE(isDateValid(date_ce_invalid_3));
 
+    // Test UTC format: YYYY-MM-DDTHH:MM:SSZ
+    qof_date_format_set(QOF_DATE_FORMAT_UTC);
+
+    // Valid dates
+    char date_utc_1[] = "2004-12-12T23:39:11Z";
+    EXPECT_TRUE(isDateValid(date_utc_1));
+
+    // Invalid dates for UTC format
+    char date_utc_invalid_1[] = "2004-12-12 23:39:11Z"; // Missing T
+    EXPECT_FALSE(isDateValid(date_utc_invalid_1));
+
+    char date_utc_invalid_2[] = "2004-12-12T23:39:11"; // Missing Z
+    EXPECT_FALSE(isDateValid(date_utc_invalid_2));
+
     // Test ISO format: YYYY-MM-DD
     qof_date_format_set(QOF_DATE_FORMAT_ISO);
 
