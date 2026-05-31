@@ -24,13 +24,6 @@ class TestConsole(unittest.TestCase):
             'gi.repository': MagicMock()
         }
 
-        # Gtk Dummy
-        mock_gtk = MagicMock()
-        class DummyJustification:
-            CENTER = 1
-        mock_gtk.Justification = DummyJustification
-        mock_modules['gi.repository.Gtk'] = mock_gtk
-
         # We need a proper Fake class for pycons.console.Console
         class FakeConsConsole:
             def __init__(self, argv=[], shelltype='python', banner=[], filename=None, size=100, user_local_ns=None, user_global_ns=None):
@@ -79,6 +72,26 @@ class TestConsole(unittest.TestCase):
             p.stop()
         if 'init' in sys.modules:
             del sys.modules['init']
+
+    def test_init(self):
+        # We need a clean initialization instance to avoid issues with already created self.console
+        console = self.init.Console()
+
+        # Check initial properties
+        self.assertEqual(console.figures, [])
+        self.assertEqual(console.callbacks, [])
+        self.assertIsNone(console.last_figure)
+        self.assertIsNone(console.active_canvas)
+
+        # Check buffer configuration
+        console.buffer.create_tag.assert_called_with('center', justification=sys.modules['gi.repository'].Gtk.Justification.CENTER, font='Mono 4')
+
+        # Check event connections
+        calls = console.view.connect.call_args_list
+        self.assertEqual(len(calls), 3)
+        self.assertEqual(calls[0][0][0], 'key-press-event')
+        self.assertEqual(calls[1][0][0], 'button-press-event')
+        self.assertEqual(calls[2][0][0], 'scroll-event')
 
     def test_refresh_calls_draw(self):
         mock_canvas1 = MagicMock()
