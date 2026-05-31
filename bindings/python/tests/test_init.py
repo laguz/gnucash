@@ -1,10 +1,96 @@
 import unittest
+from unittest.mock import MagicMock, patch
 import sys
 import os
 
 class TestInit(unittest.TestCase):
+    def setUp(self):
+        # Cleanly set up mocked dependencies
+        self.patchers = []
+
+        # 1. Mock builtin _ (gettext) and gnucash_core_c
+        import builtins
+        if not hasattr(builtins, '_'):
+            builtins._ = lambda x: x
+        if not hasattr(builtins, 'gnucash_core_c'):
+            builtins.gnucash_core_c = MagicMock()
+
+        # 2. Mock specific modules in sys.modules
+        mock_modules = {
+            'gnucash': MagicMock(),
+            'gnucash._sw_app_utils': MagicMock(),
+            'gnucash._sw_core_utils': MagicMock(),
+            'gi': MagicMock(),
+            'gi.repository': MagicMock()
+        }
+
+        # We need a proper Fake class for pycons.console.Console
+        class FakeConsConsole:
+            def __init__(self, argv=[], shelltype='python', banner=[], filename=None, size=100, user_local_ns=None, user_global_ns=None):
+                self.buffer = MagicMock()
+                self.view = MagicMock()
+            def key_press_event(self, widget, event):
+                return False
+            def quit(self):
+                return True
+
+        # Use MagicMock for the modules themselves so they behave like packages
+        # but attach the concrete FakeConsConsole class so it can be inherited correctly
+        mock_pycons = MagicMock()
+        mock_pycons_console = MagicMock()
+        mock_pycons_console.Console = FakeConsConsole
+
+        # Link them up
+        mock_pycons.console = mock_pycons_console
+
+        mock_modules['pycons'] = mock_pycons
+        mock_modules['pycons.console'] = mock_pycons_console
+
+        # Patch sys.modules
+        p = patch.dict(sys.modules, mock_modules)
+        self.patchers.append(p)
+        p.start()
+
+        # Need to fix the gnc_prefs execution when init imports it
+        sys.modules['gnucash._sw_core_utils'].gnc_prefs_is_extra_enabled = lambda: False
+        sys.modules['gnucash._sw_core_utils'].gnc_prefs_is_debugging_enabled = lambda: False
+
+        # Load init module
+        sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../gnucash/python')))
+        if 'init' in sys.modules:
+            del sys.modules['init']
+        import init
+        self.init = init
+        sys.path.pop(0)
+
+    def tearDown(self):
+        for p in self.patchers:
+            p.stop()
+        if 'init' in sys.modules:
+            del sys.modules['init']
+
     def test_console_init(self):
-        self.assertTrue(True)
+        console = self.init.Console()
+
+        # Validate that variables are initialized correctly
+        self.assertEqual(console.figures, [])
+        self.assertEqual(console.callbacks, [])
+        self.assertIsNone(console.last_figure)
+        self.assertIsNone(console.active_canvas)
+
+        # Validate that GTK tags are configured correctly
+        console.buffer.create_tag.assert_called_with(
+            'center',
+            justification=sys.modules['gi.repository'].Gtk.Justification.CENTER,
+            font='Mono 4'
+        )
+
+        # Validate that event connections are made
+        calls = console.view.connect.call_args_list
+        self.assertEqual(len(calls), 3)
+        self.assertEqual(calls[0][0][0], 'key-press-event')
+        self.assertEqual(calls[1][0][0], 'button-press-event')
+        self.assertEqual(calls[2][0][0], 'scroll-event')
 
 if __name__ == '__main__':
     unittest.main()
