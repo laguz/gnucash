@@ -30,6 +30,7 @@
 #include <TransLog.h>
 
 extern void test_qofsession_aqb_kvp( void );
+extern void test_aqb_plugin_create_plugin( void );
 
 int
 main (int   argc,
@@ -44,6 +45,7 @@ main (int   argc,
     /* Disable the transaction log */
     xaccLogDisable();
 
+    g_log_set_always_fatal(G_LOG_LEVEL_ERROR);
     gnc_module_system_init();
     gnc_engine_init(argc, argv);
 
@@ -52,6 +54,7 @@ main (int   argc,
      * details. Unfortunately, GLib-Testing doesn't provide the automatic
      * registration features of more sophisticated frameworks. */
     g_test_add_func ("/import-export/aqb/kvp", test_qofsession_aqb_kvp);
+    g_test_add_func ("/import-export/aqb/plugin/create", test_aqb_plugin_create_plugin);
 
     return g_test_run();
 }

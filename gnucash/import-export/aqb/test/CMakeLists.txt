@@ -1,4 +1,4 @@
-set(test_aqb_SOURCES test-aqb.c test-kvp.c)
+set(test_aqb_SOURCES test-aqb.c test-kvp.c test-plugin-aqbanking.c)
 
 set(test_aqb_INCLUDE_DIRS
   ${CMAKE_BINARY_DIR}/common
