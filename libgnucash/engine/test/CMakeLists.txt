@@ -121,6 +121,9 @@ gnc_add_test(test-gnc-guid "${test_gnc_guid_SOURCES}"
 gnc_add_test(test-cashobjects gtest-cashobjects.cpp
   gtest_engine_INCLUDES gtest_old_engine_LIBS)
 
+gnc_add_test(test-gncBillTerm gtest-gncBillTerm.cpp
+  gtest_engine_INCLUDES gtest_old_engine_LIBS)
+
 set(test_kvp_value_SOURCES
   ${MODULEPATH}/kvp-value.cpp
   test-kvp-value.cpp
@@ -220,6 +223,7 @@ gnc_add_test(gtest-policy gtest-policy.cpp
   gtest_engine_INCLUDES gtest_old_engine_LIBS)
 
 set(test_engine_SOURCES_DIST
+        gtest-gncBillTerm.cpp
         gtest-gnc-euro.cpp
         gtest-gnc-int128.cpp
         gtest-gnc-rational.cpp
