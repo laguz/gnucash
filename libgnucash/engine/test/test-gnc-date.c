@@ -672,15 +672,64 @@ test_qof_date_format_set (void)
     TestErrorStruct check = {loglevel, logdomain, msg, 0};
     GLogFunc hdlr = g_log_set_default_handler ((GLogFunc)test_null_handler, &check);
     g_test_log_set_fatal_handler ((GTestLogFatalFunc)test_checked_handler, &check);
-    qof_date_format_set ((QofDateFormat)((guint)DATE_FORMAT_LAST + 97));
-    g_assert_cmpint (qof_date_format_get (), ==,  QOF_DATE_FORMAT_ISO);
-    g_assert_cmpint (check.hits, ==,1);
+
+    /* Test valid formats */
+    qof_date_format_set (QOF_DATE_FORMAT_US);
+    g_assert_cmpint (qof_date_format_get (), ==, QOF_DATE_FORMAT_US);
 
     qof_date_format_set (QOF_DATE_FORMAT_UK);
     g_assert_cmpint (qof_date_format_get (), ==, QOF_DATE_FORMAT_UK);
-    g_assert_cmpint (check.hits, ==,1);
+
+    qof_date_format_set (QOF_DATE_FORMAT_CE);
+    g_assert_cmpint (qof_date_format_get (), ==, QOF_DATE_FORMAT_CE);
+
+    qof_date_format_set (QOF_DATE_FORMAT_ISO);
+    g_assert_cmpint (qof_date_format_get (), ==, QOF_DATE_FORMAT_ISO);
+
+    qof_date_format_set (QOF_DATE_FORMAT_UTC);
+    g_assert_cmpint (qof_date_format_get (), ==, QOF_DATE_FORMAT_UTC);
+
+    qof_date_format_set (QOF_DATE_FORMAT_LOCALE);
+    g_assert_cmpint (qof_date_format_get (), ==, QOF_DATE_FORMAT_LOCALE);
+    g_assert_cmpint (check.hits, ==, 0);
+
+    /* Note: QOF_DATE_FORMAT_CUSTOM and QOF_DATE_FORMAT_UNSET are outside
+     * DATE_FORMAT_FIRST and DATE_FORMAT_LAST. So they trigger the invalid fallback to ISO. */
+    qof_date_format_set (QOF_DATE_FORMAT_CUSTOM);
+    g_assert_cmpint (qof_date_format_get (), ==, QOF_DATE_FORMAT_ISO);
+    g_assert_cmpint (check.hits, ==, 1);
+
+    qof_date_format_set (QOF_DATE_FORMAT_UNSET);
+    g_assert_cmpint (qof_date_format_get (), ==, QOF_DATE_FORMAT_ISO);
+    g_assert_cmpint (check.hits, ==, 2);
+
+    /* Test invalid format sets ISO default */
+    qof_date_format_set ((QofDateFormat)((guint)DATE_FORMAT_LAST + 97));
+    g_assert_cmpint (qof_date_format_get (), ==,  QOF_DATE_FORMAT_ISO);
+    g_assert_cmpint (check.hits, ==, 3);
+
+    /* Reset global date format for subsequent tests. */
     g_log_set_default_handler (hdlr, NULL);
+    qof_date_format_set(QOF_DATE_FORMAT_UK);
 }
+static void
+test_qof_date_format_get_string (void)
+{
+    g_assert_cmpstr (qof_date_format_get_string (QOF_DATE_FORMAT_US), ==, "%m/%d/%Y");
+    g_assert_cmpstr (qof_date_format_get_string (QOF_DATE_FORMAT_UK), ==, "%d/%m/%Y");
+    g_assert_cmpstr (qof_date_format_get_string (QOF_DATE_FORMAT_CE), ==, "%d.%m.%Y");
+    g_assert_cmpstr (qof_date_format_get_string (QOF_DATE_FORMAT_ISO), ==, "%Y-%m-%d");
+    /* QOF_DATE_FORMAT_UTC has specific format */
+    g_assert_cmpstr (qof_date_format_get_string (QOF_DATE_FORMAT_UTC), ==, "%Y-%m-%dT%H:%M:%SZ");
+
+    /* QOF_DATE_FORMAT_UNSET defaults to the global dateFormat, which for this test is UK (as set at the end of the previous test) */
+    qof_date_format_set (QOF_DATE_FORMAT_UK);
+    g_assert_cmpstr (qof_date_format_get_string (QOF_DATE_FORMAT_UNSET), ==, "%d/%m/%Y");
+
+    /* CUSTOM format breaks out of the switch and falls back to GNC_D_FMT */
+    g_assert_cmpstr (qof_date_format_get_string (QOF_DATE_FORMAT_CUSTOM), ==, "%m/%d/%y");
+}
+
 /* qof_date_completion_set
 set dateCompletion to one of QOF_DATE_COMPLETION_THISYEAR (for
 completing the year to the current calendar year) or
