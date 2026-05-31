@@ -494,6 +494,63 @@ compute_noon_of_day (const time64 *t)
 }
 
 static void
+test_gnc_gdate_set_today (void)
+{
+    GDate* gd = g_date_new ();
+    GDate* expected = g_date_new ();
+
+    g_date_set_time_t (expected, time (NULL));
+    gnc_gdate_set_today (gd);
+
+    g_assert_true (g_date_valid (gd));
+    g_assert_cmpint (g_date_compare (gd, expected), ==, 0);
+
+    /* Test boundary/error conditions */
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL, "*gd != nullptr*");
+    gnc_gdate_set_today (NULL);
+    g_test_assert_expected_messages ();
+
+    g_date_free (gd);
+    g_date_free (expected);
+}
+
+static void
+test_gnc_g_date_new_today (void)
+{
+    GDate* gd = gnc_g_date_new_today ();
+    GDate* expected = g_date_new ();
+
+    g_date_set_time_t (expected, time (NULL));
+
+    g_assert_true (g_date_valid (gd));
+    g_assert_cmpint (g_date_compare (gd, expected), ==, 0);
+
+    g_date_free (gd);
+    g_date_free (expected);
+}
+
+static void
+test_gnc_gdate_set_time64 (void)
+{
+    GDate* gd = g_date_new ();
+    GDate* expected = g_date_new ();
+    time64 test_time = 1609459200; /* 2021-01-01 00:00:00 UTC */
+
+    struct tm tm;
+    gnc_localtime_r(&test_time, &tm);
+    g_date_set_dmy (expected, tm.tm_mday, tm.tm_mon + 1, tm.tm_year + 1900);
+
+    gnc_gdate_set_time64 (gd, test_time);
+
+    g_assert_cmpint (g_date_compare (gd, expected), ==, 0);
+
+    g_date_free (gd);
+    g_date_free (expected);
+}
+
+
+
+static void
 test_time64CanonicalDayTime (void)
 {
     const int sec_per_day = 24 * 3600;
@@ -556,6 +613,48 @@ test_gnc_date_get_last_mday (void)
 /* Getter, no testing needed.
 QofDateFormat qof_date_format_get (void)// C: 5 in 3  Local: 0:0:0
 */
+static void
+test_qof_date_format_get (void)
+{
+    /* Test getter default format */
+    QofDateFormat original_format = qof_date_format_get();
+    g_assert_cmpint(original_format, ==, QOF_DATE_FORMAT_LOCALE);
+
+    /* Test getter matches setter for explicit valid formats */
+    qof_date_format_set(QOF_DATE_FORMAT_US);
+    g_assert_cmpint(qof_date_format_get(), ==, QOF_DATE_FORMAT_US);
+
+    qof_date_format_set(QOF_DATE_FORMAT_UK);
+    g_assert_cmpint(qof_date_format_get(), ==, QOF_DATE_FORMAT_UK);
+
+    qof_date_format_set(QOF_DATE_FORMAT_CE);
+    g_assert_cmpint(qof_date_format_get(), ==, QOF_DATE_FORMAT_CE);
+
+    qof_date_format_set(QOF_DATE_FORMAT_ISO);
+    g_assert_cmpint(qof_date_format_get(), ==, QOF_DATE_FORMAT_ISO);
+
+    qof_date_format_set(QOF_DATE_FORMAT_LOCALE);
+    g_assert_cmpint(qof_date_format_get(), ==, QOF_DATE_FORMAT_LOCALE);
+
+    qof_date_format_set(QOF_DATE_FORMAT_UTC);
+    g_assert_cmpint(qof_date_format_get(), ==, QOF_DATE_FORMAT_UTC);
+
+    /* Test getter defaults to ISO for out of bounds formats */
+    qof_date_format_set(QOF_DATE_FORMAT_CUSTOM);
+    g_assert_cmpint(qof_date_format_get(), ==, QOF_DATE_FORMAT_CUSTOM);
+
+    qof_date_format_set(QOF_DATE_FORMAT_UNSET);
+    g_assert_cmpint(qof_date_format_get(), ==, QOF_DATE_FORMAT_UNSET);
+
+    g_test_expect_message("qof.engine", G_LOG_LEVEL_CRITICAL, "*non-existent date format*");
+    qof_date_format_set(100);
+    g_assert_cmpint(qof_date_format_get(), ==, QOF_DATE_FORMAT_ISO);
+    g_test_assert_expected_messages();
+
+    /* Restore original format */
+    qof_date_format_set(original_format);
+}
+
 /* qof_date_format_set
 set date format to one of US, UK, CE, ISO OR UTC
 checks to make sure it's a legal value
@@ -672,6 +771,47 @@ static void tm_set_dmy (struct tm *tm, gint year, gint month, gint mday)
     tm->tm_year = year - 1900;
     tm->tm_mon = month - 1;
     tm->tm_mday = mday;
+}
+
+
+static void
+test_qof_date_format_get_string (void)
+{
+    QofDateFormat original_format = qof_date_format_get ();
+
+    g_assert_cmpstr(qof_date_format_get_string(QOF_DATE_FORMAT_US), ==, "%m/%d/%Y");
+    g_assert_cmpstr(qof_date_format_get_string(QOF_DATE_FORMAT_UK), ==, "%d/%m/%Y");
+    g_assert_cmpstr(qof_date_format_get_string(QOF_DATE_FORMAT_CE), ==, "%d.%m.%Y");
+    g_assert_cmpstr(qof_date_format_get_string(QOF_DATE_FORMAT_UTC), ==, "%Y-%m-%dT%H:%M:%SZ");
+    g_assert_cmpstr(qof_date_format_get_string(QOF_DATE_FORMAT_ISO), ==, "%Y-%m-%d");
+
+    qof_date_format_set(QOF_DATE_FORMAT_UK);
+    g_assert_cmpstr(qof_date_format_get_string(QOF_DATE_FORMAT_UNSET), ==, "%d/%m/%Y");
+
+    g_assert_cmpstr(qof_date_format_get_string(QOF_DATE_FORMAT_LOCALE), ==, GNC_D_FMT);
+    g_assert_cmpstr(qof_date_format_get_string((QofDateFormat)((guint)DATE_FORMAT_LAST + 97)), ==, GNC_D_FMT);
+
+    qof_date_format_set(original_format);
+}
+
+static void
+test_qof_date_text_format_get_string (void)
+{
+    QofDateFormat original_format = qof_date_format_get ();
+
+    g_assert_cmpstr(qof_date_text_format_get_string(QOF_DATE_FORMAT_US), ==, "%b %d, %Y");
+    g_assert_cmpstr(qof_date_text_format_get_string(QOF_DATE_FORMAT_UK), ==, "%d %b %Y");
+    g_assert_cmpstr(qof_date_text_format_get_string(QOF_DATE_FORMAT_CE), ==, "%d %b %Y");
+    g_assert_cmpstr(qof_date_text_format_get_string(QOF_DATE_FORMAT_UTC), ==, "%Y-%m-%dT%H:%M:%SZ");
+    g_assert_cmpstr(qof_date_text_format_get_string(QOF_DATE_FORMAT_ISO), ==, "%Y-%b-%d");
+
+    qof_date_format_set(QOF_DATE_FORMAT_UK);
+    g_assert_cmpstr(qof_date_text_format_get_string(QOF_DATE_FORMAT_UNSET), ==, "%d %b %Y");
+
+    g_assert_cmpstr(qof_date_text_format_get_string(QOF_DATE_FORMAT_LOCALE), ==, GNC_D_FMT);
+    g_assert_cmpstr(qof_date_text_format_get_string((QofDateFormat)((guint)DATE_FORMAT_LAST + 97)), ==, GNC_D_FMT);
+
+    qof_date_format_set(original_format);
 }
 
 static void
@@ -1335,10 +1475,53 @@ return date character
 char dateSeparator (void)// C: 1  Local: 0:0:0
 src/register/register-gnome/datecell-gnome.h
 */
-/* static void
+static void
 test_dateSeparator (void)
 {
-}*/
+    QofDateFormat original_format = qof_date_format_get ();
+
+    qof_date_format_set (QOF_DATE_FORMAT_CE);
+    g_assert_cmpint (dateSeparator (), ==, '.');
+
+    qof_date_format_set (QOF_DATE_FORMAT_ISO);
+    g_assert_cmpint (dateSeparator (), ==, '-');
+
+    qof_date_format_set (QOF_DATE_FORMAT_UTC);
+    g_assert_cmpint (dateSeparator (), ==, '-');
+
+    qof_date_format_set (QOF_DATE_FORMAT_US);
+    g_assert_cmpint (dateSeparator (), ==, '/');
+
+    qof_date_format_set (QOF_DATE_FORMAT_UK);
+    g_assert_cmpint (dateSeparator (), ==, '/');
+
+    qof_date_format_set (QOF_DATE_FORMAT_LOCALE);
+    char locale_sep = dateSeparator ();
+    g_assert_cmpint (locale_sep, !=, '\0');
+    /* Second call should return the cached separator */
+    g_assert_cmpint (dateSeparator (), ==, locale_sep);
+
+    qof_date_format_set (QOF_DATE_FORMAT_CUSTOM);
+    g_assert_cmpint (dateSeparator (), ==, '/');
+
+    qof_date_format_set (QOF_DATE_FORMAT_UNSET);
+    g_assert_cmpint (dateSeparator (), ==, '/');
+
+    /* Verify an out-of-bounds format acts like default */
+    if (g_test_subprocess())
+    {
+        /* Need to catch the critical warning to not fail the test when it's emitted */
+        g_log_set_always_fatal (G_LOG_LEVEL_ERROR);
+        qof_date_format_set ((QofDateFormat)999);
+        g_assert_cmpint (dateSeparator (), ==, '-');
+        return;
+    }
+    g_test_trap_subprocess(NULL, 0, G_TEST_SUBPROCESS_INHERIT_STDOUT | G_TEST_SUBPROCESS_INHERIT_STDERR);
+    g_test_trap_assert_passed();
+    g_test_trap_assert_stderr("*non-existent date format set attempted*");
+
+    qof_date_format_set (original_format);
+}
 /* qof_time_format_from_utf8
 gchar *
 qof_time_format_from_utf8(const gchar *utf8_format)// C: 1  Local: 1:0:0
@@ -1859,10 +2042,69 @@ test_gnc_time64_get_today_end (void)
 void
 gnc_dow_abbrev(gchar *buf, int buf_len, int dow)// C: 4 in 2  Local: 0:0:0
 */
-/* static void
+static void
 test_gnc_dow_abbrev (void)
 {
-}*/
+    gchar buf[MIN_BUF_LEN];
+    gchar ans[MIN_BUF_LEN];
+    struct tm tm;
+    gchar *locale;
+
+    memset(&tm, 0, sizeof(struct tm));
+    locale = g_strdup (setlocale (LC_TIME, NULL));
+
+    test_gnc_setlocale (LC_TIME, "en_US");
+    for (int i = 0; i < 7; i++)
+    {
+        tm.tm_wday = i;
+        strftime (ans, MIN_BUF_LEN, "%a", &tm);
+        gnc_dow_abbrev (buf, MIN_BUF_LEN, i);
+        g_assert_cmpstr (buf, ==, ans);
+    }
+
+    test_gnc_setlocale (LC_TIME, "en_GB");
+    for (int i = 0; i < 7; i++)
+    {
+        tm.tm_wday = i;
+        strftime (ans, MIN_BUF_LEN, "%a", &tm);
+        gnc_dow_abbrev (buf, MIN_BUF_LEN, i);
+        g_assert_cmpstr (buf, ==, ans);
+    }
+
+    test_gnc_setlocale (LC_TIME, "fr_FR");
+    for (int i = 0; i < 7; i++)
+    {
+        tm.tm_wday = i;
+        strftime (ans, MIN_BUF_LEN, "%a", &tm);
+        gnc_dow_abbrev (buf, MIN_BUF_LEN, i);
+        g_assert_cmpstr (buf, ==, ans);
+    }
+
+    /* Test boundary/error conditions */
+    /* dow out of bounds */
+    gnc_dow_abbrev (buf, MIN_BUF_LEN, -1);
+    g_assert_cmpstr (buf, ==, "");
+
+    gnc_dow_abbrev (buf, MIN_BUF_LEN, 7);
+    g_assert_cmpstr (buf, ==, "");
+
+    /* small buffer */
+    gchar small_buf[2];
+    gnc_dow_abbrev (small_buf, 2, 1); /* Monday, expected 'M' potentially depending on locale but it should not overflow */
+    g_assert_cmpint (small_buf[1], ==, '\0');
+
+    /* Invalid params with GLib warnings */
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL, "*buf != nullptr*");
+    gnc_dow_abbrev (NULL, MIN_BUF_LEN, 1);
+    g_test_assert_expected_messages ();
+
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_CRITICAL, "*buf_len > 0*");
+    gnc_dow_abbrev (buf, 0, 1);
+    g_test_assert_expected_messages ();
+
+    setlocale (LC_TIME, locale);
+    g_free (locale);
+}
 /* time64_boxed_copy_func
 static gpointer
 time64_boxed_copy_func( gpointer in_time64 )// Local: 0:1:0
@@ -1902,9 +2144,14 @@ test_suite_gnc_date (void)
     GNC_TEST_ADD_FUNC (suitename, "gnc date monthformat to string", test_gnc_date_monthformat_to_string);
     GNC_TEST_ADD_FUNC (suitename, "gnc date string to monthformat", test_gnc_date_string_to_monthformat);
     GNC_TEST_ADD_FUNC (suitename, "time64CanonicalDayTime", test_time64CanonicalDayTime);
+    GNC_TEST_ADD_FUNC (suitename, "gnc gdate set today", test_gnc_gdate_set_today);
+    GNC_TEST_ADD_FUNC (suitename, "gnc g date new today", test_gnc_g_date_new_today);
+    GNC_TEST_ADD_FUNC (suitename, "gnc gdate set time64", test_gnc_gdate_set_time64);
     GNC_TEST_ADD_FUNC (suitename, "date get last mday", test_gnc_date_get_last_mday);
+    GNC_TEST_ADD_FUNC (suitename, "qof date format get", test_qof_date_format_get);
     GNC_TEST_ADD_FUNC (suitename, "qof date format set", test_qof_date_format_set);
     GNC_TEST_ADD_FUNC (suitename, "qof date format get string", test_qof_date_format_get_string);
+    GNC_TEST_ADD_FUNC (suitename, "qof date text format get string", test_qof_date_text_format_get_string);
 // GNC_TEST_ADD_FUNC (suitename, "qof date completion set", test_qof_date_completion_set);
     GNC_TEST_ADD_FUNC (suitename, "qof print date dmy buff", test_qof_print_date_dmy_buff);
     GNC_TEST_ADD_FUNC (suitename, "qof print date buff", test_qof_print_date_buff);
@@ -1913,7 +2160,7 @@ test_suite_gnc_date (void)
 // GNC_TEST_ADD_FUNC (suitename, "floordiv", test_floordiv);
 // GNC_TEST_ADD_FUNC (suitename, "qof scan date internal", test_qof_scan_date_internal);
     GNC_TEST_ADD_FUNC (suitename, "qof scan date", test_qof_scan_date);
-// GNC_TEST_ADD_FUNC (suitename, "dateSeparator", test_dateSeparator);
+    GNC_TEST_ADD_FUNC (suitename, "dateSeparator", test_dateSeparator);
 // GNC_TEST_ADD_FUNC (suitename, "qof time format from utf8", test_qof_time_format_from_utf8);
 // GNC_TEST_ADD_FUNC (suitename, "qof formatted time to utf8", test_qof_formatted_time_to_utf8);
 // GNC_TEST_ADD_FUNC (suitename, "qof format time", test_qof_format_time);
@@ -1936,7 +2183,7 @@ test_suite_gnc_date (void)
 // GNC_TEST_ADD_FUNC (suitename, "gnc tm get today start", test_gnc_tm_get_today_start);
 // GNC_TEST_ADD_FUNC (suitename, "gnc timet get today start", test_gnc_time64_get_today_start);
 // GNC_TEST_ADD_FUNC (suitename, "gnc timet get today end", test_gnc_time64_get_today_end);
-// GNC_TEST_ADD_FUNC (suitename, "gnc dow abbrev", test_gnc_dow_abbrev);
+    GNC_TEST_ADD_FUNC (suitename, "gnc dow abbrev", test_gnc_dow_abbrev);
 // GNC_TEST_ADD_FUNC (suitename, "time64 boxed copy func", test_time64_boxed_copy_func);
 // GNC_TEST_ADD_FUNC (suitename, "time64 boxed free func", test_time64_boxed_free_func);
     g_time_zone_unref(tz);

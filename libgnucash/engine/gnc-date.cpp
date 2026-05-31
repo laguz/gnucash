@@ -1365,11 +1365,22 @@ gnc_dow_abbrev(gchar *buf, int buf_len, int dow)
     struct tm my_tm;
     int i;
 
+    g_return_if_fail(buf != nullptr);
+    g_return_if_fail(buf_len > 0);
+
+    if (dow < 0 || dow > 6)
+    {
+        buf[0] = '\0';
+        return;
+    }
+
     memset(buf, 0, buf_len);
     memset(&my_tm, 0, sizeof(struct tm));
     my_tm.tm_wday = dow;
     i = qof_strftime(buf, buf_len, "%a", &my_tm);
-    buf[i] = 0;
+    if (i >= buf_len)
+        i = buf_len - 1;
+    buf[i] = '\0';
 }
 
 /* *******************************************************************

@@ -1469,9 +1469,10 @@ static int gnc_ui_qif_import_assistant_page_forward (int current_page, gpointer 
         GtkWidget *page = gtk_assistant_get_nth_page (assistant, next_page);
 
         /* If the 'stop the presses' flag is set, move all the way to the end.
-           We do not allow for any chance to recover and try a different
-           approach here, as preserving the historic behavior is intended
-           until the complex issue in bug 698804 is resolved.
+           TODO:  This does not allow for any chance to recover
+                  and try a different approach.  That is the historic
+                  behavior, and a moderately hard problem to solve.
+                  See bug 698804
         */
         if (wind->load_stop && next_page < (page_count - 1))
             continue;
@@ -1950,8 +1951,10 @@ gnc_ui_qif_import_load_progress_start_cb (GtkButton * button,
                                         _("An error occurred while loading the QIF file."));
         gnc_progress_dialog_set_sub (wind->load_progress, _("Failed"));
         gnc_progress_dialog_reset_value (wind->load_progress);
-        gnc_error_dialog (GTK_WINDOW(assistant), _("%s\nPlease report this as a bug to %s."),
-                          _("An error occurred while loading the QIF file."), PACKAGE_BUGREPORT);
+        gnc_error_dialog (GTK_WINDOW(assistant),
+                          _("%s\nPlease report this as a bug to %s."),
+                          _("An error occurred while loading the QIF file."),
+                          PACKAGE_BUGREPORT);
 
         wind->busy = FALSE;
         wind->load_stop = TRUE;
@@ -2030,8 +2033,10 @@ gnc_ui_qif_import_load_progress_start_cb (GtkButton * button,
                                         _("A bug was detected while parsing the QIF file."));
         gnc_progress_dialog_set_sub (wind->load_progress, _("Failed"));
         gnc_progress_dialog_reset_value (wind->load_progress);
-        gnc_error_dialog (GTK_WINDOW(assistant), _("%s\nPlease report this as a bug to %s."),
-                          _("A bug was detected while parsing the QIF file."), PACKAGE_BUGREPORT);
+        gnc_error_dialog (GTK_WINDOW(assistant),
+                          _("%s\nPlease report this as a bug to %s."),
+                          _("A bug was detected while parsing the QIF file."),
+                          PACKAGE_BUGREPORT);
 
         wind->busy = FALSE;
         wind->load_stop = TRUE;
@@ -2468,21 +2473,26 @@ update_file_page (QIFImportWindow * wind)
     /* get the number of files in the list */
     num_of_files = gtk_tree_model_iter_n_children (GTK_TREE_MODEL(store), NULL);
 
-    /* We intentionally do not disable the back button when files are loaded
-     * (num_of_files > 0). While disabling it would prevent mildly confusing
-     * behavior (getting an error on the select page and being forced to load
-     * another file), GtkAssistant does not cleanly support dynamically
-     * disabling the back button without permanently erasing history or
-     * forcing unwanted page transitions (e.g., using GTK_ASSISTANT_PAGE_PROGRESS).
-     *
-     * Working around this by changing the load page to intelligently handle
-     * already-loaded files is overly complex and fiddly, as it requires
-     * forcing reloads when moving forward. The current behavior provides
-     * the user with a clear enough understanding of what is happening,
-     * so this design choice is preserved.
-     */
     if (num_of_files > 0)
         mark_page_complete (assistant, TRUE);
+    else
+    {
+        /*  TODO: It would be ideal to disable the back button at this point
+            until all files have been unloaded.  However, GtkAssistant does
+            not provide a way to do that.
+
+            The back button works at this point, but results in mildly
+            confusing behavior - you get an error on the select page,
+            and you are forced to load another file; you can't just skip
+            forward and back.  Fixing that may be possible; changing the
+            load page to more intelligently handle the case where the selected
+            file is already loaded should work.  But that will be fiddly,
+            as you likely want to force an already loaded file to be reloaded
+            as we come forward.  The current muddle 'feels' bad, but gives
+            a user a fairly clear understanding of what is happening, and
+            so I am choosing to prefer it.
+        */
+    }
 
 }
 
@@ -3200,8 +3210,10 @@ gnc_ui_qif_import_convert_progress_start_cb (GtkButton * button,
                                         _("A bug was detected while converting the QIF data."));
         gnc_progress_dialog_set_sub (wind->convert_progress, _("Failed"));
         gnc_progress_dialog_reset_value (wind->convert_progress);
-        gnc_error_dialog (GTK_WINDOW(assistant), _("%s\nPlease report this as a bug to %s."),
-                          _("A bug was detected while converting the QIF data."), PACKAGE_BUGREPORT);
+        gnc_error_dialog (GTK_WINDOW(assistant),
+                          _("%s\nPlease report this as a bug to %s."),
+                          _("A bug was detected while converting the QIF data."),
+                          PACKAGE_BUGREPORT);
 
         wind->busy = FALSE;
         wind->load_stop = TRUE;
@@ -3268,8 +3280,10 @@ gnc_ui_qif_import_convert_progress_start_cb (GtkButton * button,
                                             _("A bug was detected while detecting duplicates. Please report this as a bug."));
             gnc_progress_dialog_set_sub (wind->convert_progress, _("Failed"));
             gnc_progress_dialog_reset_value (wind->convert_progress);
-            gnc_error_dialog (GTK_WINDOW(assistant), _("%s\nPlease report this as a bug to %s."),
-                              _("A bug was detected while detecting duplicates."), PACKAGE_BUGREPORT);
+            gnc_error_dialog (GTK_WINDOW(assistant),
+                              _("%s\nPlease report this as a bug to %s."),
+                              _("A bug was detected while detecting duplicates."),
+                              PACKAGE_BUGREPORT);
 
             gtk_widget_set_sensitive (wind->convert_pause, FALSE);
             wind->busy = FALSE;

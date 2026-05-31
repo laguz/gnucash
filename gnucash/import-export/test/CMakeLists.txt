@@ -85,9 +85,14 @@ endif()
 gnc_add_test(test-import-backend "${gtest_import_backend_SOURCES}"
   gtest_import_backend_INCLUDE_DIRS gtest_import_backend_LIBS)
 
+gnc_add_test(test-import-utilities test-import-utilities.cpp
+  GENERIC_IMPORT_TEST_INCLUDE_DIRS GENERIC_IMPORT_TEST_LIBS
+)
+
 set_dist_list(test_generic_import_DIST
     CMakeLists.txt
     test-import-parse.c
     test-import-pending-matches.cpp
     gtest-import-account-matcher.cpp
-    gtest-import-backend.cpp)
+    gtest-import-backend.cpp
+    test-import-utilities.cpp)

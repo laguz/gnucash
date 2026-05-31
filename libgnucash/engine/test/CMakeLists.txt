@@ -38,7 +38,7 @@ set(test_engine_SOURCES
   utest-Entry.c
   utest-Invoice.c
   utest-Query.cpp
-  utest-Policy.cpp
+  gtest-policy.cpp
   utest-Split.cpp
   utest-Transaction.cpp
   utest-gnc-pricedb.c
@@ -60,6 +60,7 @@ add_engine_test(test-account-object test-account-object.cpp)
 add_engine_test(test-group-vs-book test-group-vs-book.cpp)
 add_engine_test(test-lots test-lots.cpp)
 add_engine_test(test-querynew test-querynew.c)
+add_engine_test(test-query test-query.cpp)
 add_engine_test(test-split-vs-account test-split-vs-account.cpp)
 add_engine_test(test-transaction-reversal test-transaction-reversal.cpp)
 add_engine_test(test-transaction-voiding test-transaction-voiding.cpp)
@@ -258,6 +259,7 @@ set(test_engine_SOURCES_DIST
         test-qofsession.cpp
         test-qof-string-cache.c
         utest-Query.cpp
+        test-query.cpp
         test-querynew.c
         test-recurrence.c
         test-split-vs-account.cpp
@@ -269,7 +271,7 @@ set(test_engine_SOURCES_DIST
         utest-Entry.c
         utest-Invoice.c
   utest-Query.cpp
-        utest-Policy.cpp
+        gtest-policy.cpp
         utest-Split.cpp
         utest-Transaction.cpp
         utest-gnc-pricedb.c
