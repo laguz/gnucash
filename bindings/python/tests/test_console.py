@@ -108,6 +108,24 @@ class TestConsole(unittest.TestCase):
         mock_canvas2.draw.assert_called_once()
         self.assertFalse(result)
 
+    def test_console_refresh_ensures_draw_is_called(self):
+        """Test Console refresh in Python to ensure draw() is called with dummy figures and canvas objects."""
+        # 1. Setup dummy figures and canvas objects
+        dummy_canvas = MagicMock()
+        dummy_figure = MagicMock()
+        dummy_anchor = MagicMock()
+
+        self.console.figures = [
+            (dummy_figure, dummy_canvas, dummy_anchor)
+        ]
+
+        # 2. Call refresh
+        result = self.console.refresh()
+
+        # 3. Ensure draw() is called on the canvas
+        dummy_canvas.draw.assert_called_once()
+        self.assertFalse(result)
+
     def test_refresh_empty_figures(self):
         self.console.figures = []
         result = self.console.refresh()
