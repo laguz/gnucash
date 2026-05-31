@@ -21,7 +21,6 @@
 
 import copy
 import sys
-from collections import defaultdict
 
 from gnucash import GncNumeric, Session, SessionOpenMode
 
@@ -29,35 +28,36 @@ from gnucash import GncNumeric, Session, SessionOpenMode
 def get_all_sub_accounts(account, prefix=''):
     "Iterate over all sub accounts of a given account."
 
-    descendants = account.get_descendants()
+    descendants = account.get_descendants_sorted()
+    if not descendants:
+        return
 
-    # Build an in-memory tree: parent_guid -> list of children
-    children_map = defaultdict(list)
+    # Create a lookup mapping child to its parent
+    parents = {d: d.get_parent() for d in descendants}
 
-    acc_guid = account.GetGUID().to_string()
-    names = {acc_guid: prefix}
+    # Memoize full names to avoid recomputing for deep trees
+    full_names = {}
+
+    def get_full_name(acc):
+        if acc in full_names:
+            return full_names[acc]
+
+        parent = parents.get(acc)
+        # If the parent is the root 'account' we were called with or not found
+        if parent is None or parent == account:
+            if prefix:
+                name = f"{prefix}::{acc.GetName()}"
+            else:
+                name = acc.GetName()
+        else:
+            parent_name = get_full_name(parent)
+            name = f"{parent_name}::{acc.GetName()}"
+
+        full_names[acc] = name
+        return name
 
     for child in descendants:
-        parent = child.get_parent()
-        parent_guid = parent.GetGUID().to_string() if parent else None
-        children_map[parent_guid].append(child)
-
-    # Sort children by name at each level to mimic original behavior
-    for parent_guid in children_map:
-        children_map[parent_guid].sort(key=lambda c: c.GetName())
-
-    def traverse(current_guid):
-        for child in children_map[current_guid]:
-            child_guid = child.GetGUID().to_string()
-            parent_prefix = names[current_guid]
-            name = child.GetName()
-            full_name = f"{parent_prefix}::{name}" if parent_prefix else name
-            names[child_guid] = full_name
-            yield child, full_name
-            yield from traverse(child_guid)
-
-    yield from traverse(acc_guid)
-
+        yield child, get_full_name(child)
 
 def to_string_with_decimal_point_placed(number: GncNumeric):
     """Convert a GncNumeric to a string with decimal point placed if permissible.
@@ -73,16 +73,21 @@ def to_string_with_decimal_point_placed(number: GncNumeric):
     if point_place == 0:
         return nominator
 
+    # Handle negative numbers
     is_negative = nominator.startswith('-')
     if is_negative:
         nominator = nominator[1:]
 
     if len(nominator) <= point_place:  # prepending zeros if the nominator is too short
-        nominator = nominator.zfill(point_place + 1)
+        nominator = '0' * (point_place - len(nominator) + 1) + nominator
 
-    res = nominator[:-point_place] + '.' + nominator[-point_place:]
-    return '-' + res if is_negative else res
+    result = '.'.join([nominator[:-point_place], nominator[-point_place:]])
+    if result.startswith('.'):
+        result = '0' + result
 
+    if is_negative:
+        return '-' + result
+    return result
 
 if __name__ == '__main__':
     print('Name,Commodity,Totals,Totals (USD)')
