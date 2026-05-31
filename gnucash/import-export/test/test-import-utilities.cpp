@@ -68,6 +68,21 @@ teardown (Fixture *fixture, gconstpointer pData)
 }
 
 static void
+test_split_has_online_id_null_subprocess (Fixture *fixture, gconstpointer pData)
+{
+    g_log_set_always_fatal ((GLogLevelFlags)(G_LOG_LEVEL_CRITICAL | G_LOG_LEVEL_ERROR));
+    gnc_import_split_has_online_id (NULL);
+}
+
+static void
+test_split_has_online_id_null (Fixture *fixture, gconstpointer pData)
+{
+    g_test_trap_subprocess ("/import-export/import-utilities/split_has_online_id_null/subprocess", 0, (GTestSubprocessFlags)0);
+    g_test_trap_assert_failed ();
+    g_test_trap_assert_stderr ("*CRITICAL*");
+}
+
+static void
 test_split_has_online_id (Fixture *fixture, gconstpointer pData)
 {
     /* Should be false initially since no ID is set */
@@ -172,6 +187,10 @@ main (int argc, char *argv[])
     qof_init();
     g_test_init (&argc, &argv, NULL);
 
+    GNC_TEST_ADD (suitename, "split_has_online_id_null/subprocess", Fixture, NULL, setup,
+                  test_split_has_online_id_null_subprocess, teardown);
+    GNC_TEST_ADD (suitename, "split_has_online_id_null", Fixture, NULL, setup,
+                  test_split_has_online_id_null, teardown);
     GNC_TEST_ADD (suitename, "split_has_online_id", Fixture, NULL, setup,
                   test_split_has_online_id, teardown);
     GNC_TEST_ADD (suitename, "split_get_set_online_id", Fixture, NULL, setup,
