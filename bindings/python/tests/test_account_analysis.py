@@ -97,11 +97,13 @@ class TestAccountAnalysis(TestCase):
 
     def test_invalid_period_type_raises_exception_extra(self):
         """Testing invalid period_type which raises an Exception as requested"""
+        from account_analysis import period_end
         with self.assertRaises(Exception):
             period_end(2010, 1, "weekly_invalid")
 
     def test_period_end_other_than_monthly_extra(self):
         """Testing period types other than monthly as requested"""
+        from account_analysis import period_end
         self.assertEqual(period_end(2010, 1, "quarterly"), date(2010, 3, 31))
         self.assertEqual(period_end(2010, 1, "yearly"), date(2010, 12, 31))
 
