@@ -1,96 +1,79 @@
 import unittest
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch, MagicMock
 import sys
-import os
+import builtins
+
+class RealMockConsole(object):
+    def __init__(self, argv=[], shelltype='python', banner=[], filename=None, size=100, user_local_ns=None, user_global_ns=None):
+        self.buffer = MagicMock()
+        self.view = MagicMock()
 
 class TestInit(unittest.TestCase):
     def setUp(self):
-        # Cleanly set up mocked dependencies
-        self.patchers = []
+        self.mock_pycons = MagicMock()
+        self.mock_pycons.console.Console = RealMockConsole
 
-        # 1. Mock builtin _ (gettext) and gnucash_core_c
-        import builtins
-        if not hasattr(builtins, '_'):
-            builtins._ = lambda x: x
-        if not hasattr(builtins, 'gnucash_core_c'):
-            builtins.gnucash_core_c = MagicMock()
+        self.mock_gtk = MagicMock()
+        self.mock_gtk.Justification.CENTER = 'CENTER'
 
-        # 2. Mock specific modules in sys.modules
-        mock_modules = {
-            'gnucash': MagicMock(),
-            'gnucash._sw_app_utils': MagicMock(),
-            'gnucash._sw_core_utils': MagicMock(),
-            'gi': MagicMock(),
-            'gi.repository': MagicMock()
-        }
+        self.mock_gi = MagicMock()
+        self.mock_gi.repository.Gtk = self.mock_gtk
+        self.mock_gi.require_version = MagicMock()
 
-        # We need a proper Fake class for pycons.console.Console
-        class FakeConsConsole:
-            def __init__(self, argv=[], shelltype='python', banner=[], filename=None, size=100, user_local_ns=None, user_global_ns=None):
-                self.buffer = MagicMock()
-                self.view = MagicMock()
-            def key_press_event(self, widget, event):
-                return False
-            def quit(self):
-                return True
+        self.mock_gnucash = MagicMock()
+        self.mock_gnucash._sw_core_utils = MagicMock()
+        self.mock_gnucash._sw_core_utils.gnc_prefs_is_extra_enabled.return_value = False
 
-        # Use MagicMock for the modules themselves so they behave like packages
-        # but attach the concrete FakeConsConsole class so it can be inherited correctly
-        mock_pycons = MagicMock()
-        mock_pycons_console = MagicMock()
-        mock_pycons_console.Console = FakeConsConsole
+        self.patcher = patch.dict('sys.modules', {
+            'pycons': self.mock_pycons,
+            'pycons.console': self.mock_pycons.console,
+            'gi': self.mock_gi,
+            'gi.repository': self.mock_gi.repository,
+            'gnucash': self.mock_gnucash,
+            'gnucash._sw_core_utils': self.mock_gnucash._sw_core_utils,
+            'gnucash._sw_app_utils': self.mock_gnucash
+        })
+        self.patcher.start()
 
-        # Link them up
-        mock_pycons.console = mock_pycons_console
+        # safely patch builtins._
+        self.original_gettext = getattr(builtins, '_', None)
+        builtins._ = lambda x: x
 
-        mock_modules['pycons'] = mock_pycons
-        mock_modules['pycons.console'] = mock_pycons_console
+        sys.path.insert(0, 'gnucash/python')
 
-        # Patch sys.modules
-        p = patch.dict(sys.modules, mock_modules)
-        self.patchers.append(p)
-        p.start()
+    def tearDown(self):
+        self.patcher.stop()
+        if self.original_gettext is not None:
+            builtins._ = self.original_gettext
+        else:
+            if hasattr(builtins, '_'):
+                del builtins._
 
-        # Need to fix the gnc_prefs execution when init imports it
-        sys.modules['gnucash._sw_core_utils'].gnc_prefs_is_extra_enabled = lambda: False
-        sys.modules['gnucash._sw_core_utils'].gnc_prefs_is_debugging_enabled = lambda: False
+        if 'gnucash/python' in sys.path:
+            sys.path.remove('gnucash/python')
 
-        # Load init module
-        sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../gnucash/python')))
+    def test_console_init(self):
         if 'init' in sys.modules:
             del sys.modules['init']
         import init
-        self.init = init
-        sys.path.pop(0)
 
-    def tearDown(self):
-        for p in self.patchers:
-            p.stop()
-        if 'init' in sys.modules:
-            del sys.modules['init']
+        console = init.Console()
 
-    def test_console_init(self):
-        console = self.init.Console()
-
-        # Validate that variables are initialized correctly
+        self.assertIsNotNone(console.buffer)
+        console.buffer.create_tag.assert_called_once_with(
+            'center',
+            justification='CENTER',
+            font='Mono 4'
+        )
         self.assertEqual(console.figures, [])
         self.assertEqual(console.callbacks, [])
         self.assertIsNone(console.last_figure)
         self.assertIsNone(console.active_canvas)
 
-        # Validate that GTK tags are configured correctly
-        console.buffer.create_tag.assert_called_with(
-            'center',
-            justification=sys.modules['gi.repository'].Gtk.Justification.CENTER,
-            font='Mono 4'
-        )
-
-        # Validate that event connections are made
-        calls = console.view.connect.call_args_list
-        self.assertEqual(len(calls), 3)
-        self.assertEqual(calls[0][0][0], 'key-press-event')
-        self.assertEqual(calls[1][0][0], 'button-press-event')
-        self.assertEqual(calls[2][0][0], 'scroll-event')
+        self.assertEqual(console.view.connect.call_count, 3)
+        console.view.connect.assert_any_call('key-press-event', console.key_press_event)
+        console.view.connect.assert_any_call('button-press-event', console.button_press_event)
+        console.view.connect.assert_any_call('scroll-event', console.scroll_event)
 
 if __name__ == '__main__':
     unittest.main()
