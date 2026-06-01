@@ -52,7 +52,6 @@
 #include "gnc-menu-extensions.h"
 #include "gnc-plugin-account-tree.h" /* FIXME Remove this line*/
 #include "gnc-plugin-basic-commands.h" /* FIXME Remove this line*/
-#include "gnc-plugin-file-history.h" /* FIXME Remove this line*/
 #include "gnc-plugin-register.h" /* FIXME Remove this line*/
 #include "gnc-plugin-budget.h"
 #include "gnc-plugin-business.h"
