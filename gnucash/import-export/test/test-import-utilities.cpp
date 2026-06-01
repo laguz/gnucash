@@ -131,6 +131,21 @@ test_split_get_set_online_id (Fixture *fixture, gconstpointer pData)
 }
 
 static void
+test_trans_has_online_id_null_subprocess (Fixture *fixture, gconstpointer pData)
+{
+    g_log_set_always_fatal ((GLogLevelFlags)(G_LOG_LEVEL_CRITICAL | G_LOG_LEVEL_ERROR));
+    gnc_import_trans_has_online_id (NULL);
+}
+
+static void
+test_trans_has_online_id_null (Fixture *fixture, gconstpointer pData)
+{
+    g_test_trap_subprocess ("/import-export/import-utilities/trans_has_online_id_null/subprocess", 0, (GTestSubprocessFlags)0);
+    g_test_trap_assert_failed ();
+    g_test_trap_assert_stderr ("*CRITICAL*");
+}
+
+static void
 test_trans_has_online_id (Fixture *fixture, gconstpointer pData)
 {
     g_assert_false (gnc_import_trans_has_online_id (fixture->txn));
@@ -195,6 +210,10 @@ main (int argc, char *argv[])
                   test_split_has_online_id, teardown);
     GNC_TEST_ADD (suitename, "split_get_set_online_id", Fixture, NULL, setup,
                   test_split_get_set_online_id, teardown);
+    GNC_TEST_ADD (suitename, "trans_has_online_id_null/subprocess", Fixture, NULL, setup,
+                  test_trans_has_online_id_null_subprocess, teardown);
+    GNC_TEST_ADD (suitename, "trans_has_online_id_null", Fixture, NULL, setup,
+                  test_trans_has_online_id_null, teardown);
     GNC_TEST_ADD (suitename, "trans_has_online_id", Fixture, NULL, setup,
                   test_trans_has_online_id, teardown);
     GNC_TEST_ADD (suitename, "trans_get_set_online_id", Fixture, NULL, setup,
