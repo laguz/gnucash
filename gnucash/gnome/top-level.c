@@ -50,7 +50,6 @@
 #include "gfec.h"
 #include "gnc-main-window.h"
 #include "gnc-menu-extensions.h"
-#include "gnc-plugin-account-tree.h" /* FIXME Remove this line*/
 #include "gnc-plugin-basic-commands.h" /* FIXME Remove this line*/
 #include "gnc-plugin-register.h" /* FIXME Remove this line*/
 #include "gnc-plugin-budget.h"
@@ -418,9 +417,6 @@ gnc_main_gui_init (void)
     gnc_business_urls_initialize ();
     gnc_business_options_gnome_initialize ();
 
-    /* FIXME Remove this test code */
-    gnc_plugin_manager_add_plugin (
-        gnc_plugin_manager_get (), gnc_plugin_account_tree_new ());
     gnc_plugin_manager_add_plugin (
         gnc_plugin_manager_get (), gnc_plugin_file_history_new ());
     gnc_plugin_manager_add_plugin (
