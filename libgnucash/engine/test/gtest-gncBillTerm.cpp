@@ -23,6 +23,10 @@ TEST_F(GncBillTermTest, RegisterTest) {
     EXPECT_NE(qof_object_lookup(GNC_ID_BILLTERM), nullptr);
 }
 
+TEST_F(GncBillTermTest, TestRegisterAgain) {
+    EXPECT_FALSE(gncBillTermRegister());
+}
+
 TEST_F(GncBillTermTest, TestSetParentAndGetParent) {
     GncBillTerm *parent = gncBillTermCreate(book);
     GncBillTerm *child = gncBillTermCreate(book);
