@@ -109,6 +109,9 @@ void gnucash_get_style_classes (GnucashSheet *sheet, GtkStyleContext *stylectxt,
 void gnucash_sheet_set_text_bounds (GnucashSheet *sheet, GdkRectangle *rect,
                                     gint x, gint y, gint width, gint height);
 
+void gnucash_sheet_draw_text (GnucashSheet *sheet, GtkStyleContext *stylectxt, cairo_t *cr,
+                              VirtualLocation virt_loc, gint x, gint y, gint width, gint height, PangoLayout *layout);
+
 gint gnucash_sheet_get_text_offset (GnucashSheet *sheet, const VirtualLocation virt_loc,
                                     gint rect_width, gint logical_width);
 

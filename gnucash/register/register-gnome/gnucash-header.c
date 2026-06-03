@@ -58,7 +58,6 @@ gnc_header_draw_offscreen (GncHeader *header)
         return;
 
     SheetBlockStyle *style = header->style;
-    GncItemEdit *item_edit = GNC_ITEM_EDIT(header->sheet->item_editor);
     Table *table = header->sheet->table;
     VirtualLocation virt_loc;
     VirtualCell *vcell;
@@ -118,10 +117,6 @@ gnc_header_draw_offscreen (GncHeader *header)
         int height = 0, j;
         virt_loc.phys_row_offset = i;
 
-        /* TODO: This routine is duplicated in several places.
-           Can we abstract at least the cell drawing routine?
-           That way we'll be sure everything is drawn
-           consistently, and cut down on maintenance issues. */
 
         for (j = 0; j < style->ncols; j++)
         {
@@ -130,9 +125,6 @@ gnc_header_draw_offscreen (GncHeader *header)
             const char *text;
             int width;
             PangoLayout *layout;
-            PangoRectangle logical_rect;
-            GdkRectangle rect;
-            int x_offset;
 
             virt_loc.phys_col_offset = j;
 
@@ -164,22 +156,7 @@ gnc_header_draw_offscreen (GncHeader *header)
 
             layout = gtk_widget_create_pango_layout (GTK_WIDGET(header->sheet), text);
 
-            pango_layout_get_pixel_extents (layout, NULL, &logical_rect);
-
-            gnucash_sheet_set_text_bounds (header->sheet, &rect,
-                                           col_offset, row_offset, width, height);
-
-            cairo_save (cr);
-            cairo_rectangle (cr, rect.x, rect.y, rect.width, rect.height);
-            cairo_clip (cr);
-
-            x_offset = gnucash_sheet_get_text_offset (header->sheet, virt_loc,
-                                                      rect.width, logical_rect.width);
-
-            gtk_render_layout (stylectxt, cr, rect.x + x_offset,
-                               rect.y + gnc_item_edit_get_padding_border (item_edit, top), layout);
-
-            cairo_restore (cr);
+            gnucash_sheet_draw_text (header->sheet, stylectxt, cr, virt_loc, col_offset, row_offset, width, height, layout);
             g_object_unref (layout);
 
             col_offset += width;
