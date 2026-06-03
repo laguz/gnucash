@@ -87,7 +87,6 @@ gnc_split_register_load_doclink_cells (SplitRegister* reg)
 
     if (!cell) return;
 
-    /* FIXME: These should get moved to an i18n function */
     s = gnc_get_doclink_valid_flags ();
     gnc_doclink_cell_set_valid_flags (cell, s, ' ');
     gnc_doclink_cell_set_flag_order (cell, gnc_get_doclink_flag_order ());

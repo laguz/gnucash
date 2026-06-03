@@ -369,12 +369,9 @@ draw_cell (GnucashSheet *sheet, SheetBlock *block,
     PangoLayout *layout;
     PangoContext *context;
     PangoFontDescription *font;
-    PangoRectangle logical_rect;
     GdkRGBA *bg_color, *fg_color;
-    GdkRectangle rect;
     gboolean hatching;
     guint32 color_type;
-    int x_offset;
     GtkStyleContext *stylectxt = gtk_widget_get_style_context (GTK_WIDGET(sheet));
     GdkRGBA color;
     gboolean use_neg_class = TRUE;
@@ -553,21 +550,7 @@ draw_cell (GnucashSheet *sheet, SheetBlock *block,
         goto exit;
     }
 
-    pango_layout_get_pixel_extents (layout, NULL, &logical_rect);
-
-    gnucash_sheet_set_text_bounds (sheet, &rect, x, y, width, height);
-
-    cairo_save (cr);
-    cairo_rectangle (cr, rect.x, rect.y, rect.width, rect.height);
-    cairo_clip (cr);
-
-    x_offset = gnucash_sheet_get_text_offset (sheet, virt_loc,
-                                              rect.width, logical_rect.width);
-
-    gtk_render_layout (stylectxt, cr, rect.x + x_offset,
-                       rect.y + gnc_item_edit_get_padding_border (item_edit, top), layout);
-
-    cairo_restore (cr);
+    gnucash_sheet_draw_text (sheet, stylectxt, cr, virt_loc, x, y, width, height, layout);
 
 exit:
     pango_font_description_set_style (font, PANGO_STYLE_NORMAL);

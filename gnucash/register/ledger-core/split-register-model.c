@@ -2037,30 +2037,24 @@ gnc_split_register_get_ddue_io_flags (VirtualLocation virt_loc,
     Account* account;
     GNCAccountType acct_type;
     gnc_numeric amount;
-    gboolean is_invoice = FALSE;
 
     split = gnc_split_register_get_split (reg, virt_loc.vcell_loc);
     account = split ? xaccSplitGetAccount (split) : NULL;
     acct_type = account ? xaccAccountGetType (account) : ACCT_TYPE_NONE;
     amount = split ? xaccSplitGetAmount (split) : gnc_numeric_zero ();
 
-    /* Due dates are only needed for invoices, not payments/receipts.
-     * Invoices debit AR (positive amount) or credit AP (negative amount). */
-    if (acct_type == ACCT_TYPE_RECEIVABLE && !gnc_numeric_negative_p (amount))
+    /* We really only need a due date for 'invoices', not for
+     * 'payments' or 'receipts'.  This implies we really only need the
+     * due-date for transactions that credit the ACCT_TYPE_RECEIVABLE or
+     * debit the ACCT_TYPE_PAYABLE account type.
+     */
+    if ((acct_type == ACCT_TYPE_RECEIVABLE && !gnc_numeric_negative_p (amount)) ||
+        (acct_type == ACCT_TYPE_PAYABLE && !gnc_numeric_positive_p (amount)))
     {
-        is_invoice = TRUE;
-    }
-    else if (acct_type == ACCT_TYPE_PAYABLE && !gnc_numeric_positive_p (amount))
-    {
-        is_invoice = TRUE;
-    }
-
-    if (!is_invoice)
-    {
-        return XACC_CELL_ALLOW_NONE;
+        return XACC_CELL_ALLOW_ALL | XACC_CELL_ALLOW_EXACT_ONLY;
     }
 
-    return XACC_CELL_ALLOW_READ_ONLY;
+    return XACC_CELL_ALLOW_NONE;
 }
 
 static CellIOFlags

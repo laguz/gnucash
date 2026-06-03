@@ -311,6 +311,27 @@ gnucash_sheet_set_text_bounds (GnucashSheet *sheet, GdkRectangle *rect,
     rect->height = height - gnc_item_edit_get_margin (item_edit, top_bottom);
 }
 
+void
+gnucash_sheet_draw_text (GnucashSheet *sheet, GtkStyleContext *stylectxt, cairo_t *cr,
+                         VirtualLocation virt_loc, gint x, gint y, gint width, gint height, PangoLayout *layout)
+{
+    GncItemEdit *item_edit = GNC_ITEM_EDIT(sheet->item_editor);
+    PangoRectangle logical_rect;
+    GdkRectangle rect;
+    gint x_offset;
+
+    pango_layout_get_pixel_extents (layout, NULL, &logical_rect);
+    gnucash_sheet_set_text_bounds (sheet, &rect, x, y, width, height);
+
+    cairo_save (cr);
+    cairo_rectangle (cr, rect.x, rect.y, rect.width, rect.height);
+    cairo_clip (cr);
+    x_offset = gnucash_sheet_get_text_offset (sheet, virt_loc, rect.width, logical_rect.width);
+    gtk_render_layout (stylectxt, cr, rect.x + x_offset,
+                       rect.y + gnc_item_edit_get_padding_border (item_edit, top), layout);
+    cairo_restore (cr);
+}
+
 gint
 gnucash_sheet_get_text_offset (GnucashSheet *sheet, const VirtualLocation virt_loc,
                                gint rect_width, gint logical_width)

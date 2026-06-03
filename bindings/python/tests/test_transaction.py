@@ -1,4 +1,5 @@
 from unittest import main
+from unittest.mock import patch
 
 from gnucash import Transaction, Book, Account, Split
 from unittest_support import *
@@ -137,12 +138,13 @@ class TestTransaction(TransactionSession):
         self.trans.SetDate(DATE.day, DATE.month, DATE.year)
         self.assertEqual(DATE, self.trans.GetDate().astimezone(timezone.utc))
 
-    def test_destroy(self):
+    @patch('gnucash.gnucash_core_c.xaccTransDestroy')
+    def test_destroy(self, mock_destroy):
         trans = Transaction(self.book)
 
-        # Simply verifying that Destroy executes without raising exceptions
-        # validates the SWIG C wrapper wrapper functionality.
         trans.Destroy()
+
+        mock_destroy.assert_called_once_with(trans.instance)
 
 if __name__ == '__main__':
     main()
