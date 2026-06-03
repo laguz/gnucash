@@ -56,31 +56,14 @@ gnc_formula_cell_direct_update( BasicCell *bcell,
 {
     FormulaCell *cell = (FormulaCell *)bcell;
     GdkEventKey *event = gui_data;
-    struct lconv *lc;
     gboolean is_return;
 
     if (event->type != GDK_KEY_PRESS)
         return FALSE;
 
-    lc = gnc_localeconv ();
-
     is_return = FALSE;
 
-    /* FIXME!! This code is almost identical (except for GDK_KEY_KP_Enter
-     * handling) to pricecell-gnome.c:gnc_price_cell_direct_update.  I write
-     * this after fixing a bug where one copy was kept up to date, and the
-     * other not.  So, fix this.
-     */
-
-    switch (event->keyval)
-    {
-    case GDK_KEY_Return:
-        if (!(event->state &
-                (GDK_MODIFIER_INTENT_DEFAULT_MOD_MASK)))
-            is_return = TRUE;
-        /* FALL THROUGH */
-
-    case GDK_KEY_KP_Enter:
+    if (gnc_basic_cell_handle_enter_or_return(event, &is_return))
     {
         gnc_formula_cell_set_value( cell, cell->cell.value );
 
@@ -91,20 +74,11 @@ gnc_formula_cell_direct_update( BasicCell *bcell,
         return !is_return;
     }
 
-    case GDK_KEY_KP_Decimal:
-        break;
-
-    default:
+    if (!gnc_basic_cell_handle_decimal(bcell, event, cell->print_info,
+                                       cursor_position, start_selection, end_selection))
+    {
         return FALSE;
     }
-
-    gnc_basic_cell_insert_decimal(bcell,
-                                  cell->print_info.monetary
-                                  ? lc->mon_decimal_point[0]
-                                  : lc->decimal_point[0],
-                                  cursor_position,
-                                  start_selection,
-                                  end_selection);
 
     return TRUE;
 }

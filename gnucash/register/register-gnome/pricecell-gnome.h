@@ -31,6 +31,12 @@
 
 BasicCell * gnc_price_cell_gnome_new (void);
 
+gboolean gnc_basic_cell_handle_enter_or_return(GdkEventKey *event, gboolean *is_return);
+
+gboolean gnc_basic_cell_handle_decimal(BasicCell *cell, GdkEventKey *event, GNCPrintAmountInfo print_info,
+                                       int *cursor_position, int *start_selection, int *end_selection);
+
+
 /* fixme: find a better home for this. */
 void gnc_basic_cell_insert_decimal(BasicCell *cell,
                                    char decimal_point,
