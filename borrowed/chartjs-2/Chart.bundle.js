@@ -15707,9 +15707,6 @@ var moment = createCommonjsModule(function (module, exports) {
             this._shortMonthsParse = [];
         }
 
-        // TODO: add sorting
-        // Sorting makes sure if one month (or abbr) is a prefix of another
-        // see sorting in computeMonthsParse
         var cmpLenRev = function (a, b) {
             var momA = createUTC([2000, a]);
             var momB = createUTC([2000, b]);
