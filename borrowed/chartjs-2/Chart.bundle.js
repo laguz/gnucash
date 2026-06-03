@@ -17837,16 +17837,9 @@ var moment = createCommonjsModule(function (module, exports) {
         return res;
     }
 
-    // TODO: remove 'name' arg after deprecation is removed
-    function createAdder(direction, name) {
+    function createAdder(direction) {
         return function (val, period) {
-            var dur, tmp;
-            //invert the arguments, but complain about it
-            if (period !== null && !isNaN(+period)) {
-                deprecateSimple(name, 'moment().' + name  + '(period, number) is deprecated. Please use moment().' + name + '(number, period). ' +
-                'See http://momentjs.com/guides/#/warnings/add-inverted-param/ for more info.');
-                tmp = val; val = period; period = tmp;
-            }
+            var dur;
 
             val = typeof val === 'string' ? +val : val;
             dur = createDuration(val, period);
@@ -17881,8 +17874,8 @@ var moment = createCommonjsModule(function (module, exports) {
         }
     }
 
-    var add      = createAdder(1, 'add');
-    var subtract = createAdder(-1, 'subtract');
+    var add      = createAdder(1);
+    var subtract = createAdder(-1);
 
     function getCalendarFormat(myMoment, now) {
         var diff = myMoment.diff(now, 'days', true);
