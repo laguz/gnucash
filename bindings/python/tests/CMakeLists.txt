@@ -33,5 +33,6 @@ set(test_python_bindings_DATA
         test_account_analysis.py
         test_console.py
         test_init.py
+        test_gnucash_core.py
         )
 set_dist_list(test_python_bindings_DIST CMakeLists.txt ${test_python_bindings_DATA})
