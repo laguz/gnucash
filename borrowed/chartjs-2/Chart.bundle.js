@@ -15710,6 +15710,24 @@ var moment = createCommonjsModule(function (module, exports) {
         // TODO: add sorting
         // Sorting makes sure if one month (or abbr) is a prefix of another
         // see sorting in computeMonthsParse
+        var cmpLenRev = function (a, b) {
+            var momA = createUTC([2000, a]);
+            var momB = createUTC([2000, b]);
+            var lenA, lenB;
+            if (strict && format === 'MMMM') {
+                lenA = this.months(momA, '').length;
+                lenB = this.months(momB, '').length;
+            } else if (strict && format === 'MMM') {
+                lenA = this.monthsShort(momA, '').length;
+                lenB = this.monthsShort(momB, '').length;
+            } else {
+                lenA = Math.max(this.months(momA, '').length, this.monthsShort(momA, '').length);
+                lenB = Math.max(this.months(momB, '').length, this.monthsShort(momB, '').length);
+            }
+            return lenB - lenA;
+        }.bind(this);
+
+        var indices = [];
         for (i = 0; i < 12; i++) {
             // make the regex if we don't have it already
             mom = createUTC([2000, i]);
@@ -15721,13 +15739,21 @@ var moment = createCommonjsModule(function (module, exports) {
                 regex = '^' + this.months(mom, '') + '|^' + this.monthsShort(mom, '');
                 this._monthsParse[i] = new RegExp(regex.replace('.', ''), 'i');
             }
+            indices.push(i);
+        }
+
+        indices.sort(cmpLenRev);
+
+        var matchIndex;
+        for (i = 0; i < 12; i++) {
+            matchIndex = indices[i];
             // test the regex
-            if (strict && format === 'MMMM' && this._longMonthsParse[i].test(monthName)) {
-                return i;
-            } else if (strict && format === 'MMM' && this._shortMonthsParse[i].test(monthName)) {
-                return i;
-            } else if (!strict && this._monthsParse[i].test(monthName)) {
-                return i;
+            if (strict && format === 'MMMM' && this._longMonthsParse[matchIndex].test(monthName)) {
+                return matchIndex;
+            } else if (strict && format === 'MMM' && this._shortMonthsParse[matchIndex].test(monthName)) {
+                return matchIndex;
+            } else if (!strict && this._monthsParse[matchIndex].test(monthName)) {
+                return matchIndex;
             }
         }
     }
