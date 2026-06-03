@@ -20,5 +20,10 @@ class TestGUID(BookSession):
         guid2 = GUID()
         self.assertNotEqual(guid1.to_string(), guid2.to_string())
 
+    def test_guid_null_to_string(self):
+        from gnucash.gnucash_core_c import guid_null
+        guid = GUID(instance=guid_null())
+        self.assertEqual(guid.to_string(), '00000000000000000000000000000000')
+
 if __name__ == '__main__':
     unittest.main()
