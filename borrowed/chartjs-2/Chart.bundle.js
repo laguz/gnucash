@@ -16832,10 +16832,6 @@ var moment = createCommonjsModule(function (module, exports) {
             dow = 1;
             doy = 4;
 
-            // TODO: We need to take the current isoWeekYear, but that depends on
-            // how we interpret now (local, utc, fixed offset). So create
-            // a now version of current config (take local/utc/offset flags, and
-            // create now).
             temp = createLocalOrUTC(undefined, undefined, config._locale, config._strict, config._useUTC);
             if (config._tzm != null) {
                 temp.utcOffset(config._tzm);
