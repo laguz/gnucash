@@ -2543,7 +2543,6 @@ gnc_split_register_full_refresh_ok (SplitRegister* reg)
 }
 
 /* configAction strings into the action cell */
-/* hack alert -- this stuff really, really should be in a config file ... */
 static void
 gnc_split_register_config_action (SplitRegister* reg)
 {
