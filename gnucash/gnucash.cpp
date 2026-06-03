@@ -159,14 +159,6 @@ scm_run_gnucash (void *data, [[maybe_unused]] int argc, [[maybe_unused]] char **
         PINFO ("%s", msg);
     });
 
-    /* Setting-up the report menu must come after the module
-     loading but before the gui initialization. */
-    gnc_plugin_report_system_new();
-
-    /* TODO: After some more guile-extraction, this should happen even
-       before booting guile.  */
-    gnc_main_gui_init();
-
     gnc_hook_add_dangler(HOOK_UI_SHUTDOWN, (GFunc)gnc_file_quit, NULL, NULL);
 
     /* Install Price Quote Sources */
@@ -273,6 +265,12 @@ Gnucash::Gnucash::start ([[maybe_unused]] int argc, [[maybe_unused]] char **argv
     gnc_module_system_init();
 
     gnc_gui_init();
+
+    /* Setting-up the report menu must come after the module
+     loading but before the gui initialization. */
+    gnc_plugin_report_system_new();
+
+    gnc_main_gui_init();
 
     auto user_file_spec = t_file_spec {
         m_nofile,

@@ -53,6 +53,7 @@
 #include "gnc-plugin-basic-commands.h" /* FIXME Remove this line*/
 #include "gnc-plugin-register.h" /* FIXME Remove this line*/
 #include "gnc-plugin-budget.h"
+#include "gnc-plugin-file-history.h"
 #include "gnc-plugin-business.h"
 #include "gnc-plugin-page-register.h"
 #include "gnc-plugin-manager.h" /* FIXME Remove this line*/
