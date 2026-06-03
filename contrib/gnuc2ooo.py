@@ -295,10 +295,12 @@ def createdelete(create_statement, table_name):
     try:
         Stmt.execute(create_statement)
     except:
-        if table_name and re.match(r'^[A-Za-z0-9_]+$', str(table_name)):
-            Stmt.execute("DELETE FROM {}".format(table_name))
-        elif table_name:
-            raise ValueError("Invalid table name: " + str(table_name))
+        if table_name:
+            safe_table_name = str(table_name)
+            if re.match(r'^[A-Za-z0-9_]+$', safe_table_name):
+                Stmt.execute("DELETE FROM {}".format(safe_table_name))
+            else:
+                raise ValueError("Invalid table name: " + safe_table_name)
 
 def eval_fraction(cont):
     global crout

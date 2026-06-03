@@ -1,4 +1,33 @@
 
+set(test_qif_import_SOURCES test-plugin-qif-import.c)
+
+set(test_qif_import_INCLUDE_DIRS
+  ${CMAKE_BINARY_DIR}/common
+  ${CMAKE_SOURCE_DIR}/gnucash/import-export/qif-imp
+  ${CMAKE_SOURCE_DIR}/common
+  ${CMAKE_SOURCE_DIR}/gnucash/import-export
+  ${CMAKE_SOURCE_DIR}/gnucash/gnome
+  ${CMAKE_SOURCE_DIR}/gnucash/register/ledger-core
+  ${CMAKE_SOURCE_DIR}/gnucash/register/register-gnome
+  ${CMAKE_SOURCE_DIR}/gnucash/register/register-core
+  ${CMAKE_SOURCE_DIR}/gnucash/gnome-utils
+  ${CMAKE_SOURCE_DIR}/libgnucash/app-utils
+  ${CMAKE_SOURCE_DIR}/libgnucash/engine
+  ${CMAKE_SOURCE_DIR}/libgnucash/core-utils
+  ${CMAKE_SOURCE_DIR}/libgnucash/gnc-module
+)
+
+set(test_qif_import_LIBS
+  gnc-qif-import gnc-generic-import gnc-gnome gnc-gnome-utils
+  gnc-ledger-core gnc-app-utils
+  gnc-backend-xml-utils gnc-engine gnc-core-utils gnc-module gnucash-guile
+)
+
+gnc_add_test(test-qif-import
+  "${test_qif_import_SOURCES}"
+  test_qif_import_INCLUDE_DIRS
+  test_qif_import_LIBS SRCDIR=${CMAKE_CURRENT_SOURCE_DIR})
+
 set(scm_qifimp_test_with_srfi64_SOURCES
   test-qif-imp.scm
   test-qif-parse.scm
@@ -24,4 +53,5 @@ if (HAVE_SRFI64)
 endif()
 
 set_dist_list(test_qif_import_DIST CMakeLists.txt
+  ${test_qif_import_SOURCES}
   ${scm_qifimp_test_with_srfi64_SOURCES})
