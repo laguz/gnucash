@@ -26,6 +26,7 @@ from test_console import TestConsole
 from test_account_analysis import TestAccountAnalysis
 from test_init import TestInit
 from test_gnucash_core import TestGnuCashCoreClass
+from test_guid import TestGUID
 
 if __name__ == '__main__':
     unittest.main()
