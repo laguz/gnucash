@@ -16573,17 +16573,27 @@ var moment = createCommonjsModule(function (module, exports) {
         return globalLocale;
     }
 
+    function isLocaleNameSane(name) {
+        // Prevent names that look like filesystem paths, i.e contain '/' or '\\'
+        // Ensure name is available and function returns boolean
+        return !!(name && name.match('^[^/\\\\]*$'));
+    }
+
     function loadLocale(name) {
         var oldLocale = null;
-        // TODO: Find a better way to register and load all the locales in Node
-        if (!locales[name] && ('object' !== 'undefined') &&
-                module && module.exports) {
+        var aliasedRequire;
+        if (locales[name] === undefined && ('object' !== 'undefined') &&
+                module && module.exports && isLocaleNameSane(name)) {
             try {
                 oldLocale = globalLocale._abbr;
-                var aliasedRequire = commonjsRequire;
+                aliasedRequire = require;
                 aliasedRequire('./locale/' + name);
                 getSetGlobalLocale(oldLocale);
-            } catch (e) {}
+            } catch (e) {
+                // mark as not found to avoid repeating expensive file require call causing high CPU
+                // when trying to find en-US, en_US, en-us for every format call
+                locales[name] = null; // null means not found
+            }
         }
         return locales[name];
     }
