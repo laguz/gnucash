@@ -137,5 +137,12 @@ class TestTransaction(TransactionSession):
         self.trans.SetDate(DATE.day, DATE.month, DATE.year)
         self.assertEqual(DATE, self.trans.GetDate().astimezone(timezone.utc))
 
+    def test_destroy(self):
+        trans = Transaction(self.book)
+
+        # Simply verifying that Destroy executes without raising exceptions
+        # validates the SWIG C wrapper wrapper functionality.
+        trans.Destroy()
+
 if __name__ == '__main__':
     main()
