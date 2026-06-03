@@ -46,6 +46,7 @@
 #include "dialog-utils.h"
 #include "dialog-file-access.h"
 #include "assistant-qif-import.h"
+#include "gnc-plugin-qif-import.h"
 #include "gnc-component-manager.h"
 #include "qof.h"
 #include "gnc-file.h"
@@ -4034,4 +4035,10 @@ gnc_file_qif_import (void)
     gtk_widget_show_all (qif_win->window);
 
     gnc_window_adjust_for_screen (GTK_WINDOW(qif_win->window));
+}
+
+void
+gnc_ui_qif_import_create_plugin (void)
+{
+    gnc_plugin_qif_import_create_plugin();
 }
