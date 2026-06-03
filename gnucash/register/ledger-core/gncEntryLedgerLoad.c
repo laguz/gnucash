@@ -320,7 +320,6 @@ void gnc_entry_ledger_load_xfer_cells (GncEntryLedger* ledger)
     load_description_cell (ledger);
 }
 
-/* XXX (FIXME): This should be in a config file! */
 /* Copy GncEntry information from the list to the rows of the Ledger. */
 /* XXX This code is a cut-n-paste job from the SplitRegister code;
  * the split-register should be generalized to the point where a cut-n-paste
