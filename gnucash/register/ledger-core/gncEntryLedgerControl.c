@@ -452,20 +452,38 @@ gnc_entry_ledger_auto_completion (GncEntryLedger *ledger,
         return FALSE;
 
     /* nothing but the date and description should be changed */
-    {
-        const char *cells_to_check[] = {
-            ENTRY_ACTN_CELL, ENTRY_QTY_CELL, ENTRY_PRIC_CELL,
-            ENTRY_DISC_CELL, ENTRY_DISTYPE_CELL, ENTRY_DISHOW_CELL,
-            ENTRY_IACCT_CELL, ENTRY_BACCT_CELL, ENTRY_TAXABLE_CELL,
-            ENTRY_TAXINCLUDED_CELL, ENTRY_TAXTABLE_CELL, ENTRY_VALUE_CELL,
-            ENTRY_TAXVAL_CELL, ENTRY_BILLABLE_CELL, ENTRY_PAYMENT_CELL
-        };
-        int i;
-        for (i = 0; i < G_N_ELEMENTS(cells_to_check); i++) {
-            if (gnc_table_layout_get_cell_changed(ledger->table->layout, cells_to_check[i], TRUE))
-                return FALSE;
-        }
-    }
+    /* FIXME, this should be refactored. */
+    if (gnc_table_layout_get_cell_changed (ledger->table->layout,
+                                           ENTRY_ACTN_CELL, TRUE)
+            || gnc_table_layout_get_cell_changed (ledger->table->layout,
+                    ENTRY_QTY_CELL, TRUE)
+            || gnc_table_layout_get_cell_changed (ledger->table->layout,
+                    ENTRY_PRIC_CELL, TRUE)
+            || gnc_table_layout_get_cell_changed (ledger->table->layout,
+                    ENTRY_DISC_CELL, TRUE)
+            || gnc_table_layout_get_cell_changed (ledger->table->layout,
+                    ENTRY_DISTYPE_CELL, TRUE)
+            || gnc_table_layout_get_cell_changed (ledger->table->layout,
+                    ENTRY_DISHOW_CELL, TRUE)
+            || gnc_table_layout_get_cell_changed (ledger->table->layout,
+                    ENTRY_IACCT_CELL, TRUE)
+            || gnc_table_layout_get_cell_changed (ledger->table->layout,
+                    ENTRY_BACCT_CELL, TRUE)
+            || gnc_table_layout_get_cell_changed (ledger->table->layout,
+                    ENTRY_TAXABLE_CELL, TRUE)
+            || gnc_table_layout_get_cell_changed (ledger->table->layout,
+                    ENTRY_TAXINCLUDED_CELL, TRUE)
+            || gnc_table_layout_get_cell_changed (ledger->table->layout,
+                    ENTRY_TAXTABLE_CELL, TRUE)
+            || gnc_table_layout_get_cell_changed (ledger->table->layout,
+                    ENTRY_VALUE_CELL, TRUE)
+            || gnc_table_layout_get_cell_changed (ledger->table->layout,
+                    ENTRY_TAXVAL_CELL, TRUE)
+            || gnc_table_layout_get_cell_changed (ledger->table->layout,
+                    ENTRY_BILLABLE_CELL, TRUE)
+            || gnc_table_layout_get_cell_changed (ledger->table->layout,
+                    ENTRY_PAYMENT_CELL, TRUE))
+        return FALSE;
 
     /* and the description should indeed be changed */
     if (!gnc_table_layout_get_cell_changed (ledger->table->layout,
