@@ -41,6 +41,42 @@
 # include <gdk/gdkwin32.h>
 #endif
 
+
+gboolean
+gnc_basic_cell_handle_enter_or_return(GdkEventKey *event, gboolean *is_return)
+{
+    if (event->keyval == GDK_KEY_Return || event->keyval == GDK_KEY_KP_Enter)
+    {
+        if (event->keyval == GDK_KEY_Return && !(event->state & (GDK_MODIFIER_INTENT_DEFAULT_MOD_MASK)))
+            *is_return = TRUE;
+        else
+            *is_return = FALSE;
+        return TRUE;
+    }
+    return FALSE;
+}
+
+gboolean
+gnc_basic_cell_handle_decimal(BasicCell *cell, GdkEventKey *event, GNCPrintAmountInfo print_info,
+                              int *cursor_position, int *start_selection, int *end_selection)
+{
+    if (event->keyval == GDK_KEY_KP_Decimal)
+    {
+        struct lconv *lc = gnc_localeconv();
+
+        gnc_basic_cell_insert_decimal(cell,
+                                      print_info.monetary
+                                      ? lc->mon_decimal_point[0]
+                                      : lc->decimal_point[0],
+                                      cursor_position,
+                                      start_selection,
+                                      end_selection);
+
+        return TRUE;
+    }
+    return FALSE;
+}
+
 static gboolean
 gnc_price_cell_direct_update (BasicCell *bcell,
                               int *cursor_position,
@@ -50,25 +86,14 @@ gnc_price_cell_direct_update (BasicCell *bcell,
 {
     PriceCell *cell = (PriceCell *) bcell;
     GdkEventKey *event = gui_data;
-    struct lconv *lc;
     gboolean is_return;
 
     if (event->type != GDK_KEY_PRESS)
         return FALSE;
 
-    lc = gnc_localeconv ();
-
     is_return = FALSE;
 
-    switch (event->keyval)
-    {
-    case GDK_KEY_Return:
-        if (!(event->state &
-                (GDK_MODIFIER_INTENT_DEFAULT_MOD_MASK)))
-            is_return = TRUE;
-        /* fall through */
-
-    case GDK_KEY_KP_Enter:
+    if (gnc_basic_cell_handle_enter_or_return(event, &is_return))
     {
         char *error_loc;
         gnc_numeric amount;
@@ -106,21 +131,11 @@ gnc_price_cell_direct_update (BasicCell *bcell,
         return !is_return;
     }
 
-    case GDK_KEY_KP_Decimal:
-        break;
-
-    default:
+    if (!gnc_basic_cell_handle_decimal(bcell, event, cell->print_info,
+                                       cursor_position, start_selection, end_selection))
+    {
         return FALSE;
     }
-
-    /* This  point is only reached when the KP_Decimal key is pressed. */
-    gnc_basic_cell_insert_decimal(bcell,
-                                  cell->print_info.monetary
-                                  ? lc->mon_decimal_point[0]
-                                  : lc->decimal_point[0],
-                                  cursor_position,
-                                  start_selection,
-                                  end_selection);
 
     cell->need_to_parse = TRUE;
 
