@@ -297,7 +297,7 @@ def createdelete(create_statement, table_name):
     except:
         if table_name:
             safe_table_name = str(table_name)
-            if re.match(r'^[A-Za-z0-9_]+$', safe_table_name):
+            if re.match(r'^[A-Za-z0-9_]+\Z', safe_table_name):
                 Stmt.execute("DELETE FROM {}".format(safe_table_name))
             else:
                 raise ValueError("Invalid table name: " + safe_table_name)
