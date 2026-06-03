@@ -1760,9 +1760,8 @@ replace_character_references (gchar* string)
             if (* (semicolon + 1))
             {
                 /* move text after semicolon the the left */
-                tail = g_strdup (semicolon + 1);
-                strcpy (cursor, tail);
-                g_free (tail);
+                size_t tail_len = strlen(semicolon + 1);
+                memmove(cursor, semicolon + 1, tail_len + 1);
             }
             else
             {
