@@ -2027,7 +2027,7 @@ gnc_main_window_update_all_menu_items (void)
     data.visible = FALSE;
     // need i to descend from gnc_main_window_max_number
     guint active_windows_len = g_list_length (active_windows);
-    for (gsize i = gnc_main_window_max_number - 1; i > 0 && i >= active_windows_len; i--)
+    for (gsize i = gnc_main_window_max_number - 1; i >= active_windows_len && i < gnc_main_window_max_number; i--)
     {
         data.index = i;
         data.action_name = g_strdup_printf ("Window%dAction", data.index);

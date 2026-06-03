@@ -25,5 +25,17 @@ class TestGUID(BookSession):
         guid = GUID(instance=guid_null())
         self.assertEqual(guid.to_string(), '00000000000000000000000000000000')
 
+
+    def test_guid_empty_to_string(self):
+        class FakeGUID(GUID):
+            def __new__(cls):
+                return super(GUID, cls).__new__(cls)
+            def __init__(self):
+                self._ClassFromFunctions__instance = None
+
+        guid = FakeGUID()
+        self.assertIsNone(guid.to_string())
+
 if __name__ == '__main__':
+
     unittest.main()
