@@ -744,12 +744,14 @@ gnc_template_register_save_shares_cell (BasicCell * cell,
                                         gpointer user_data)
 {
     SRSaveData *sd = save_data;
-    char *sharesStr = "(x + y)/42";
+    const char *sharesStr;
 
     g_return_if_fail (gnc_basic_cell_has_name (cell, SHRS_CELL));
-    /* FIXME: shares cells are numeric by definition. */
+
+    sharesStr = gnc_basic_cell_get_value (cell);
+
     qof_instance_set (QOF_INSTANCE (sd->split),
-		      "sx-shares", sharesStr,
+		      "sx-shares", sharesStr ? sharesStr : "",
 		      NULL);
 
     /* set the shares to an innocuous value */
