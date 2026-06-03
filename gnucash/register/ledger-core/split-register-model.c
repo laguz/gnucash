@@ -916,19 +916,6 @@ gnc_split_register_get_type_entry (VirtualLocation virt_loc,
     return s;
 }
 
-static char
-gnc_split_register_get_type_value (SplitRegister* reg,
-                                   VirtualLocation virt_loc)
-{
-    RecnCell* cell;
-
-    cell = (RecnCell*)gnc_table_layout_get_cell (reg->table->layout, TYPE_CELL);
-    if (!cell)
-        return '\0';
-
-    return gnc_recn_cell_get_flag (cell);
-}
-
 static const char*
 gnc_split_register_get_due_date_entry (VirtualLocation virt_loc,
                                        gboolean translate,
@@ -938,36 +925,34 @@ gnc_split_register_get_due_date_entry (VirtualLocation virt_loc,
     SplitRegister* reg = user_data;
     Transaction* trans;
     Split* split;
-    gboolean is_current;
-    char type;
+    Account* account;
+    GNCAccountType acct_type;
+    gnc_numeric amount;
+    gboolean is_invoice = FALSE;
     static gchar dateBuff [MAX_DATE_LENGTH+1];
 
-    is_current = virt_cell_loc_equal (reg->table->current_cursor_loc.vcell_loc,
-                                      virt_loc.vcell_loc);
+    split = gnc_split_register_get_split (reg, virt_loc.vcell_loc);
+    account = split ? xaccSplitGetAccount (split) : NULL;
+    acct_type = account ? xaccAccountGetType (account) : ACCT_TYPE_NONE;
+    amount = split ? xaccSplitGetAmount (split) : gnc_numeric_zero ();
 
-    if (is_current)
+    /* Only print the due date for invoices, not payments/receipts.
+     * Invoices debit AR (positive amount) or credit AP (negative amount). */
+    if (acct_type == ACCT_TYPE_RECEIVABLE && !gnc_numeric_negative_p (amount))
     {
-        type = gnc_split_register_get_type_value (reg, virt_loc);
+        is_invoice = TRUE;
     }
-    else
+    else if (acct_type == ACCT_TYPE_PAYABLE && !gnc_numeric_positive_p (amount))
     {
-        const char* typestr =
-            gnc_split_register_get_type_entry (virt_loc, translate,
-                                               conditionally_changed, user_data);
-        if (typestr != NULL)
-            type = *typestr;
-        else
-            type = '\0';
+        is_invoice = TRUE;
     }
 
-    /* Only print the due date for invoice transactions */
-    if (type != TXN_TYPE_INVOICE)
+    if (!is_invoice)
     {
         //PWARN ("returning NULL due_date entry");
         return NULL;
     }
 
-    split = gnc_split_register_get_split (reg, virt_loc.vcell_loc);
     trans = xaccSplitGetParent (split);
     if (!trans)
     {
@@ -2048,12 +2033,29 @@ gnc_split_register_get_ddue_io_flags (VirtualLocation virt_loc,
                                       gpointer user_data)
 {
     SplitRegister* reg = user_data;
-    char type;
+    Split* split;
+    Account* account;
+    GNCAccountType acct_type;
+    gnc_numeric amount;
+    gboolean is_invoice = FALSE;
 
-    type = gnc_split_register_get_type_value (reg, virt_loc);
+    split = gnc_split_register_get_split (reg, virt_loc.vcell_loc);
+    account = split ? xaccSplitGetAccount (split) : NULL;
+    acct_type = account ? xaccAccountGetType (account) : ACCT_TYPE_NONE;
+    amount = split ? xaccSplitGetAmount (split) : gnc_numeric_zero ();
 
-    /* Only print the due date for invoice transactions */
-    if (type != TXN_TYPE_INVOICE)
+    /* Due dates are only needed for invoices, not payments/receipts.
+     * Invoices debit AR (positive amount) or credit AP (negative amount). */
+    if (acct_type == ACCT_TYPE_RECEIVABLE && !gnc_numeric_negative_p (amount))
+    {
+        is_invoice = TRUE;
+    }
+    else if (acct_type == ACCT_TYPE_PAYABLE && !gnc_numeric_positive_p (amount))
+    {
+        is_invoice = TRUE;
+    }
+
+    if (!is_invoice)
     {
         return XACC_CELL_ALLOW_NONE;
     }
@@ -2807,11 +2809,6 @@ gnc_split_register_model_new (void)
     gnc_table_model_set_io_flags_handler (
         model, gnc_split_register_get_standard_io_flags, DATE_CELL);
 
-    /* FIXME: We really only need a due date for 'invoices', not for
-     * 'payments' or 'receipts'.  This implies we really only need the
-     * due-date for transactions that credit the ACCT_TYPE_RECEIVABLE or
-     * debit the ACCT_TYPE_PAYABLE account type.
-     */
     gnc_table_model_set_io_flags_handler (
         model, gnc_split_register_get_rate_io_flags, RATE_CELL);
 
