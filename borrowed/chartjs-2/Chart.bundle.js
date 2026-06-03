@@ -19000,17 +19000,8 @@ var moment = createCommonjsModule(function (module, exports) {
         }
     }
 
-    // TODO: Use this.as('ms')?
     function valueOf$1 () {
-        if (!this.isValid()) {
-            return NaN;
-        }
-        return (
-            this._milliseconds +
-            this._days * 864e5 +
-            (this._months % 12) * 2592e6 +
-            toInt(this._months / 12) * 31536e6
-        );
+        return this.as('ms');
     }
 
     function makeAs (alias) {
