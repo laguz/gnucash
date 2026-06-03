@@ -1130,7 +1130,14 @@ GUID.add_method('xaccTransLookup', 'TransLookup')
 GUID.add_method('xaccSplitLookup', 'SplitLookup')
 
 ## define addition methods for GUID object - do we need these
-GUID.add_method('guid_to_string', 'to_string')
+GUID.add_method('guid_to_string', 'guid_to_string')
+
+def _guid_to_string(self):
+    if self.instance is None:
+        return None
+    return self.guid_to_string()
+
+GUID.to_string = _guid_to_string
 #GUID.add_method('string_to_guid', 'string_to_guid')
 
 guid_dict = {
