@@ -16836,7 +16836,14 @@ var moment = createCommonjsModule(function (module, exports) {
             // how we interpret now (local, utc, fixed offset). So create
             // a now version of current config (take local/utc/offset flags, and
             // create now).
-            weekYear = defaults(w.GG, config._a[YEAR], weekOfYear(createLocal(), 1, 4).year);
+            temp = createLocalOrUTC(undefined, undefined, config._locale, config._strict, config._useUTC);
+            if (config._tzm != null) {
+                temp.utcOffset(config._tzm);
+            }
+            if (config._useUTC && config._tzm == null) {
+                temp.utc();
+            }
+            weekYear = defaults(w.GG, config._a[YEAR], weekOfYear(temp, 1, 4).year);
             week = defaults(w.W, 1);
             weekday = defaults(w.E, 1);
             if (weekday < 1 || weekday > 7) {
@@ -16846,7 +16853,14 @@ var moment = createCommonjsModule(function (module, exports) {
             dow = config._locale._week.dow;
             doy = config._locale._week.doy;
 
-            var curWeek = weekOfYear(createLocal(), dow, doy);
+            temp = createLocalOrUTC(undefined, undefined, config._locale, config._strict, config._useUTC);
+            if (config._tzm != null) {
+                temp.utcOffset(config._tzm);
+            }
+            if (config._useUTC && config._tzm == null) {
+                temp.utc();
+            }
+            var curWeek = weekOfYear(temp, dow, doy);
 
             weekYear = defaults(w.gg, config._a[YEAR], curWeek.year);
 
