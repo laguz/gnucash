@@ -2097,6 +2097,16 @@ gnc_xfer_dialog_close( XferDialog *xferData )
 }
 
 void
+gnc_xfer_dialog_destroy( XferDialog *xferData )
+{
+    if ( xferData )
+    {
+        DEBUG("destroy component");
+        gnc_close_gui_component_by_data(DIALOG_TRANSFER_CM_CLASS, xferData);
+    }
+}
+
+void
 gnc_xfer_dialog_set_title( XferDialog *xferData, const gchar *title )
 {
     if ( xferData && title )
