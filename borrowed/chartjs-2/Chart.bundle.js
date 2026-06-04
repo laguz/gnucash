@@ -15064,9 +15064,8 @@ var moment = createCommonjsModule(function (module, exports) {
         this._config = config;
         // Lenient ordinal parsing accepts just a number in addition to
         // number + (possibly) stuff coming from _dayOfMonthOrdinalParse.
-        // TODO: Remove "ordinalParse" fallback in next major release.
         this._dayOfMonthOrdinalParseLenient = new RegExp(
-            (this._dayOfMonthOrdinalParse.source || this._ordinalParse.source) +
+            this._dayOfMonthOrdinalParse.source +
                 '|' + (/\d{1,2}/).source);
     }
 
@@ -18501,9 +18500,8 @@ var moment = createCommonjsModule(function (module, exports) {
     addRegexToken('D',  match1to2);
     addRegexToken('DD', match1to2, match2);
     addRegexToken('Do', function (isStrict, locale) {
-        // TODO: Remove "ordinalParse" fallback in next major release.
         return isStrict ?
-          (locale._dayOfMonthOrdinalParse || locale._ordinalParse) :
+          locale._dayOfMonthOrdinalParse :
           locale._dayOfMonthOrdinalParseLenient;
     });
 
