@@ -17049,9 +17049,13 @@ var moment = createCommonjsModule(function (module, exports) {
 
     function checkWeekday(weekdayStr, parsedInput, config) {
         if (weekdayStr) {
-            // TODO: Replace the vanilla JS Date object with an indepentent day-of-week check.
             var weekdayProvided = defaultLocaleWeekdaysShort.indexOf(weekdayStr),
-                weekdayActual = new Date(parsedInput[0], parsedInput[1], parsedInput[2]).getDay();
+                dayOffset = [0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4],
+                year = parsedInput[0],
+                month = parsedInput[1],
+                day = parsedInput[2];
+            year -= month < 2 ? 1 : 0;
+            var weekdayActual = (year + Math.floor(year / 4) - Math.floor(year / 100) + Math.floor(year / 400) + dayOffset[month] + day) % 7;
             if (weekdayProvided !== weekdayActual) {
                 getParsingFlags(config).weekdayMismatch = true;
                 config._isValid = false;
