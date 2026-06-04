@@ -15064,9 +15064,8 @@ var moment = createCommonjsModule(function (module, exports) {
         this._config = config;
         // Lenient ordinal parsing accepts just a number in addition to
         // number + (possibly) stuff coming from _dayOfMonthOrdinalParse.
-        // TODO: Remove "ordinalParse" fallback in next major release.
         this._dayOfMonthOrdinalParseLenient = new RegExp(
-            (this._dayOfMonthOrdinalParse.source || this._ordinalParse.source) +
+            this._dayOfMonthOrdinalParse.source +
                 '|' + (/\d{1,2}/).source);
     }
 
@@ -17050,9 +17049,13 @@ var moment = createCommonjsModule(function (module, exports) {
 
     function checkWeekday(weekdayStr, parsedInput, config) {
         if (weekdayStr) {
-            // TODO: Replace the vanilla JS Date object with an indepentent day-of-week check.
             var weekdayProvided = defaultLocaleWeekdaysShort.indexOf(weekdayStr),
-                weekdayActual = new Date(parsedInput[0], parsedInput[1], parsedInput[2]).getDay();
+                dayOffset = [0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4],
+                year = parsedInput[0],
+                month = parsedInput[1],
+                day = parsedInput[2];
+            year -= month < 2 ? 1 : 0;
+            var weekdayActual = (year + Math.floor(year / 4) - Math.floor(year / 100) + Math.floor(year / 400) + dayOffset[month] + day) % 7;
             if (weekdayProvided !== weekdayActual) {
                 getParsingFlags(config).weekdayMismatch = true;
                 config._isValid = false;
@@ -18496,9 +18499,8 @@ var moment = createCommonjsModule(function (module, exports) {
     addRegexToken('D',  match1to2);
     addRegexToken('DD', match1to2, match2);
     addRegexToken('Do', function (isStrict, locale) {
-        // TODO: Remove "ordinalParse" fallback in next major release.
         return isStrict ?
-          (locale._dayOfMonthOrdinalParse || locale._ordinalParse) :
+          locale._dayOfMonthOrdinalParse :
           locale._dayOfMonthOrdinalParseLenient;
     });
 
