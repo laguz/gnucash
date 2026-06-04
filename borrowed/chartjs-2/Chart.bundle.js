@@ -15769,7 +15769,6 @@ var moment = createCommonjsModule(function (module, exports) {
                 value = toInt(value);
             } else {
                 value = mom.localeData().monthsParse(value);
-                // TODO: Another silent failure?
                 if (!isNumber(value)) {
                     getParsingFlags(mom).invalidMonth = value;
                     return mom;
