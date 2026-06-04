@@ -1212,11 +1212,53 @@ class Query(GnuCashCoreClass):
         self.__search_for_buf = obj_type
         self._search_for(self.__search_for_buf)
 
+    def run(self):
+        """Run the query and return a list of Python objects (Transaction, Split, etc.)."""
+        results = self._run()
+        obj_type = getattr(self, '_Query__search_for_buf', None)
+
+        cls = None
+        if obj_type == 'Trans':
+            from gnucash.gnucash_core import Transaction
+            cls = Transaction
+        elif obj_type == 'Split':
+            from gnucash.gnucash_core import Split
+            cls = Split
+        elif obj_type == 'Account':
+            from gnucash.gnucash_core import Account
+            cls = Account
+        elif obj_type == 'gncInvoice':
+            from gnucash.gnucash_business import Invoice
+            cls = Invoice
+        elif obj_type == 'gncCustomer':
+            from gnucash.gnucash_business import Customer
+            cls = Customer
+        elif obj_type == 'gncVendor':
+            from gnucash.gnucash_business import Vendor
+            cls = Vendor
+        elif obj_type == 'gncEmployee':
+            from gnucash.gnucash_business import Employee
+            cls = Employee
+        elif obj_type == 'gncJob':
+            from gnucash.gnucash_business import Job
+            cls = Job
+        elif obj_type == 'gncBillTerm':
+            from gnucash.gnucash_business import BillTerm
+            cls = BillTerm
+        elif obj_type == 'gncTaxTable':
+            from gnucash.gnucash_business import TaxTable
+            cls = TaxTable
+
+        if cls:
+            return [cls(instance=item) for item in results]
+        return results
+
+
 Query.add_constructor_and_methods_with_prefix('qof_query_', 'create', exclude=["qof_query_search_for"])
 
 Query.add_method('qof_query_set_book', 'set_book')
 Query.add_method('qof_query_search_for', '_search_for')
-Query.add_method('qof_query_run', 'run')
+Query.add_method('qof_query_run', '_run')
 Query.add_method('qof_query_add_term', 'add_term')
 Query.add_method('qof_query_add_boolean_match', 'add_boolean_match')
 Query.add_method('qof_query_add_guid_list_match', 'add_guid_list_match')
