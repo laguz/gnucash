@@ -688,10 +688,11 @@ static void
 save_cell (SplitRegister *reg, Split* split, const char *cell_name)
 {
     const gboolean is_credit = g_strcmp0 (cell_name, FCRED_CELL) == 0;
-    const char *formula = is_credit ?
-        "sx-credit-formula" : "sx-debit-formula";
-    const char *numeric = is_credit ?
-        "sx-credit-numeric" : "sx-debit-numeric";
+    const gboolean is_shares = g_strcmp0 (cell_name, SHRS_CELL) == 0;
+    const char *formula = is_shares ? "sx-shares" : (is_credit ?
+        "sx-credit-formula" : "sx-debit-formula");
+    const char *numeric = is_shares ? "sx-shares-numeric" : (is_credit ?
+        "sx-credit-numeric" : "sx-debit-numeric");
     const char *value = gnc_table_layout_get_cell_value (reg->table->layout,
                                                          cell_name);
     gnc_numeric new_amount = gnc_numeric_zero ();
@@ -708,10 +709,17 @@ save_cell (SplitRegister *reg, Split* split, const char *cell_name)
     if (!parse_result || g_hash_table_size (parser_vars) != 0)
         new_amount = gnc_numeric_zero ();
     g_hash_table_unref (parser_vars);
-    qof_instance_set (QOF_INSTANCE (split),
+    if (is_shares) {
+        qof_instance_set (QOF_INSTANCE (split),
+                          numeric, &new_amount,
+                          formula, value ? value : "",
+                          NULL);
+    } else {
+        qof_instance_set (QOF_INSTANCE (split),
 		  numeric, &new_amount,
 		  formula, value,
 		  NULL);
+    }
 }
 
 static void
@@ -744,15 +752,11 @@ gnc_template_register_save_shares_cell (BasicCell * cell,
                                         gpointer user_data)
 {
     SRSaveData *sd = save_data;
-    const char *sharesStr;
+    SplitRegister *reg = user_data;
 
     g_return_if_fail (gnc_basic_cell_has_name (cell, SHRS_CELL));
 
-    sharesStr = gnc_basic_cell_get_value (cell);
-
-    qof_instance_set (QOF_INSTANCE (sd->split),
-		      "sx-shares", sharesStr ? sharesStr : "",
-		      NULL);
+    save_cell (reg, sd->split, SHRS_CELL);
 
     /* set the shares to an innocuous value */
     /* Note that this marks the split dirty */

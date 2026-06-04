@@ -90,6 +90,7 @@ enum
     PROP_SX_DEBIT_FORMULA,      /* KVP */
     PROP_SX_DEBIT_NUMERIC,      /* KVP */
     PROP_SX_SHARES,             /* KVP */
+    PROP_SX_SHARES_NUMERIC,     /* KVP */
     PROP_LOT,                   /* KVP */
     PROP_ONLINE_ACCOUNT,        /* KVP */
     PROP_GAINS_SPLIT,           /* KVP */
@@ -205,6 +206,9 @@ gnc_split_get_property(GObject         *object,
         case PROP_SX_SHARES:
             qof_instance_get_kvp (QOF_INSTANCE (split), value, 2, GNC_SX_ID, GNC_SX_SHARES);
             break;
+        case PROP_SX_SHARES_NUMERIC:
+            qof_instance_get_kvp (QOF_INSTANCE (split), value, 2, GNC_SX_ID, "sx-shares-numeric");
+            break;
         case PROP_ONLINE_ACCOUNT:
             qof_instance_get_kvp (QOF_INSTANCE (split), value, 1, "online_id");
             break;
@@ -281,6 +285,9 @@ gnc_split_set_property(GObject         *object,
             break;
         case PROP_SX_SHARES:
             qof_instance_set_kvp (QOF_INSTANCE (split), value, 2, GNC_SX_ID, GNC_SX_SHARES);
+            break;
+        case PROP_SX_SHARES_NUMERIC:
+            qof_instance_set_kvp (QOF_INSTANCE (split), value, 2, GNC_SX_ID, "sx-shares-numeric");
             break;
         case PROP_ONLINE_ACCOUNT:
             qof_instance_set_kvp (QOF_INSTANCE (split), value, 1, "online_id");
@@ -430,11 +437,6 @@ gnc_split_class_init(SplitClass* klass)
                             "real split is generated from this SX split.",
                             GNC_TYPE_NUMERIC,
                             G_PARAM_READWRITE));
-/* FIXME: PROP_SX_SHARES should be stored as a gnc_numeric, but the function
- * which uses it, gnc_template_register_save_shares_cell, stores a
- * phony string. This is maintained until backwards compatibility can
- * be established.
- */
     g_object_class_install_property
         (gobject_class,
          PROP_SX_SHARES,
@@ -444,6 +446,16 @@ gnc_split_class_init(SplitClass* klass)
                              "it's generated from this SX split.",
                              nullptr,
                              G_PARAM_READWRITE));
+
+    g_object_class_install_property
+        (gobject_class,
+         PROP_SX_SHARES_NUMERIC,
+         g_param_spec_boxed("sx-shares-numeric",
+                            "Scheduled Transaction Shares Numeric",
+                            "Numeric value to plug into the Shares Formula when a "
+                            "real split is generated from this SX split.",
+                            GNC_TYPE_NUMERIC,
+                            G_PARAM_READWRITE));
 
     g_object_class_install_property
         (gobject_class,
