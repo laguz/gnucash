@@ -17427,39 +17427,34 @@ var moment = createCommonjsModule(function (module, exports) {
         }
     );
 
-    // Pick a moment m from moments so that m[fn](other) is true for all
-    // other. This relies on the function fn to be transitive.
-    //
-    // moments should either be an array of moment objects or an array, whose
-    // first element is an array of moment objects.
-    function pickBy(fn, moments) {
-        var res, i;
-        if (moments.length === 1 && isArray(moments[0])) {
-            moments = moments[0];
-        }
-        if (!moments.length) {
-            return createLocal();
-        }
-        res = moments[0];
-        for (i = 1; i < moments.length; ++i) {
-            if (!moments[i].isValid() || moments[i][fn](res)) {
-                res = moments[i];
-            }
-        }
-        return res;
-    }
-
-    // TODO: Use [].sort instead?
     function min () {
         var args = [].slice.call(arguments, 0);
-
-        return pickBy('isBefore', args);
+        if (args.length === 1 && isArray(args[0])) {
+            args = args[0];
+        }
+        if (!args.length) {
+            return createLocal();
+        }
+        return args.slice().sort(function(a, b) {
+            if (!a.isValid()) return -1;
+            if (!b.isValid()) return 1;
+            return a.valueOf() - b.valueOf();
+        })[0];
     }
 
     function max () {
         var args = [].slice.call(arguments, 0);
-
-        return pickBy('isAfter', args);
+        if (args.length === 1 && isArray(args[0])) {
+            args = args[0];
+        }
+        if (!args.length) {
+            return createLocal();
+        }
+        return args.slice().sort(function(a, b) {
+            if (!a.isValid()) return -1;
+            if (!b.isValid()) return 1;
+            return b.valueOf() - a.valueOf();
+        })[0];
     }
 
     var now = function () {
