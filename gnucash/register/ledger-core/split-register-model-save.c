@@ -580,8 +580,6 @@ gnc_split_register_save_cells (gpointer save_data,
             value = gnc_numeric_div(
                         amount, rate, gnc_commodity_get_fraction(txn_cur), GNC_HOW_RND_ROUND_HALF_UP);
             xaccSplitSetValue (sd->split, value);
-
-            /* XXX: do we need to set the amount on the other split? */
         }
 
         /* Now reverse the value for the other split */
