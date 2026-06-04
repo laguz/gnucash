@@ -48,6 +48,9 @@ gboolean gnc_xfer_dialog_run_until_done( XferDialog * );
 
 void gnc_xfer_dialog_close( XferDialog * );
 
+/** Safely destroy the transfer dialog. */
+void gnc_xfer_dialog_destroy( XferDialog * );
+
 /*********** Access routines ***********/
 void gnc_xfer_dialog_set_title( XferDialog *, const gchar * );
 
