@@ -1545,9 +1545,11 @@ gnc_split_register_handle_exchange (SplitRegister *reg, gboolean force_dialog)
     if (gnc_xfer_dialog_run_exchange_dialog (xfer, &exch_rate, amount,
                                              reg_acc, txn, xfer_com, expanded))
     {
+        gnc_xfer_dialog_close(xfer);
         LEAVE("leaving rate unchanged");
         return TRUE;
     }
+    gnc_xfer_dialog_close(xfer);
 
     /* Set the RATE_CELL on this cursor and mark it changed */
     gnc_price_cell_set_value (rate_cell, exch_rate);
