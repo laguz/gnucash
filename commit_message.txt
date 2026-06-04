@@ -1,4 +1,0 @@
-chore: N+1 query issue already resolved
-
-The requested N+1 query optimization in `accountToDict` in `bindings/python/example_scripts/rest-api/gnucash_simple.py` was already resolved in the codebase's main branch.
-The code now leverages `get_descendants_sorted()` natively rather than performing recursive `get_children_sorted()` calls. No further code changes are required as the execution path is already optimal.
