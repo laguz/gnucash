@@ -87,7 +87,6 @@ def query_transactions(book, terms=[]):
     transactions = []
 
     for transaction in query.run():
-        transaction = Transaction(instance=transaction) # ToDo: query.run() should return objects
         transactions.append(transaction)	
 
     query.destroy()
@@ -106,7 +105,6 @@ def query_splits(book, terms=[]):
     splits = []
 
     for split in query.run():
-        split = Split(instance=split) # ToDo: query.run() should return objects
         splits.append(split)	
 
     query.destroy()
