@@ -132,10 +132,8 @@ GncSqlLotsBackend::load_all (GncSqlBackend* sql_be)
         for (auto row : *result)
             load_single_lot (sql_be, row);
 
-        auto sql = g_strdup_printf ("SELECT DISTINCT guid FROM %s",
-                                   TABLE_NAME);
+        auto sql = "SELECT DISTINCT guid FROM " TABLE_NAME;
         gnc_sql_slots_load_for_sql_subquery (sql_be, sql, (BookLookupFn)gnc_lot_lookup);
-        g_free (sql);
     }
 }
 
