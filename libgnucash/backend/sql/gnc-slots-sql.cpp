@@ -272,7 +272,6 @@ get_slot_type (gpointer pObject)
 
     g_return_val_if_fail (pObject != NULL, KvpValue::Type::INVALID);
 
-//    return (gpointer)kvp_value_get_type( pInfo->pKvpValue );
     return pInfo->value_type;
 }
 
@@ -383,7 +382,6 @@ get_time_val (gpointer pObject)
 
     g_return_val_if_fail (pObject != NULL, 0);
 
-//if( kvp_value_get_type( pInfo->pKvpValue ) == KvpValue::Type::TIME64 ) {
     auto t = pInfo->pKvpValue->get<Time64> ();
     return t.t;
 }
