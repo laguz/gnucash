@@ -365,7 +365,8 @@ def accounttree():
         for col in t_namelist:
             ct = ct + 1
             Stmt_ins_accttree.setString(ct, col)
-        Stmt_ins_accttree.executeUpdate()
+        Stmt_ins_accttree.addBatch()
+    Stmt_ins_accttree.executeBatch()
     createdelete("CREATE INDEX ACCTTREE_ID ON ACCTTREE (ID)", None)
     return maxlvl
 
@@ -693,6 +694,11 @@ def exec_fillGnuCashDB():
     parser.setContentHandler(handler)
     parser.feed(gcxml)
     f.close()
+
+    Stmt_ins_account.executeBatch()
+    Stmt_ins_trn.executeBatch()
+    Stmt_ins_split.executeBatch()
+
     ct_lvl = accounttree()
     view_all_transactions(ct_lvl)
     # write checkpoint so all tables are stored in database
