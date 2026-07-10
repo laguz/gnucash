@@ -656,20 +656,19 @@ gnc_sql_slots_save (GncSqlBackend* sql_be, const GncGUID* guid, gboolean is_infa
 gboolean
 gnc_sql_slots_delete (GncSqlBackend* sql_be, const GncGUID* guid)
 {
-    gchar* buf;
-    gchar guid_buf[GUID_ENCODING_LENGTH + 1];
     slot_info_t slot_info = { NULL, NULL, TRUE, NULL, KvpValue::Type::INVALID,
                               NULL, FRAME, NULL, "" };
 
     g_return_val_if_fail (sql_be != NULL, FALSE);
     g_return_val_if_fail (guid != NULL, FALSE);
 
-    (void)guid_to_string_buff (guid, guid_buf);
-
-    buf = g_strdup_printf ("SELECT * FROM %s WHERE obj_guid='%s' and slot_type in ('%d', '%d') and not guid_val is null",
-                           TABLE_NAME, guid_buf, KvpValue::Type::FRAME, KvpValue::Type::GLIST);
-    auto stmt = sql_be->create_statement_from_sql(buf);
-    g_free (buf);
+    gnc::GUID cpp_guid(*guid);
+    std::ostringstream sql;
+    sql << "SELECT * FROM " TABLE_NAME " WHERE obj_guid='" << cpp_guid.to_string()
+        << "' and slot_type in ('" << static_cast<int>(KvpValue::Type::FRAME)
+        << "', '" << static_cast<int>(KvpValue::Type::GLIST)
+        << "') and not guid_val is null";
+    auto stmt = sql_be->create_statement_from_sql(sql.str());
     if (stmt != nullptr)
     {
         auto result = sql_be->execute_select_statement(stmt);
