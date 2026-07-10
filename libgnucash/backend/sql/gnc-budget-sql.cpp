@@ -203,10 +203,12 @@ load_budget_amounts (GncSqlBackend* sql_be, GncBudget* budget)
 
     (void)guid_to_string_buff (qof_instance_get_guid (QOF_INSTANCE (budget)),
                                guid_buf);
-    auto sql = g_strdup_printf ("SELECT * FROM %s WHERE budget_guid='%s'",
-                                AMOUNTS_TABLE, guid_buf);
+    std::string sql = "SELECT * FROM ";
+    sql += AMOUNTS_TABLE;
+    sql += " WHERE budget_guid='";
+    sql += guid_buf;
+    sql += "'";
     auto stmt = sql_be->create_statement_from_sql(sql);
-    g_free (sql);
     if (stmt != nullptr)
     {
         auto result = sql_be->execute_select_statement(stmt);
