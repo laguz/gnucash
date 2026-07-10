@@ -79,4 +79,8 @@ using MessageCb = std::function<void(const char*)>;
 
 void gnc_load_scm_config (MessageCb update_message);
 }
+
+// For testing purposes
+void gnc_print_unstable_message(void);
+
 #endif

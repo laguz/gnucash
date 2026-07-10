@@ -365,7 +365,8 @@ def accounttree():
         for col in t_namelist:
             ct = ct + 1
             Stmt_ins_accttree.setString(ct, col)
-        Stmt_ins_accttree.executeUpdate()
+        Stmt_ins_accttree.addBatch()
+    Stmt_ins_accttree.executeBatch()
     createdelete("CREATE INDEX ACCTTREE_ID ON ACCTTREE (ID)", None)
     return maxlvl
 
@@ -467,6 +468,9 @@ class GCContent(sax.handler.ContentHandler):
             global insert_ct
             insert_ct = insert_ct + 1
             if insert_ct >= maxmemory:
+                Stmt_ins_account.executeBatch()
+                Stmt_ins_trn.executeBatch()
+                Stmt_ins_split.executeBatch()
                 Stmt.execute("CHECKPOINT")
                 insert_ct = insert_ct - maxmemory
             if kind == 'account': 
@@ -475,21 +479,21 @@ class GCContent(sax.handler.ContentHandler):
                 Stmt_ins_account.setString(3, value_dict['type'])
                 Stmt_ins_account.setString(4, value_dict['description'])
                 Stmt_ins_account.setString(5, value_dict['parent'])
-                Stmt_ins_account.executeUpdate()                
+                Stmt_ins_account.addBatch()
             elif kind == 'trn':
                 Stmt_ins_trn.setString(1, value_dict['id'])
                 Stmt_ins_trn.setString(2, value_dict['num'])
                 Stmt_ins_trn.setString(3, value_dict['description'])
                 Stmt_ins_trn.setString(4, value_dict['date_ym'])
                 Stmt_ins_trn.setString(5, value_dict['date_d'])
-                Stmt_ins_trn.executeUpdate()                
+                Stmt_ins_trn.addBatch()
             elif kind == 'split':
                 Stmt_ins_split.setString(1, value_dict['id'])
                 Stmt_ins_split.setString(2, value_dict['trn_id'])
                 Stmt_ins_split.setDouble(3, value_dict['value'])
                 Stmt_ins_split.setDouble(4, value_dict['quantity'])
                 Stmt_ins_split.setString(5, value_dict['account'])
-                Stmt_ins_split.executeUpdate()
+                Stmt_ins_split.addBatch()
 
         if name == 'gnc:account':
             for tup in self.account.iteritems():
@@ -690,10 +694,18 @@ def exec_fillGnuCashDB():
     parser.setContentHandler(handler)
     parser.feed(gcxml)
     f.close()
+
+    Stmt_ins_account.executeBatch()
+    Stmt_ins_trn.executeBatch()
+    Stmt_ins_split.executeBatch()
+
     ct_lvl = accounttree()
     view_all_transactions(ct_lvl)
     # write checkpoint so all tables are stored in database
     # (and not only in logfile)
+    Stmt_ins_account.executeBatch()
+    Stmt_ins_trn.executeBatch()
+    Stmt_ins_split.executeBatch()
     Stmt.execute("CHECKPOINT")
     DB.DatabaseDocument.store()
     # close connection   
