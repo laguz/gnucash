@@ -31,6 +31,7 @@ add_subdirectory (ui)
 # gschemas directory goes last to ensure all schema files are installed
 # before glib-compile-schemas is called
 add_subdirectory (gschemas)
+add_subdirectory (test)
 
 add_definitions (-DHAVE_CONFIG_H)
 
