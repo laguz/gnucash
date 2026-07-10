@@ -61,15 +61,15 @@ static QofLogModule log_module = GNC_MOD_GUI;
 
 /* GNC_VCS is defined whenever we're building from a git work tree */
 #ifdef GNC_VCS
-constexpr int is_development_version = TRUE;
+bool is_development_version = true;
 #else
-constexpr int is_development_version = FALSE;
+bool is_development_version = false;
 #define GNC_VCS ""
 #endif
 
 static gchar *userdata_migration_msg = NULL;
 
-static void
+void
 gnc_print_unstable_message(void)
 {
     if (!is_development_version) return;

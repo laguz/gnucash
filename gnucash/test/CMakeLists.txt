@@ -1,29 +1,28 @@
-set(GNUCASH_TEST_INCLUDE_DIRS
-  ${CMAKE_BINARY_DIR}/common # for config.h
-  ${CMAKE_SOURCE_DIR}/common/test-core
-  ${CMAKE_SOURCE_DIR}/gnucash/
-  ${CMAKE_SOURCE_DIR}/gnucash/gnome/
-  ${CMAKE_SOURCE_DIR}/gnucash/gnome-utils/
-  ${CMAKE_SOURCE_DIR}/gnucash/import-export/bi-import/
-  ${CMAKE_SOURCE_DIR}/gnucash/import-export/csv-exp/
-  ${CMAKE_SOURCE_DIR}/gnucash/import-export/csv-imp/
-  ${CMAKE_SOURCE_DIR}/gnucash/import-export/customer-import/
-  ${CMAKE_SOURCE_DIR}/gnucash/import-export/qif-imp/
-  ${CMAKE_SOURCE_DIR}/gnucash/import-export/log-replay/
-  ${CMAKE_SOURCE_DIR}/libgnucash/engine
+set(test_core_app_SOURCES
+  test-core-app.cpp
+  ../gnucash-core-app.cpp
+  ../gnucash-commands.cpp
+)
+
+set(test_core_app_INCLUDE_DIRS
+  ${CMAKE_BINARY_DIR}/common
+  ${CMAKE_SOURCE_DIR}/gnucash
   ${GUILE_INCLUDE_DIRS}
 )
 
-set(GNUCASH_TEST_LIBS
-        gnc-gnome
-        gnc-test-engine
-        test-core
-        gtest
-        ${GUILE_LDFLAGS})
+set(test_core_app_LIBS
+  gtest
+  gnc-app-utils
+  gnc-engine
+  gnc-core-utils
+  gnucash-guile
+  gnc-report
+  ${GUILE_LDFLAGS} PkgConfig::GLIB2
+  ${Boost_LIBRARIES}
+)
 
-gnc_add_test(test-load-gnucash-plugins test-load-gnucash-plugins.cpp GNUCASH_TEST_INCLUDE_DIRS GNUCASH_TEST_LIBS)
-
-set_dist_list(test_gnucash_DIST
-  CMakeLists.txt
-  test-load-gnucash-plugins.cpp
+gnc_add_test(test-core-app
+  "${test_core_app_SOURCES}"
+  test_core_app_INCLUDE_DIRS
+  test_core_app_LIBS
 )
