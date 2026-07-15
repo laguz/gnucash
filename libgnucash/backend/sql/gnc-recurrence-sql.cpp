@@ -42,6 +42,7 @@
 #include "gnc-sql-object-backend.hpp"
 #include "gnc-sql-column-table-entry.hpp"
 #include "gnc-recurrence-sql.h"
+#include <string>
 
 G_GNUC_UNUSED static QofLogModule log_module = G_LOG_DOMAIN;
 
@@ -304,17 +305,14 @@ load_recurrence (GncSqlBackend* sql_be, GncSqlRow& row,  Recurrence* r)
 static  GncSqlResultPtr
 gnc_sql_set_recurrences_from_db (GncSqlBackend* sql_be, const GncGUID* guid)
 {
-    gchar* buf;
     gchar guid_buf[GUID_ENCODING_LENGTH + 1];
 
     g_return_val_if_fail (sql_be != NULL, NULL);
     g_return_val_if_fail (guid != NULL, NULL);
 
     (void)guid_to_string_buff (guid, guid_buf);
-    buf = g_strdup_printf ("SELECT * FROM %s WHERE obj_guid='%s'", TABLE_NAME,
-                           guid_buf);
-    auto stmt = sql_be->create_statement_from_sql (buf);
-    g_free (buf);
+    std::string sql = std::string("SELECT * FROM ") + TABLE_NAME + " WHERE obj_guid='" + guid_buf + "'";
+    auto stmt = sql_be->create_statement_from_sql (sql);
     auto result = sql_be->execute_select_statement(stmt);
     return result;
 }

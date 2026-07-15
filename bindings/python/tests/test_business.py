@@ -44,20 +44,18 @@ class BusinessSession(BookSession):
             self.today, self.today, "", True, False)
 
 class TestBusiness(BusinessSession):
-    def test_taxtable_init_exception(self):
-        from gnucash.gnucash_business import TaxTable, TaxTableEntry
+    def test_entry_type(self):
+        from gnucash.gnucash_business import Bill, Entry
+        bill = Bill(self.book, "TestBillID", self.currency, self.vendor)
+        entry = Entry(self.book)
 
-        with self.assertRaisesRegex(Exception, "you must call TaxTable.__init__"):
-            TaxTable()
+        with self.assertRaises(Exception) as ctx_invoice:
+            entry.test_type(self.invoice)
+        self.assertEqual(str(ctx_invoice.exception), "Entry type error. Check that Entry type matches Invoice.")
 
-        with self.assertRaisesRegex(Exception, "you must call TaxTable.__init__"):
-            TaxTable(book=self.book)
-
-        with self.assertRaisesRegex(Exception, "you must call TaxTable.__init__"):
-            TaxTable(book=self.book, name="TaxTable1")
-
-        with self.assertRaisesRegex(Exception, "you must call TaxTable.__init__"):
-            TaxTable(name="TaxTable1", first_entry=TaxTableEntry(instance="dummy"))
+        with self.assertRaises(Exception) as ctx_bill:
+            entry.test_type(bill)
+        self.assertEqual(str(ctx_bill.exception), "Entry type error. Check that Entry type matches Bill.")
 
     def test_bill_lookup_by_id(self):
         from gnucash.gnucash_business import Bill
