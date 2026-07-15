@@ -110,6 +110,12 @@ test_entry_basics ( Fixture *fixture, gconstpointer pData )
     g_test_message( "  Description" );
     gncEntrySetDescription (entry, desc);
     g_assert_true(g_strcmp0 (gncEntryGetDescription (entry), desc) == 0);
+
+    g_test_message( "  Description (null checks)" );
+    gncEntrySetDescription (entry, NULL);
+    g_assert_true(g_strcmp0 (gncEntryGetDescription (entry), desc) == 0);
+    gncEntrySetDescription (NULL, desc);
+
     g_test_message( "  Action" );
     gncEntrySetAction (entry, action);
     g_assert_true(g_strcmp0 (gncEntryGetAction (entry), action) == 0);
