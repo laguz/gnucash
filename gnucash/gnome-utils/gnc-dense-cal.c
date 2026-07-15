@@ -650,9 +650,8 @@ gnc_dense_cal_dispose (GObject *object)
         return;
     dcal->disposed = TRUE;
 
-    if (gtk_widget_get_realized (GTK_WIDGET(dcal->transPopup)))
+    if (dcal->transPopup)
     {
-        gtk_widget_hide (GTK_WIDGET(dcal->transPopup));
         gtk_widget_destroy (GTK_WIDGET(dcal->transPopup));
         dcal->transPopup = NULL;
     }
@@ -663,11 +662,14 @@ gnc_dense_cal_dispose (GObject *object)
         dcal->surface = NULL;
     }
 
-    /* FIXME: we have a bunch of cleanup to do, here. */
-
     gdc_free_all_mark_data (dcal);
 
-    g_object_unref (G_OBJECT(dcal->model));
+    if (dcal->model)
+    {
+        g_signal_handlers_disconnect_by_data (dcal->model, dcal);
+        g_object_unref (G_OBJECT(dcal->model));
+        dcal->model = NULL;
+    }
 
     G_OBJECT_CLASS(gnc_dense_cal_parent_class)->dispose(object);
 }
@@ -2037,6 +2039,7 @@ gnc_dense_cal_set_model (GncDenseCal *cal, GncDenseCalModel *model)
     if (cal->model != NULL)
     {
         gdc_remove_markings (cal);
+        g_signal_handlers_disconnect_by_data (cal->model, cal);
         g_object_unref (G_OBJECT(cal->model));
         cal->model = NULL;
     }
