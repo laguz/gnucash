@@ -862,11 +862,16 @@ cm_close_handler(gpointer user_data)
 static void
 erase_password(gchar *password)
 {
+    volatile gchar *vp = (volatile gchar *)password;
+
     g_return_if_fail(password);
 
     ENTER(" ");
 
-    memset(password, 0, strlen(password));
+    while (*vp != '\0')
+    {
+        *vp++ = '\0';
+    }
     g_free(password);
 
     LEAVE(" ");
