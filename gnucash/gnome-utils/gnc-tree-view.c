@@ -1514,7 +1514,6 @@ gnc_tree_view_set_control_column_background (GncTreeView *view, gint column, Gtk
 
 
 /* This allows the columns to be setup without the model connected */
-//FIXME I think this should be specified as a parameter to the add columns functions...
 void
 gnc_tree_view_set_sort_user_data (GncTreeView *view, GtkTreeModel *s_model)
 {
