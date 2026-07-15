@@ -42,6 +42,18 @@ typedef struct
 } Fixture;
 
 static void
+test_entry_discount_how_to_string ( Fixture *fixture, gconstpointer pData )
+{
+    g_assert_cmpstr (gncEntryDiscountHowToString (GNC_DISC_PRETAX), ==, "PRETAX");
+    g_assert_cmpstr (gncEntryDiscountHowToString (GNC_DISC_SAMETIME), ==, "SAMETIME");
+    g_assert_cmpstr (gncEntryDiscountHowToString (GNC_DISC_POSTTAX), ==, "POSTTAX");
+
+    g_test_expect_message ("gnc.business", G_LOG_LEVEL_WARNING, "*asked to translate unknown discount-how*");
+    g_assert_null (gncEntryDiscountHowToString ((GncDiscountHow)42));
+    g_test_assert_expected_messages ();
+}
+
+static void
 setup( Fixture *fixture, gconstpointer pData )
 {
     fixture->book = qof_book_new();
@@ -286,4 +298,5 @@ test_suite_gncEntry ( void )
 {
     GNC_TEST_ADD( suitename, "basics", Fixture, NULL, setup, test_entry_basics, teardown );
     GNC_TEST_ADD( suitename, "value rounding", Fixture, NULL, setup, test_entry_rounding, teardown );
+    GNC_TEST_ADD( suitename, "discount how to string", Fixture, NULL, setup, test_entry_discount_how_to_string, teardown );
 }
