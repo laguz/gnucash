@@ -64,6 +64,18 @@ TEST_F(GncBillTermTest, TestSetChild) {
     gncBillTermDestroy(term);
 }
 
+TEST_F(GncBillTermTest, TestSetTypeAndGetType) {
+    GncBillTerm *term = gncBillTermCreate(book);
+
+    gncBillTermSetType(term, GNC_TERM_TYPE_PROXIMO);
+    EXPECT_EQ(gncBillTermGetType(term), GNC_TERM_TYPE_PROXIMO);
+
+    gncBillTermSetType(term, GNC_TERM_TYPE_DAYS);
+    EXPECT_EQ(gncBillTermGetType(term), GNC_TERM_TYPE_DAYS);
+
+    gncBillTermDestroy(term);
+}
+
 TEST_F(GncBillTermTest, TestSetRefcountAndGetRefcount) {
     GncBillTerm *term = gncBillTermCreate(book);
 
