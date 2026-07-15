@@ -44,6 +44,21 @@ class BusinessSession(BookSession):
             self.today, self.today, "", True, False)
 
 class TestBusiness(BusinessSession):
+    def test_taxtable_init_exception(self):
+        from gnucash.gnucash_business import TaxTable, TaxTableEntry
+
+        with self.assertRaisesRegex(Exception, "you must call TaxTable.__init__"):
+            TaxTable()
+
+        with self.assertRaisesRegex(Exception, "you must call TaxTable.__init__"):
+            TaxTable(book=self.book)
+
+        with self.assertRaisesRegex(Exception, "you must call TaxTable.__init__"):
+            TaxTable(book=self.book, name="TaxTable1")
+
+        with self.assertRaisesRegex(Exception, "you must call TaxTable.__init__"):
+            TaxTable(name="TaxTable1", first_entry=TaxTableEntry(instance="dummy"))
+
     def test_bill_lookup_by_id(self):
         from gnucash.gnucash_business import Bill
 
