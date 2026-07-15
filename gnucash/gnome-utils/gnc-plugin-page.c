@@ -527,6 +527,9 @@ gnc_plugin_page_finalize (GObject *object)
     if (priv->builder)
         g_object_unref (priv->builder);
 
+    if (priv->simple_action_group)
+        g_object_unref (priv->simple_action_group);
+
     page->window = NULL; // Don't need to free it.
 
     gnc_gobject_tracking_forget (object);
