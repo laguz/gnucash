@@ -1091,9 +1091,7 @@ scheduledxaction_editor_dialog_destroy (GtkWidget *object, gpointer data)
 
     if (sxed->newsxP)
     {
-        /* FIXME: WTF???
-         *
-         * "WTF" explanation: in the "new" click from the caller, we
+        /* In the "new" click from the caller, we
          * set this flag.  When "ok" is pressed on the dialog, we set
          * this flag to false, and thus leave the SX live.  If
          * "Cancel" is clicked, the flag will still be true, and this

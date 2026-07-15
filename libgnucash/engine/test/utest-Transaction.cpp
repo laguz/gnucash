@@ -27,6 +27,7 @@
 #include <string.h>
 #include <unittest-support.h>
 /* Add specific headers for this class */
+#include "../engine-helpers.h"
 #include "../Transaction.h"
 #include "../TransactionP.hpp"
 #include "../Split.h"
@@ -2069,10 +2070,17 @@ test_xaccTransScrubGainsDate_gains_dirty (GainsFixture *fixture,
  * Trivial pass-through.
  */
 
+static void
+test_gnc_get_num_action (void)
+{
+    g_assert_null (gnc_get_num_action (NULL, NULL));
+    g_assert_null (gnc_get_action_num (NULL, NULL));
+}
 
 void
 test_suite_transaction (void)
 {
+    GNC_TEST_ADD_FUNC (suitename, "gnc_get_num_action", test_gnc_get_num_action);
     GNC_TEST_ADD (suitename, "check open", Fixture, NULL, setup, test_check_open, teardown);
     GNC_TEST_ADD (suitename, "xaccTransStillHasSplit", Fixture, NULL, setup, test_xaccTransStillHasSplit, teardown);
     GNC_TEST_ADD (suitename, "mark trans", Fixture, NULL, setup, test_mark_trans, teardown);

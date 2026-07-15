@@ -1110,8 +1110,9 @@ RESTART:
             {
                 uh_oh = TRUE;
 
-                // XXX: should pull out the file name here */
-                gnc_error_dialog (parent, msg, "");
+                gchar *basename = g_path_get_basename (path ? path : filename);
+                gnc_error_dialog (parent, msg, basename);
+                g_free (basename);
                 g_free (msg);
             }
             if (template_root != NULL)

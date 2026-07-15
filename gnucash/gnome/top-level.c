@@ -424,9 +424,6 @@ gnc_main_gui_init (void)
         gnc_plugin_manager_get (), gnc_plugin_register_new ());
     gnc_plugin_manager_add_plugin (
         gnc_plugin_manager_get (), gnc_plugin_business_new ());
-    /* I'm not sure why the FIXME note says to remove this.  Maybe
-       each module should be adding its own plugin to the manager?
-       Anyway... Oh, maybe... nah */
     gnc_plugin_manager_add_plugin (gnc_plugin_manager_get (),
                                    gnc_plugin_budget_new ());
     gnc_ui_hierarchy_assistant_initialize();
