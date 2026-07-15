@@ -66,6 +66,7 @@ test_customer (void)
         customer = gncCustomerCreate (book);
         do_test (customer != NULL, "customer create");
         do_test (gncCustomerGetBook (customer) == book, "getbook");
+        do_test (gncCustomerGetTerms (NULL) == NULL, "gncCustomerGetTerms with NULL");
 
         gncCustomerBeginEdit (customer);
         gncCustomerDestroy (customer);
