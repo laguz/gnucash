@@ -193,10 +193,11 @@ def invoiceToDict(invoice):
         simple_invoice['total_tax'] = invoice.GetTotalTax().to_double()
 
         simple_invoice['entries'] = []
+        account_cache = {}
         for n, entry in enumerate(invoice.GetEntries()):
             if type(entry) != Entry:
                 entry=Entry(instance=entry) 
-            simple_invoice['entries'].append(entryToDict(entry))
+            simple_invoice['entries'].append(entryToDict(entry, account_cache))
 
         simple_invoice['posted'] = invoice.IsPosted()
         simple_invoice['paid'] = invoice.IsPaid()
@@ -233,17 +234,18 @@ def billToDict(bill):
         simple_bill['total_tax'] = bill.GetTotalTax().to_double()
 
         simple_bill['entries'] = []
+        account_cache = {}
         for n, entry in enumerate(bill.GetEntries()):
             if type(entry) != Entry:
                 entry=Entry(instance=entry) 
-            simple_bill['entries'].append(entryToDict(entry))
+            simple_bill['entries'].append(entryToDict(entry, account_cache))
 
         simple_bill['posted'] = bill.IsPosted()
         simple_bill['paid'] = bill.IsPaid()
 
         return simple_bill
 
-def entryToDict(entry):
+def entryToDict(entry, account_cache=None):
 
     if entry is None:
         return None
@@ -261,7 +263,14 @@ def entryToDict(entry):
         if entry.GetInvAccount() == None:
             simple_entry['inv_account'] = {}
         else: 
-            simple_entry['inv_account'] = accountToDict(entry.GetInvAccount())      
+            if account_cache is not None:
+                acc = entry.GetInvAccount()
+                acc_guid = acc.GetGUID().to_string()
+                if acc_guid not in account_cache:
+                    account_cache[acc_guid] = accountToDict(acc)
+                simple_entry['inv_account'] = account_cache[acc_guid]
+            else:
+                simple_entry['inv_account'] = accountToDict(entry.GetInvAccount())
         simple_entry['inv_price'] = entry.GetInvPrice().to_double()
         simple_entry['discount'] = entry.GetInvDiscount().to_double()
         simple_entry['discounted_type'] = entry.GetInvDiscountType()
@@ -272,8 +281,14 @@ def entryToDict(entry):
         if entry.GetBillAccount() == None:
             simple_entry['bill_account'] = {}
         else: 
-            simple_entry['bill_account'] = accountToDict(
-                entry.GetBillAccount()) 
+            if account_cache is not None:
+                acc = entry.GetBillAccount()
+                acc_guid = acc.GetGUID().to_string()
+                if acc_guid not in account_cache:
+                    account_cache[acc_guid] = accountToDict(acc)
+                simple_entry['bill_account'] = account_cache[acc_guid]
+            else:
+                simple_entry['bill_account'] = accountToDict(entry.GetBillAccount())
         simple_entry['bill_price'] = entry.GetBillPrice().to_double()
         simple_entry['bill_taxable'] = entry.GetBillTaxable()
         simple_entry['bill_tax_included'] = entry.GetBillTaxIncluded()
