@@ -107,5 +107,14 @@ class TestBusiness(BusinessSession):
         invoice_from_transaction = posted_transaction.GetInvoiceFromTxn()
         self.assertTrue( invoice_from_transaction != None and invoice_from_transaction.GetID() == self.invoice.GetID() )
 
+    def test_get_invoice_from_lot(self):
+        """
+        Test that you can get the invoice back from its posted lot.
+        """
+        lot = self.invoice.GetPostedLot()
+        self.assertTrue( lot != None )
+        invoice_from_lot = lot.GetInvoiceFromLot()
+        self.assertTrue( invoice_from_lot != None and invoice_from_lot.GetID() == self.invoice.GetID() )
+
 if __name__ == '__main__':
     main()
