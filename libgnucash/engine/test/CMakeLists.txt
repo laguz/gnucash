@@ -65,7 +65,6 @@ add_engine_test(test-split-vs-account test-split-vs-account.cpp)
 add_engine_test(test-transaction-reversal test-transaction-reversal.cpp)
 add_engine_test(test-transaction-voiding test-transaction-voiding.cpp)
 add_engine_test(test-recurrence test-recurrence.c)
-add_engine_test(test-business test-business.c)
 add_engine_test(test-address test-address.c)
 add_engine_test(test-customer test-customer.c)
 add_engine_test(test-employee test-employee.c)
@@ -123,6 +122,12 @@ gnc_add_test(test-cashobjects gtest-cashobjects.cpp
 
 gnc_add_test(test-gncBillTerm gtest-gncBillTerm.cpp
   gtest_engine_INCLUDES gtest_old_engine_LIBS)
+
+set(test_gncBusiness_SOURCES
+  gtest-gncBusiness.cpp)
+gnc_add_test(test-gncBusiness "${test_gncBusiness_SOURCES}"
+  gtest_engine_INCLUDES gtest_old_engine_LIBS)
+
 
 set(test_kvp_value_SOURCES
   ${MODULEPATH}/kvp-value.cpp
@@ -239,7 +244,7 @@ set(test_engine_SOURCES_DIST
         gtest-policy.cpp
         test-account-object.cpp
         test-address.c
-        test-business.c
+        gtest-gncBusiness.cpp
         test-commodities.cpp
         test-customer.c
         test-employee.c
