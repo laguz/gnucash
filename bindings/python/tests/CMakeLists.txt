@@ -24,6 +24,7 @@ set(test_python_bindings_DATA
         test_split.py
         test_transaction.py
         test_query.py
+        test_price.py
         test_function_class.py
         test_deprecation.py
         test_export_account_totals.py
