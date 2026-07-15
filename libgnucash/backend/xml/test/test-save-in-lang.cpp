@@ -62,7 +62,6 @@ const char* possible_vars[] =
     NULL
 };
 
-const char* diff_command = "cmp %s %s";
 const char* test_dir = "test-files/xml2";
 const char* base_env = "C";
 
@@ -73,9 +72,27 @@ gen_new_file_name (const char* filename, const char* env)
 }
 
 static int
-run_command_get_return (const char* command)
+compare_files (const char* filename1, const char* filename2)
 {
-    return system (command);
+    gchar *content1 = NULL;
+    gchar *content2 = NULL;
+    gsize length1 = 0;
+    gsize length2 = 0;
+    int result = 1; // default to not equal
+
+    if (g_file_get_contents(filename1, &content1, &length1, NULL) &&
+        g_file_get_contents(filename2, &content2, &length2, NULL))
+    {
+        if (length1 == length2 && memcmp(content1, content2, length1) == 0)
+        {
+            result = 0; // equal
+        }
+    }
+
+    g_free(content1);
+    g_free(content2);
+
+    return result;
 }
 
 static char*
@@ -87,7 +104,6 @@ test_file (const char* filename)
     {
         QofBackendError err;
         QofSession* session;
-        char* cmd;
         char* new_file = gen_new_file_name (filename, possible_envs[i]);
 
         session = qof_session_new (nullptr);
@@ -126,20 +142,16 @@ test_file (const char* filename)
 
         qof_session_save (new_session, NULL);
 
-        cmd = g_strdup_printf (diff_command, filename, new_file);
-
-        if (run_command_get_return (cmd) != 0)
+        if (compare_files (filename, new_file) != 0)
         {
-            g_free (cmd);
             g_free (new_file);
             qof_session_destroy (session);
             qof_session_destroy (new_session);
-            return g_strdup_printf ("run_command_get_return with LANG=%s",
+            return g_strdup_printf ("compare_files failed with LANG=%s",
                                     possible_envs[i]);
         }
 
         g_free (new_file);
-        g_free (cmd);
         qof_session_destroy (session);
         qof_session_destroy (new_session);
     }
