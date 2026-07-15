@@ -3332,15 +3332,11 @@ static void multi_duplicate_invoice_one(gpointer data, gpointer user_data)
     g_assert(dup_user_data);
     if (old_invoice)
     {
-        GncInvoice *new_invoice;
         // In this simplest form, we just use the existing duplication
         // algorithm, only without opening the "edit invoice" window for editing
         // the number etc. for each of the invoices.
         InvoiceWindow *iw = gnc_ui_invoice_duplicate(dup_user_data->parent, old_invoice, FALSE, &dup_user_data->date);
-        // FIXME: Now we could use this invoice and manipulate further data.
         g_assert(iw);
-        new_invoice = iw_get_invoice(iw);
-        g_assert(new_invoice);
     }
 }
 
