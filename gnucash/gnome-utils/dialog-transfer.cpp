@@ -2428,7 +2428,7 @@ gboolean gnc_xfer_dialog_run_exchange_dialog(
          */
         gnc_numeric rate = xaccTransGetAccountConvRate(txn, reg_acc);
 
-        /* XXX: should we tell the user we've done the conversion? */
+        gnc_info_dialog(GTK_WINDOW(xfer->dialog), "%s", _("The amount has been converted to the transaction currency."));
         amount = gnc_numeric_div(amount, rate,
                                  gnc_commodity_get_fraction(txn_cur),
                                  GNC_HOW_DENOM_REDUCE);
