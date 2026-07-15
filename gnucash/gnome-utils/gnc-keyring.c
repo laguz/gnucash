@@ -125,7 +125,7 @@ void gnc_keyring_set_password (const gchar *access_method,
 #endif /* HAVE_GNOME_KEYRING */
 #ifdef HAVE_OSX_KEYCHAIN
     OSStatus status;
-    SecKeychainItemRef *itemRef = NULL;
+    SecKeychainItemRef itemRef = NULL;
 
     g_return_if_fail(access_method != NULL && server != NULL &&
                      service != NULL && user != NULL && password != NULL);
@@ -133,22 +133,39 @@ void gnc_keyring_set_password (const gchar *access_method,
      * So we use the security domain parameter to allow us to
      * distinguish between these two.
      */
-    // FIXME I'm not sure this works if a password was already in the keychain
-    //       I may have to do a lookup first and if it exists, run some
-    //       update function instead
-    status =
-        SecKeychainAddInternetPassword (NULL, /* keychain */
-                                        strlen(server), server, /* servername */
-                                        strlen(access_method),
-                                        access_method,  /* securitydomain */
-                                        strlen(user), user, /* accountname */
-                                        strlen(service), service, /* path */
-                                        port, /* port */
-                                        kSecProtocolTypeAny, /* protocol */
-                                        kSecAuthenticationTypeDefault, /* auth type */
-                                        strlen(password),
-                                        password, /* passworddata */
-                                        itemRef );
+    status = SecKeychainFindInternetPassword(NULL,
+                                             strlen(server), server,
+                                             strlen(access_method), access_method,
+                                             strlen(user), user,
+                                             strlen(service), service,
+                                             port,
+                                             kSecProtocolTypeAny,
+                                             kSecAuthenticationTypeDefault,
+                                             NULL, NULL, &itemRef);
+
+    if (status == noErr)
+    {
+        status = SecKeychainItemModifyAttributesAndData(itemRef, NULL, strlen(password), password);
+        CFRelease(itemRef);
+    }
+    else if (status == errSecItemNotFound)
+    {
+        status =
+            SecKeychainAddInternetPassword (NULL, /* keychain */
+                                            strlen(server), server, /* servername */
+                                            strlen(access_method),
+                                            access_method,  /* securitydomain */
+                                            strlen(user), user, /* accountname */
+                                            strlen(service), service, /* path */
+                                            port, /* port */
+                                            kSecProtocolTypeAny, /* protocol */
+                                            kSecAuthenticationTypeDefault, /* auth type */
+                                            strlen(password),
+                                            password, /* passworddata */
+                                            &itemRef );
+        if (itemRef)
+            CFRelease(itemRef);
+    }
 
     if ( status != noErr )
     {
