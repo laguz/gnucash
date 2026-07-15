@@ -50,13 +50,13 @@
 #include "gfec.h"
 #include "gnc-main-window.h"
 #include "gnc-menu-extensions.h"
-#include "gnc-plugin-basic-commands.h" /* FIXME Remove this line*/
-#include "gnc-plugin-register.h" /* FIXME Remove this line*/
+#include "gnc-plugin-basic-commands.h"
+#include "gnc-plugin-register.h"
 #include "gnc-plugin-budget.h"
 #include "gnc-plugin-file-history.h"
 #include "gnc-plugin-business.h"
 #include "gnc-plugin-page-register.h"
-#include "gnc-plugin-manager.h" /* FIXME Remove this line*/
+#include "gnc-plugin-manager.h"
 #include "gnc-html.h"
 #include "gnc-gnome-utils.h"
 #include "gnc-report.h"
