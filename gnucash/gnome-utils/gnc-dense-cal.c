@@ -771,7 +771,7 @@ recompute_x_y_scales (GncDenseCal *dcal)
     g_assert (denom != 0);
     dcal->x_scale = ((gint)(width
                             - (dcal->leftPadding * 2)
-                            - (num_cols (dcal) * ((8 * MINOR_BORDER_SIZE)
+                            - (num_cols (dcal) * ((7 * MINOR_BORDER_SIZE)
                                     + dcal->month_side_bar_width))
                             - ((num_cols (dcal) - 1) * COL_BORDER_SIZE))
                      / denom);
@@ -783,7 +783,7 @@ recompute_x_y_scales (GncDenseCal *dcal)
                             - (dcal->topPadding * 2)
                             - MINOR_BORDER_SIZE
                             - dcal->day_top_bar_height
-                            - (num_weeks_per_col (dcal) - 1
+                            - ((num_weeks_per_col (dcal) - 1)
                                * MINOR_BORDER_SIZE))
                      / denom);
     dcal->y_scale = MAX(dcal->y_scale, dcal->min_y_scale);
