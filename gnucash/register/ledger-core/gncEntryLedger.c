@@ -246,11 +246,31 @@ static void gnc_entry_ledger_config_action (GncEntryLedger *ledger)
             ENTRY_ACTN_CELL);
     if (!cell) return;
 
-    /* XXX: change this based on the ledger type */
+    switch (ledger->type)
+    {
+    case GNCENTRY_ORDER_ENTRY:
+    case GNCENTRY_ORDER_VIEWER:
+    case GNCENTRY_INVOICE_ENTRY:
+    case GNCENTRY_INVOICE_VIEWER:
+    case GNCENTRY_CUST_CREDIT_NOTE_ENTRY:
+    case GNCENTRY_CUST_CREDIT_NOTE_VIEWER:
+    case GNCENTRY_BILL_ENTRY:
+    case GNCENTRY_BILL_VIEWER:
+    case GNCENTRY_VEND_CREDIT_NOTE_ENTRY:
+    case GNCENTRY_VEND_CREDIT_NOTE_VIEWER:
+        gnc_combo_cell_add_menu_item (cell, _("Hours"));
+        gnc_combo_cell_add_menu_item (cell, _("Project"));
+        gnc_combo_cell_add_menu_item (cell, _("Material"));
+        break;
 
-    gnc_combo_cell_add_menu_item (cell, _("Hours"));
-    gnc_combo_cell_add_menu_item (cell, _("Project"));
-    gnc_combo_cell_add_menu_item (cell, _("Material"));
+    case GNCENTRY_EXPVOUCHER_ENTRY:
+    case GNCENTRY_EXPVOUCHER_VIEWER:
+    case GNCENTRY_EMPL_CREDIT_NOTE_ENTRY:
+    case GNCENTRY_EMPL_CREDIT_NOTE_VIEWER:
+    case GNCENTRY_NUM_REGISTER_TYPES:
+    default:
+        break;
+    }
 }
 
 static void
