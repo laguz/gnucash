@@ -3247,7 +3247,7 @@ gnc_ui_invoice_new (GtkWindow *parent, GncOwner *owner, QofBook *book)
         gncOwnerCopy (owner, &inv_owner);
     }
     else
-        gncOwnerInitCustomer (&inv_owner, NULL); /* XXX: pass in the owner type? */
+        gncOwnerInitCustomer (&inv_owner, NULL);
 
     /* Make sure required options exist */
     if (!book) return NULL;
