@@ -68,6 +68,8 @@ gboolean gnc_sql_slots_save (GncSqlBackend* sql_be, const GncGUID* guid,
  */
 gboolean gnc_sql_slots_delete (GncSqlBackend* sql_be, const GncGUID* guid);
 
+gboolean gnc_sql_slots_delete_multiple (GncSqlBackend* sql_be, const std::vector<const GncGUID*>& guids);
+
 /** Loads slots for an object from the db.
  *
  * @param sql_be SQL backend

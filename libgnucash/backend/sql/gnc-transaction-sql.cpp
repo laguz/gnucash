@@ -485,22 +485,6 @@ GncSqlSplitBackend::create_tables (GncSqlBackend* sql_be)
  * @param data Split
  * @param user_data split_info_t structure contain operation info
  */
-static void
-delete_split_slots_cb (gpointer data, gpointer user_data)
-{
-    split_info_t* split_info = (split_info_t*)user_data;
-    Split* pSplit = GNC_SPLIT (data);
-
-    g_return_if_fail (data != NULL);
-    g_return_if_fail (GNC_IS_SPLIT (data));
-    g_return_if_fail (user_data != NULL);
-
-    if (split_info->is_ok)
-    {
-        split_info->is_ok = gnc_sql_slots_delete (split_info->be,
-                                                  qof_instance_get_guid (QOF_INSTANCE (pSplit)));
-    }
-}
 
 /**
  * Deletes all of the splits for a transaction
@@ -525,8 +509,16 @@ delete_splits (GncSqlBackend* sql_be, Transaction* pTx)
     split_info.be = sql_be;
     split_info.is_ok = TRUE;
 
-    g_list_foreach (xaccTransGetSplitList (pTx), delete_split_slots_cb,
-                    &split_info);
+    std::vector<const GncGUID*> split_guids;
+    for (GList* node = xaccTransGetSplitList (pTx); node; node = node->next)
+    {
+        Split* pSplit = GNC_SPLIT (node->data);
+        if (pSplit) {
+            split_guids.push_back(qof_instance_get_guid(QOF_INSTANCE(pSplit)));
+        }
+    }
+
+    split_info.is_ok = gnc_sql_slots_delete_multiple(sql_be, split_guids);
 
     return split_info.is_ok;
 }
