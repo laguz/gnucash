@@ -1979,13 +1979,8 @@ static gchar *report_create_jobname(GncPluginPageReportPrivate *priv)
     g_free (job_date);
 
     {
-        char forbidden_char = '/';
-        // Now remove the characters that are not allowed in file
-        // names. FIXME: Check for all disallowed characters here!
-        while (strchr(job_name, forbidden_char))
-        {
-            *strchr(job_name, forbidden_char) = '_';
-        }
+        // Now remove the characters that are not allowed in file names.
+        g_strdelimit(job_name, "/\\:*?\"<>|", '_');
     }
 
     {
