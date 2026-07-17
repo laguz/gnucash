@@ -577,7 +577,7 @@ show_session_error (GtkWindow *parent,
         break;
 
     default:
-        PERR("FIXME: Unhandled error %d", io_error);
+        PERR("Unhandled error %d", io_error);
         fmt = _("An unknown I/O error (%d) occurred.");
         gnc_error_dialog (parent, fmt, io_error);
         break;
