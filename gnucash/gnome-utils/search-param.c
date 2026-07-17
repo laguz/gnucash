@@ -266,7 +266,9 @@ gnc_search_param_override_param_type (GNCSearchParamSimple *param,
 
     priv = GNC_SEARCH_PARAM_GET_PRIVATE(GNC_SEARCH_PARAM(param));
     priv->type = param_type;
-    /* XXX: What about the converters? */
+    /* The converters remain unchanged. They define the access path
+     * (how to get the value), while param_type only overrides how
+     * the UI interprets and displays the resulting value. */
 }
 
 GList *
