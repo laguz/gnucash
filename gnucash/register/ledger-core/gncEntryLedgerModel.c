@@ -426,13 +426,13 @@ static const char * get_inv_entry (VirtualLocation virt_loc,
 
     entry = gnc_entry_ledger_get_entry (ledger, virt_loc.vcell_loc);
 
-    return gnc_checkbox_cell_get_string (gncEntryGetInvoice (entry) != NULL);
+    if (entry == gnc_entry_ledger_get_blank_entry (ledger))
+        return gnc_checkbox_cell_get_string (ledger->invoice != NULL);
 
-    /* XXX: what if this entry doesn't belong to this invoice?
-     * Or, better question, what if this is the blank_entry on
-     * an invoice page?  For the latter, don't worry about it;
-     * it will be added automatically during the Save operation
-     */
+    if (ledger->invoice)
+        return gnc_checkbox_cell_get_string (gncEntryGetInvoice (entry) == ledger->invoice);
+    else
+        return gnc_checkbox_cell_get_string (gncEntryGetInvoice (entry) != NULL);
 }
 
 static const char * get_value_entry (VirtualLocation virt_loc,
