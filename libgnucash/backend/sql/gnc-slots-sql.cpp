@@ -693,6 +693,66 @@ gnc_sql_slots_delete (GncSqlBackend* sql_be, const GncGUID* guid)
     return slot_info.is_ok;
 }
 
+gboolean
+gnc_sql_slots_delete_multiple (GncSqlBackend* sql_be, const std::vector<const GncGUID*>& guids)
+{
+    if (guids.empty())
+        return TRUE;
+
+    g_return_val_if_fail (sql_be != NULL, FALSE);
+
+    std::ostringstream sql;
+    sql << "SELECT * FROM " TABLE_NAME " WHERE obj_guid IN (";
+    for (size_t i = 0; i < guids.size(); ++i)
+    {
+        if (i > 0) sql << ", ";
+        gnc::GUID cpp_guid(*guids[i]);
+        sql << "'" << cpp_guid.to_string() << "'";
+    }
+    sql << ") and slot_type in ('" << static_cast<int>(KvpValue::Type::FRAME)
+        << "', '" << static_cast<int>(KvpValue::Type::GLIST)
+        << "') and not guid_val is null";
+
+    auto stmt = sql_be->create_statement_from_sql(sql.str());
+    if (stmt != nullptr)
+    {
+        auto result = sql_be->execute_select_statement(stmt);
+        std::vector<const GncGUID*> child_guids;
+        std::vector<GncGUID> child_guid_vals;
+        for (auto row : *result)
+        {
+            const GncSqlColumnTableEntryPtr table_row =
+                    col_table[guid_val_col];
+            GncGUID child_guid;
+            auto val = row.get_string_at_col (table_row->name());
+            if (val && string_to_guid (val->c_str(), &child_guid)) {
+                child_guid_vals.push_back(child_guid);
+            }
+        }
+        for (auto& cg : child_guid_vals) {
+            child_guids.push_back(&cg);
+        }
+        gnc_sql_slots_delete_multiple(sql_be, child_guids);
+    }
+
+    std::ostringstream del_sql;
+    del_sql << "DELETE FROM " TABLE_NAME " WHERE obj_guid IN (";
+    for (size_t i = 0; i < guids.size(); ++i)
+    {
+        if (i > 0) del_sql << ", ";
+        gnc::GUID cpp_guid(*guids[i]);
+        del_sql << "'" << cpp_guid.to_string() << "'";
+    }
+    del_sql << ")";
+    auto del_stmt = sql_be->create_statement_from_sql(del_sql.str());
+    if (del_stmt != nullptr) {
+        sql_be->execute_nonselect_statement(del_stmt);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
 static void
 load_slot (slot_info_t* pInfo, GncSqlRow& row)
 {

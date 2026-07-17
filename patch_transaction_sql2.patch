@@ -1,0 +1,25 @@
+--- libgnucash/backend/sql/gnc-transaction-sql.cpp
++++ libgnucash/backend/sql/gnc-transaction-sql.cpp
+@@ -485,22 +485,6 @@
+  * @param data Split
+  * @param user_data split_info_t structure contain operation info
+  */
+-static void
+-delete_split_slots_cb (gpointer data, gpointer user_data)
+-{
+-    split_info_t* split_info = (split_info_t*)user_data;
+-    Split* pSplit = GNC_SPLIT (data);
+-
+-    g_return_if_fail (data != NULL);
+-    g_return_if_fail (GNC_IS_SPLIT (data));
+-    g_return_if_fail (user_data != NULL);
+-
+-    if (split_info->is_ok)
+-    {
+-        split_info->is_ok = gnc_sql_slots_delete (split_info->be,
+-                                                  qof_instance_get_guid (QOF_INSTANCE (pSplit)));
+-    }
+-}
+
+ /**
+  * Deletes all of the splits for a transaction

@@ -1,0 +1,28 @@
+--- libgnucash/backend/sql/gnc-slots-sql.cpp
++++ libgnucash/backend/sql/gnc-slots-sql.cpp
+@@ -735,11 +735,22 @@
+         gnc_sql_slots_delete_multiple(sql_be, child_guids);
+     }
+
+-    for (auto guid : guids) {
+-        gnc_sql_slots_delete(sql_be, guid);
++    std::ostringstream del_sql;
++    del_sql << "DELETE FROM " TABLE_NAME " WHERE obj_guid IN (";
++    for (size_t i = 0; i < guids.size(); ++i)
++    {
++        if (i > 0) del_sql << ", ";
++        gnc::GUID cpp_guid(*guids[i]);
++        del_sql << "'" << cpp_guid.to_string() << "'";
++    }
++    del_sql << ")";
++    auto del_stmt = sql_be->create_statement_from_sql(del_sql.str());
++    if (del_stmt != nullptr) {
++        sql_be->execute_nonselect_statement(del_stmt);
++        return TRUE;
+     }
+
+-    return TRUE;
++    return FALSE;
+ }
+
+ static void
