@@ -1,0 +1,35 @@
+--- gnucash/gnome-utils/gnc-recurrence.c
++++ gnucash/gnome-utils/gnc-recurrence.c
+@@ -150,8 +150,29 @@
+     }
+     use_wd = gtk_toggle_button_get_active(
+                  GTK_TOGGLE_BUTTON(gr->nth_weekday));
+-    //TODO: change label
+
++    if (pt == GNCR_MONTH && g_date_valid(&start))
++    {
++        int week = 0;
++        int day_of_month_index = 0;
++        const char *numerals[] = {N_("1st"), N_("2nd"), N_("3rd"), N_("4th")};
++        gchar day_name_buf[10];
++        gchar *label;
++
++        gnc_dow_abbrev(day_name_buf, 10, g_date_get_weekday(&start) % 7);
++        day_of_month_index = g_date_get_day(&start) - 1;
++        week = day_of_month_index / 7 > 3 ? 3 : day_of_month_index / 7;
++
++        label = g_strdup_printf(_("%s %s"), _(numerals[week]), day_name_buf);
++        gtk_button_set_label(GTK_BUTTON(gr->nth_weekday), label);
++        g_free(label);
++
++        if (use_wd)
++            label = g_strdup_printf(_("last %s"), day_name_buf);
++        else
++            label = g_strdup(_("last of month"));
++        gtk_button_set_label(GTK_BUTTON(gr->gcb_eom), label);
++        g_free(label);
++    }
++
+     /* The case under which we show the "end of month" flag is very
+        narrow, because we can almost always DTRT without it. */
+     if (pt == GNCR_MONTH)
