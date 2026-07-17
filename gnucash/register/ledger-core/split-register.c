@@ -462,7 +462,7 @@ gnc_split_register_duplicate_current (SplitRegister* reg)
 
     /* See if we were asked to duplicate an unchanged blank split.
      * There's no point in doing that! */
-    if (!changed && ((split == NULL) || (split == blank_split)))
+    if (!changed && !info->blank_split_edited && ((split == NULL) || (split == blank_split)))
     {
         LEAVE ("skip unchanged blank split");
         return NULL;
@@ -775,7 +775,7 @@ gnc_split_register_copy_current_internal (SplitRegister* reg,
     changed = gnc_table_current_cursor_changed (reg->table, FALSE);
 
     /* See if we were asked to copy an unchanged blank split. Don't. */
-    if (!changed && ((split == NULL) || (split == blank_split)))
+    if (!changed && !info->blank_split_edited && ((split == NULL) || (split == blank_split)))
     {
         /* We're either on an unedited, brand-new split or an unedited, brand-new
          * transaction (the transaction anchored by the blank split.) */
@@ -896,7 +896,7 @@ gnc_split_register_cut_current (SplitRegister* reg)
     changed = gnc_table_current_cursor_changed (reg->table, FALSE);
 
     /* See if we were asked to cut an unchanged blank split. Don't. */
-    if (!changed && ((split == NULL) || (split == blank_split)))
+    if (!changed && !info->blank_split_edited && ((split == NULL) || (split == blank_split)))
         return;
 
     gnc_split_register_copy_current_internal (reg, TRUE);
