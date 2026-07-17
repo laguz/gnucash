@@ -881,8 +881,6 @@ gnc_plugin_page_report_destroy_widget(GncPluginPage *plugin_page)
 {
     GncPluginPageReportPrivate *priv;
 
-    // FIXME: cleanup other resources.
-
     PINFO("destroy widget");
     priv = GNC_PLUGIN_PAGE_REPORT_GET_PRIVATE(plugin_page);
 
@@ -1180,6 +1178,19 @@ gnc_plugin_page_report_destroy(GncPluginPageReportPrivate * priv)
         }
     }
 
+    if (priv->name_change_cb_id && priv->initial_odb)
+    {
+        priv->initial_odb->unregister_callback(priv->name_change_cb_id);
+        priv->name_change_cb_id = 0;
+    }
+
+    if (priv->cur_odb)
+    {
+        if (priv->option_change_cb_id)
+            priv->cur_odb->unregister_callback(priv->option_change_cb_id);
+        priv->cur_odb = nullptr;
+    }
+
     if (priv->initial_odb)
     {
 //Remove this if there's a double-free
@@ -1194,6 +1205,8 @@ gnc_plugin_page_report_destroy(GncPluginPageReportPrivate * priv)
 
     if (priv->cur_report != SCM_BOOL_F)
         scm_gc_unprotect_object(priv->cur_report);
+    if (priv->initial_report != SCM_BOOL_F)
+        scm_gc_unprotect_object(priv->initial_report);
     if (priv->edited_reports != SCM_EOL)
         scm_gc_unprotect_object(priv->edited_reports);
 }
