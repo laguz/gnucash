@@ -1068,7 +1068,7 @@ gnc_dense_cal_draw_to_buffer (GncDenseCal *dcal)
                 doc_coords(dcal, i, &x1, &y1, &x2, &y2);
                 center_x = (x1 + x2 ) / 2;
                 center_y = (y1 + y2 ) / 2;
-                radius = MIN((x2 - x1), (y2 - y1)) * .75;
+                radius = MIN((x2 - x1), (y2 - y1)) / 2.0 * .75;
 
                 // try to compensate for row height/width being odd or even
                 if (((y2 - y1) % 2) != 0)
@@ -1262,8 +1262,8 @@ gnc_dense_cal_draw_to_buffer (GncDenseCal *dcal)
 
                     gtk_style_context_add_class (stylectxt, "marker-border");
 
-                    gtk_render_frame (stylectxt, cr, x1 - (dayw / 4) + 3,
-                                                     y1 - (dayh / 4) + 2,
+                    gtk_render_frame (stylectxt, cr, x1 + 3,
+                                                     y1 + 2,
                                                      dayw - 4 - bw,
                                                      dayh - 4 - bw);
 
@@ -1782,22 +1782,18 @@ doc_coords (GncDenseCal *dcal, int dayOfCal,
     weekRow = d_week_of_cal - top_of_col_week_of_cal;
 
     /* top-left corner */
-    /* FIXME: this has the math to make the mark-cells come out right,
-     * which it shouldn't. */
     *x1 = dcal->leftPadding
           + MINOR_BORDER_SIZE
           + dcal->month_side_bar_width
           + (colNum * (col_width (dcal) + COL_BORDER_SIZE))
-          + (dayCol * day_width (dcal))
-          + (day_width (dcal) / 4);
+          + (dayCol * day_width (dcal));
     *y1 = dcal->topPadding
           + MINOR_BORDER_SIZE
           + dcal->day_top_bar_height
-          + (weekRow * week_height (dcal))
-          + (day_height (dcal) / 4);
+          + (weekRow * week_height (dcal));
 
-    *x2 = *x1 + (day_width (dcal) / 2);
-    *y2 = *y1 + (day_height (dcal) / 2);
+    *x2 = *x1 + day_width (dcal);
+    *y2 = *y1 + day_height (dcal);
 }
 
 /**
