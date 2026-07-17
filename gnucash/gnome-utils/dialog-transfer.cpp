@@ -2398,27 +2398,25 @@ gboolean gnc_xfer_dialog_run_exchange_dialog(
         swap_amounts = expanded;
     }
 
-    /* We know that "amount" is always in the reg_com currency.
+    /* We know that "amount" is usually in the reg_com currency (when not expanded).
+     * If we are expanded, "amount" is in the xfer_com currency.
      * Unfortunately it is possible that neither xfer_com or txn_cur are
      * the same as reg_com, in which case we need to convert to the txn
-     * currency...  Or, if the register commodity is the xfer_com, then we
-     * need to flip-flop the commodities and the exchange rates.
+     * currency...  Or, if the register commodity is the xfer_com, or we are
+     * expanded, then we need to flip-flop the commodities and the exchange rates.
      */
 
-    else if (gnc_commodity_equal(reg_com, txn_cur))
+    else if (!expanded && gnc_commodity_equal(reg_com, txn_cur))
     {
         /* we're working in the txn currency.  Great.  Nothing to do! */
         swap_amounts = FALSE;
 
     }
-    else if (gnc_commodity_equal(reg_com, xfer_com))
+    else if (expanded || gnc_commodity_equal(reg_com, xfer_com))
     {
         /* We're working in the xfer commodity.  Great.  Just swap the
            amounts. */
         swap_amounts = TRUE;
-
-        /* XXX: Do we need to check for expanded v. non-expanded
-           accounts here? */
 
     }
     else
