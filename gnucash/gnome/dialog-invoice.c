@@ -1817,9 +1817,11 @@ gnc_invoice_owner_changed_cb (GtkWidget *widget, gpointer data)
         break;
     }
 
-    /* XXX: I'm not sure -- should we change the terms if this happens? */
-    iw->terms = term;
-    gnc_simple_combo_set_value (GTK_COMBO_BOX(iw->terms_menu), iw->terms);
+    if (iw->dialog_type == NEW_INVOICE || iw->dialog_type == DUP_INVOICE)
+    {
+        iw->terms = term;
+        gnc_simple_combo_set_value (GTK_COMBO_BOX(iw->terms_menu), iw->terms);
+    }
 
     gnc_invoice_update_job_choice (iw);
 
