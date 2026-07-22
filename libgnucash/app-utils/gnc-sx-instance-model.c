@@ -905,9 +905,8 @@ gnc_sx_instance_model_update_sx_instances(GncSxInstanceModel *model, SchedXactio
             {
                 GncSxInstance *inst = (GncSxInstance*)new_iter_iter->data;
                 inst->parent = existing;
-                existing->instance_list = g_list_append(existing->instance_list, new_iter_iter->data);
             }
-            g_list_free(new_iter);
+            existing->instance_list = g_list_concat(existing->instance_list, new_iter);
         }
     }
 
