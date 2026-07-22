@@ -545,6 +545,18 @@ test_instance_commit_edit( Fixture *fixture, gconstpointer pData )
 
 
 static void
+test_instance_set_editlevel( Fixture *fixture, gconstpointer user_data )
+{
+    g_test_message( "Test qof_instance_set_editlevel" );
+
+    qof_instance_set_editlevel( fixture->inst, 5 );
+    g_assert_cmpint( qof_instance_get_editlevel( fixture->inst ), == , 5 );
+
+    qof_instance_set_editlevel( fixture->inst, -2 );
+    g_assert_cmpint( qof_instance_get_editlevel( fixture->inst ), == , -2 );
+}
+
+static void
 test_instance_commit_edit_part2( Fixture *fixture, gconstpointer pData )
 {
     QofBook *book;
@@ -1002,6 +1014,7 @@ test_suite_qofinstance ( void )
     GNC_TEST_ADD( suitename, "display name", Fixture, NULL, setup, test_instance_display_name, teardown );
     GNC_TEST_ADD( suitename, "begin edit", Fixture, NULL, setup, test_instance_begin_edit, teardown );
     GNC_TEST_ADD( suitename, "commit edit", Fixture, NULL, setup, test_instance_commit_edit, teardown );
+    GNC_TEST_ADD( suitename, "set editlevel", Fixture, NULL, setup, test_instance_set_editlevel, teardown );
     GNC_TEST_ADD( suitename, "commit edit part 2", Fixture, NULL, setup, test_instance_commit_edit_part2, teardown );
     GNC_TEST_ADD( suitename, "instance refers to object", Fixture, NULL, setup, test_instance_refers_to_object, teardown );
     GNC_TEST_ADD_FUNC( suitename, "instance get referring object list from collection", test_instance_get_referring_object_list_from_collection );
