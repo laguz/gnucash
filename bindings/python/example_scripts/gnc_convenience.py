@@ -77,10 +77,13 @@ def find_account(account,name,account_list=None):
   if not account_list:
     account_list=[]
 
-  for child in account.get_children():
+  for child in account.get_descendants():
     if type(child) != Account:
       child=Account(instance=child)
-    account_list=find_account(child,name,account_list)
+
+    account_name=child.GetName()
+    if name in account_name:
+      account_list.append(child)
 
   account_name=account.GetName()
   if name in account_name:
@@ -152,13 +155,17 @@ def find_split_recursive(account, search_string):
   child_account_splits = []
   
   # Get all splits in descendants
-  for child in account.get_children():
+  for child in account.get_descendants():
       if type(child) != Account:
           child = Account(instance=child)
-      childsplits = find_split_recursive(child, search_string)
-      for split in childsplits:
+
+      splits=child.GetSplitList()
+      converted_splits = []
+      for split in splits:
           if type(split) != Split:
               split = Split(instance=split)
+          converted_splits.append(split)
+      childsplits=find_split(converted_splits,search_string)
       child_account_splits += childsplits
 
   # Get all splits in account
@@ -220,3 +227,13 @@ def find_transaction(account,name,ignore_case=True,transaction_list=None):
           ret.append(transaction)
 
   return ret
+
+def get_account_from_tree(account, account_name):
+    """
+    A recursive function to locate a specific account in the account tree.
+    It takes an account and an account name.
+    """
+    for child in account.get_descendants():
+        if child.GetName() == account_name:
+            return child
+    return None
