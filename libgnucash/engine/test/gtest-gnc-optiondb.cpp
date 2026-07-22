@@ -32,6 +32,7 @@
 #include "kvp-value.hpp"
 #include <glib-2.0/glib.h>
 #include <cstdint>
+#include "gnc-optiondb.h"
 
 #include "gnc-session.h"
 
@@ -398,4 +399,12 @@ TEST_F(GncOptionDBIOTest, test_option_kvp_save)
     EXPECT_EQ(nullptr, qux_garply);
     EXPECT_EQ(nullptr, qux_grault);
     EXPECT_STREQ("pepper", foo_sausage->get<const char*>());
+}
+
+TEST_F(GncOptionDBTest, test_gnc_option_db_destroy)
+{
+    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_WARNING,
+                           "*Direct Destroy called on GncOptionDB*");
+    gnc_option_db_destroy(m_db.release());
+    g_test_assert_expected_messages();
 }
