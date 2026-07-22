@@ -708,6 +708,10 @@ qof_instance_set_dirty(QofInstance* inst)
 
     priv = GET_PRIVATE(inst);
     priv->dirty = TRUE;
+    if (priv->collection)
+    {
+        qof_collection_mark_dirty(priv->collection);
+    }
 }
 
 gboolean

@@ -390,8 +390,17 @@ test_instance_get_set_dirty( Fixture *fixture, gconstpointer pData )
     g_assert_true( !qof_instance_get_dirty( fixture->inst ) );
     qof_instance_set_dirty( fixture->inst );
     g_assert_true( qof_instance_get_dirty_flag( fixture->inst ) );
-    g_assert_true( !qof_collection_is_dirty( col ) );
+    g_assert_true( qof_collection_is_dirty( col ) );
     g_assert_true( qof_instance_get_dirty( fixture->inst ) );
+
+    g_test_message( "Test mark clean and set dirty again" );
+    qof_instance_mark_clean( fixture->inst );
+    g_assert_true( !qof_instance_get_dirty_flag( fixture->inst ) );
+    g_assert_true( !qof_instance_get_dirty( fixture->inst ) );
+    qof_instance_set_dirty( fixture->inst );
+    g_assert_true( qof_instance_get_dirty_flag( fixture->inst ) );
+    g_assert_true( qof_instance_get_dirty( fixture->inst ) );
+    g_assert_true( qof_collection_is_dirty( col ) );
 
     /* clean up */
     qof_instance_set_collection( fixture->inst, NULL );
