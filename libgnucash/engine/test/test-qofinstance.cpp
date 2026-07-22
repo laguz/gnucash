@@ -321,6 +321,43 @@ test_instance_get_set_slots( Fixture *fixture, gconstpointer pData )
 }
 
 static void
+test_instance_foreach_slot_prefix( Fixture *fixture, gconstpointer pData )
+{
+    g_assert_true( fixture->inst );
+
+    qof_instance_set_slots( fixture->inst, new KvpFrame );
+
+    fixture->inst->kvp_data->set({"prefix1_A"}, new KvpValue(static_cast<int64_t>(10)));
+    fixture->inst->kvp_data->set({"prefix1_B"}, new KvpValue(static_cast<int64_t>(20)));
+    fixture->inst->kvp_data->set({"prefix2_C"}, new KvpValue(static_cast<int64_t>(30)));
+
+    struct TestData {
+        int count = 0;
+        int sum = 0;
+    } data;
+
+    auto test_func = [](const std::string& key, const KvpValue* value, TestData& data) {
+        data.count++;
+        if (value && value->get_type() == KvpValueImpl::Type::INT64) {
+            data.sum += value->get<int64_t>();
+        }
+    };
+
+    qof_instance_foreach_slot_prefix(fixture->inst, "prefix1_", test_func, data);
+
+    g_assert_cmpint( data.count, == , 2 );
+    g_assert_cmpint( data.sum, == , 30 );
+
+    data.count = 0;
+    data.sum = 0;
+
+    qof_instance_foreach_slot_prefix(fixture->inst, "prefix2_", test_func, data);
+
+    g_assert_cmpint( data.count, == , 1 );
+    g_assert_cmpint( data.sum, == , 30 );
+}
+
+static void
 test_instance_version_cmp( void )
 {
     QofInstance *left, *right;
@@ -997,6 +1034,7 @@ test_suite_qofinstance ( void )
     GNC_TEST_ADD_FUNC( suitename, "instance new and destroy", test_instance_new_destroy );
     GNC_TEST_ADD_FUNC( suitename, "init data", test_instance_init_data );
     GNC_TEST_ADD( suitename, "get set slots", Fixture, NULL, setup, test_instance_get_set_slots, teardown );
+    GNC_TEST_ADD( suitename, "foreach slot prefix", Fixture, NULL, setup, test_instance_foreach_slot_prefix, teardown );
     GNC_TEST_ADD_FUNC( suitename, "version compare", test_instance_version_cmp );
     GNC_TEST_ADD( suitename, "get set dirty", Fixture, NULL, setup, test_instance_get_set_dirty, teardown );
     GNC_TEST_ADD( suitename, "display name", Fixture, NULL, setup, test_instance_display_name, teardown );
