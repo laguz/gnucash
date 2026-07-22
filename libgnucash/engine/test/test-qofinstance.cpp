@@ -139,6 +139,24 @@ teardown( Fixture *fixture, gconstpointer pData )
 }
 
 static void
+test_instance_set_get_idata( Fixture *fixture, gconstpointer pData )
+{
+    guint32 idata = 42;
+
+    g_assert_true( QOF_IS_INSTANCE( fixture->inst ) );
+
+    g_test_message( "Setting and getting idata" );
+    qof_instance_set_idata( fixture->inst, idata );
+    g_assert_cmpuint( idata, ==, qof_instance_get_idata( fixture->inst ) );
+
+    g_test_message( "Getting idata when instance is null" );
+    g_assert_cmpuint( qof_instance_get_idata( NULL ), ==, 0 );
+
+    g_test_message( "Setting idata when instance is null" );
+    qof_instance_set_idata( NULL, idata );
+}
+
+static void
 test_instance_set_get_book( Fixture *fixture, gconstpointer pData )
 {
     QofBook *book;
@@ -973,6 +991,7 @@ test_instance_get_referring_object_list( void )
 extern "C" void
 test_suite_qofinstance ( void )
 {
+    GNC_TEST_ADD( suitename, "set get idata", Fixture, NULL, setup, test_instance_set_get_idata, teardown );
     GNC_TEST_ADD( suitename, "set get book", Fixture, NULL, setup, test_instance_set_get_book, teardown );
     GNC_TEST_ADD( suitename, "set get guid", Fixture, NULL, setup, test_instance_set_get_guid, teardown );
     GNC_TEST_ADD_FUNC( suitename, "instance new and destroy", test_instance_new_destroy );
