@@ -154,11 +154,6 @@ int gncCustomerCompare (const GncCustomer *a, const GncCustomer *b);
 #define CUSTOMER_ACTIVE     "customer_is_active"
 #define CUSTOMER_SLOTS      "customer_values"
 
-/** @deprecated functions, should be removed */
-#define gncCustomerGetGUID(x) qof_instance_get_guid(QOF_INSTANCE(x))
-#define gncCustomerRetGUID(x) (x ? *(qof_instance_get_guid(QOF_INSTANCE(x))) : *(guid_null()))
-#define gncCustomerGetBook(x) qof_instance_get_book(QOF_INSTANCE(x))
-#define gncCustomerLookupDirect(g,b) gncCustomerLookup((b), &(g))
 
 /** Test support function, used in gets-dbi-business-stuff.c */
 gboolean gncCustomerEqual(const GncCustomer *a, const GncCustomer *b);

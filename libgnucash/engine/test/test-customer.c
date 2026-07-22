@@ -65,7 +65,7 @@ test_customer (void)
         do_test (gncCustomerCreate (NULL) == NULL, "customer create NULL");
         customer = gncCustomerCreate (book);
         do_test (customer != NULL, "customer create");
-        do_test (gncCustomerGetBook (customer) == book, "getbook");
+        do_test (qof_instance_get_book(QOF_INSTANCE(customer)) == book, "getbook");
         do_test (gncCustomerGetTerms (NULL) == NULL, "gncCustomerGetTerms with NULL");
 
         gncCustomerBeginEdit (customer);
@@ -96,7 +96,7 @@ test_customer (void)
         do_test (gncCustomerGetShipAddr (customer) != NULL, "ShipAddr");
 
         gncCustomerSetGUID (customer, &guid);
-        do_test (guid_equal (&guid, gncCustomerGetGUID (customer)), "guid compare");
+        do_test (guid_equal (&guid, qof_instance_get_guid(QOF_INSTANCE(customer))), "guid compare");
     }
     {
         GList *list;
@@ -130,7 +130,7 @@ test_customer (void)
     {
         const GncGUID *guid;
 
-        guid = gncCustomerGetGUID (customer);
+        guid = qof_instance_get_guid(QOF_INSTANCE(customer));
         do_test (gncCustomerLookup (book, guid) == customer, "Entity Table");
     }
 
