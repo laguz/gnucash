@@ -158,8 +158,9 @@ qof_query_run (QofQuery *query)
 
         for (auto object : matchingObjects)
         {
-            matching_objects = g_list_append(matching_objects, static_cast<gpointer>(object));
+            matching_objects = g_list_prepend(matching_objects, static_cast<gpointer>(object));
         }
+        matching_objects = g_list_reverse(matching_objects);
     }
 
     return matching_objects;
