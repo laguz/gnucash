@@ -670,6 +670,7 @@ gnc_frequency_save_to_recurrence(GncFrequency *gf, GList **recurrences, GDate *o
     {
         int multiplier = _get_multiplier_from_widget(gf, "weekly_spin");
         int checkbox_idx;
+        GList *new_recurrences = NULL;
         for (checkbox_idx = 0; CHECKBOX_NAMES[checkbox_idx] != NULL; checkbox_idx++)
         {
             GDate *day_of_week_aligned_date;
@@ -688,8 +689,9 @@ gnc_frequency_save_to_recurrence(GncFrequency *gf, GList **recurrences, GDate *o
             r = g_new0(Recurrence, 1);
             recurrenceSet(r, multiplier, PERIOD_WEEK, day_of_week_aligned_date, WEEKEND_ADJ_NONE);
 
-            *recurrences = g_list_append(*recurrences, r);
+            new_recurrences = g_list_prepend(new_recurrences, r);
         }
+        *recurrences = g_list_concat(*recurrences, g_list_reverse(new_recurrences));
     }
     break;
     case PAGE_SEMI_MONTHLY:
