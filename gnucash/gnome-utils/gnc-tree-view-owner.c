@@ -63,13 +63,6 @@ static gboolean gnc_tree_view_owner_filter_helper (GtkTreeModel *model,
         GtkTreeIter *iter,
         gpointer data);
 
-#if 0 /* Not Used */
-static void gtvo_setup_column_renderer_edited_cb(GncTreeViewOwner *owner_view,
-        GtkTreeViewColumn *column,
-        GtkCellRenderer *renderer,
-        GncTreeViewOwnerColumnTextEdited col_edited_cb);
-#endif /* Not Used */
-
 struct _GncTreeViewOwner
 {
     GncTreeView gnc_tree_view;
@@ -495,84 +488,6 @@ gnc_tree_view_owner_new (GncOwnerType owner_type)
     g_free(path_string);                                \
   }
 
-#if 0 /* Not Used */
-static GtkTreePath *
-gnc_tree_view_owner_get_path_from_owner (GncTreeViewOwner *view,
-        GncOwner *owner)
-{
-    GtkTreeModel *model, *f_model, *s_model;
-    GtkTreePath *path, *f_path, *s_path;
-
-    ENTER("view %p, owner %p (%s)", view, owner, gncOwnerGetName(owner));
-
-    if (owner == NULL)
-    {
-        LEAVE("no owner");
-        return NULL;
-    }
-
-    /* Reach down to the real model and get a path for this owner */
-    s_model = gtk_tree_view_get_model(GTK_TREE_VIEW(view));
-    f_model = gtk_tree_model_sort_get_model(GTK_TREE_MODEL_SORT(s_model));
-    model = gtk_tree_model_filter_get_model(GTK_TREE_MODEL_FILTER(f_model));
-    path = gnc_tree_model_owner_get_path_from_owner (GNC_TREE_MODEL_OWNER(model), owner);
-    if (path == NULL)
-    {
-        LEAVE("no path");
-        return NULL;
-    }
-
-    /* convert back to a filtered path */
-    f_path = gtk_tree_model_filter_convert_child_path_to_path (GTK_TREE_MODEL_FILTER (f_model), path);
-    gtk_tree_path_free(path);
-    if (!f_path)
-    {
-        LEAVE("no filter path");
-        return NULL;
-    }
-
-    /* convert back to a sorted path */
-    s_path = gtk_tree_model_sort_convert_child_path_to_path (GTK_TREE_MODEL_SORT (s_model), f_path);
-    gtk_tree_path_free(f_path);
-    debug_path(LEAVE, s_path);
-    return s_path;
-}
-
-static gboolean
-gnc_tree_view_owner_get_iter_from_owner (GncTreeViewOwner *view,
-        GncOwner *owner,
-        GtkTreeIter *s_iter)
-{
-    GtkTreeModel *model, *f_model, *s_model;
-    GtkTreeIter iter, f_iter;
-
-    g_return_val_if_fail(GNC_IS_TREE_VIEW_OWNER(view), FALSE);
-    g_return_val_if_fail(owner != NULL, FALSE);
-    g_return_val_if_fail(s_iter != NULL, FALSE);
-
-    ENTER("view %p, owner %p (%s)", view, owner, gncOwnerGetName(owner));
-
-    /* Reach down to the real model and get an iter for this owner */
-    s_model = gtk_tree_view_get_model(GTK_TREE_VIEW(view));
-    f_model = gtk_tree_model_sort_get_model(GTK_TREE_MODEL_SORT(s_model));
-    model = gtk_tree_model_filter_get_model(GTK_TREE_MODEL_FILTER(f_model));
-    if (!gnc_tree_model_owner_get_iter_from_owner (
-                GNC_TREE_MODEL_OWNER(model), owner, &iter))
-    {
-        LEAVE("model_get_iter_from_owner failed");
-        return FALSE;
-    }
-
-    /* convert back to a sort iter */
-    gtk_tree_model_filter_convert_child_iter_to_iter (
-        GTK_TREE_MODEL_FILTER(f_model), &f_iter, &iter);
-    gtk_tree_model_sort_convert_child_iter_to_iter (GTK_TREE_MODEL_SORT(s_model),
-            s_iter, &f_iter);
-    LEAVE(" ");
-    return TRUE;
-}
-#endif /* Not Used */
-
 /************************************************************/
 /*            Owner Tree View Filter Functions            */
 /************************************************************/
@@ -835,39 +750,6 @@ typedef struct
     GncTreeViewOwner* view;
 } GncTreeViewSelectionInfo;
 
-#if 0 /* Not Used */
-/*
- * This helper function is called once for each row in the tree view
- * that is currently selected.  Its task is to append the corresponding
- * owner to the end of a glist.
- */
-static void
-get_selected_owners_helper (GtkTreeModel *s_model,
-                            GtkTreePath *s_path,
-                            GtkTreeIter *s_iter,
-                            gpointer data)
-{
-    GncTreeViewSelectionInfo *gtvsi = data;
-    GtkTreeModel *f_model;
-    GtkTreeIter iter, f_iter;
-    GncOwner *owner;
-
-    gtk_tree_model_sort_convert_iter_to_child_iter (GTK_TREE_MODEL_SORT (s_model),
-            &f_iter, s_iter);
-
-    f_model = gtk_tree_model_sort_get_model(GTK_TREE_MODEL_SORT(s_model));
-    gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (f_model),
-            &iter, &f_iter);
-    owner = iter.user_data;
-
-    /* Only selected if it passes the filter */
-    if (gtvsi->view->filter_fn == NULL || gtvsi->view->filter_fn(owner, gtvsi->view->filter_data))
-    {
-        gtvsi->return_list = g_list_append(gtvsi->return_list, owner);
-    }
-}
-#endif /* Not Used */
-
 /************************************************************/
 /*         Owner Tree View Add Column Functions           */
 /************************************************************/
@@ -911,101 +793,6 @@ gtvo_currency_changed_cb (void)
         gtvo_update_column_names (ptr->data);
     }
 }
-
-#if 0 /* Not Used */
-/* This function implements a custom mapping between an owner's KVP
- * and the cell renderer's 'text' property. */
-static void
-owner_cell_kvp_data_func (GtkTreeViewColumn *tree_column,
-                          GtkCellRenderer *cell,
-                          GtkTreeModel *s_model,
-                          GtkTreeIter *s_iter,
-                          gpointer key)
-{
-    GncOwner *owner;
-    GValue v = G_VALUE_INIT;
-
-    g_return_if_fail (GTK_IS_TREE_MODEL_SORT (s_model));
-    owner = gnc_tree_view_owner_get_owner_from_iter(s_model, s_iter);
-    qof_instance_get_kvp (QOF_INSTANCE (owner), (gchar*)key, &v);
-    if (G_VALUE_HOLDS_STRING)
-         g_object_set (G_OBJECT (cell),
-                       "text", g_value_get_string (&v),
-                       "xalign", 0.0,
-                       NULL);
-
-}
-
-static void col_edited_helper(GtkCellRendererText *cell, gchar *path_string,
-                              gchar *new_text, gpointer _s_model)
-{
-    GncOwner *owner;
-    GtkTreeModel *s_model;
-    GtkTreeIter s_iter;
-    GncTreeViewOwnerColumnTextEdited col_edited_cb;
-    GtkTreeViewColumn *col;
-
-    col_edited_cb = g_object_get_data(G_OBJECT(cell),
-                                      "column_edited_callback");
-    col = GTK_TREE_VIEW_COLUMN(g_object_get_data(G_OBJECT(cell),
-                               "column_view"));
-    s_model = GTK_TREE_MODEL(_s_model);
-
-    if (!gtk_tree_model_get_iter_from_string(s_model, &s_iter, path_string))
-        return;
-
-    owner = gnc_tree_view_owner_get_owner_from_iter(s_model, &s_iter);
-    col_edited_cb(owner, col, new_text);
-}
-
-static void col_source_helper(GtkTreeViewColumn *col, GtkCellRenderer *cell,
-                              GtkTreeModel *s_model, GtkTreeIter *s_iter,
-                              gpointer _col_source_cb)
-{
-    GncOwner *owner;
-    gchar *text;
-    GncTreeViewOwnerColumnSource col_source_cb;
-
-    g_return_if_fail (GTK_IS_TREE_MODEL_SORT (s_model));
-    col_source_cb = (GncTreeViewOwnerColumnSource) _col_source_cb;
-    owner = gnc_tree_view_owner_get_owner_from_iter(s_model, s_iter);
-    text = col_source_cb(owner, col, cell);
-    g_object_set (G_OBJECT (cell), "text", text, "xalign", 1.0, NULL);
-    g_free(text);
-}
-
-/**
- * If col_edited_cb is null, the editing callback (helper) will be
- * effectively disconnected.
- **/
-void
-gtvo_setup_column_renderer_edited_cb(GncTreeViewOwner *owner_view,
-                                     GtkTreeViewColumn *column,
-                                     GtkCellRenderer *renderer,
-                                     GncTreeViewOwnerColumnTextEdited col_edited_cb)
-{
-    GtkTreeModel *s_model;
-
-    if (col_edited_cb == NULL)
-    {
-        g_object_set(G_OBJECT(renderer), "editable", FALSE, NULL);
-        g_object_set_data(G_OBJECT(renderer), "column_edited_callback", col_edited_cb);
-        s_model = gtk_tree_view_get_model(GTK_TREE_VIEW(owner_view));
-        g_signal_handlers_disconnect_by_func(G_OBJECT(renderer), col_edited_cb, s_model);
-        g_object_set_data(G_OBJECT(renderer), "column_view", column);
-    }
-    else
-    {
-        g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
-        g_object_set_data(G_OBJECT(renderer), "column_edited_callback",
-                          col_edited_cb);
-        s_model = gtk_tree_view_get_model(GTK_TREE_VIEW(owner_view));
-        g_signal_connect(G_OBJECT(renderer), "edited",
-                         (GCallback) col_edited_helper, s_model);
-        g_object_set_data(G_OBJECT(renderer), "column_view", column);
-    }
-}
-#endif /* Not Used */
 
 /* BEGIN FILTER FUNCTIONS */
 #define FILTER_TREE_VIEW "types_tree_view"
@@ -1302,24 +1089,3 @@ gnc_tree_view_owner_restore(GncTreeViewOwner *view,
     /* Update tree view for any changes */
     gnc_tree_view_owner_refilter(view);
 }
-
-#if 0 /* Not Used */
-static void
-gtvo_set_column_editor(GncTreeViewOwner *view,
-                       GtkTreeViewColumn *column,
-                       GncTreeViewOwnerColumnTextEdited edited_cb)
-{
-    GList *renderers_orig, *renderers;
-    GtkCellRenderer *renderer;
-
-    // look for the first text-renderer; on the 0th column of the owner tree,
-    // there are two renderers: pixbuf and text.  So find the text one.
-    for (renderers_orig = renderers = gtk_cell_layout_get_cells(GTK_CELL_LAYOUT(column));
-            renderers && !GTK_IS_CELL_RENDERER_TEXT(renderers->data);
-            renderers = renderers->next);
-    renderer = GTK_CELL_RENDERER(renderers->data);
-    g_list_free(renderers_orig);
-    g_return_if_fail(renderer != NULL);
-    gtvo_setup_column_renderer_edited_cb(GNC_TREE_VIEW_OWNER(view), column, renderer, edited_cb);
-}
-#endif /* Not Used */
