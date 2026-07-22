@@ -1151,12 +1151,12 @@ format_read_item_placement(const gchar *file,
             break;
         }
 
-        list = g_slist_append(list, data);
+        list = g_slist_prepend(list, data);
         data = NULL;
     }
 
     /* Should never be reached. */
-    return list;
+    return g_slist_reverse(list);
 
 failed:
     g_warning("Check file %s, group %s, key %s, error: %s",
@@ -1168,7 +1168,7 @@ cleanup:
         g_free(data);
     if (key)
         g_free(key);
-    return list;
+    return g_slist_reverse(list);
 }
 
 
@@ -1241,7 +1241,9 @@ format_read_multicheck_info(const gchar *file,
     }
 
     for (i = 0; i < length; i++)
-        list = g_slist_append(list, g_strdup(names[i]));
+        list = g_slist_prepend(list, g_strdup(names[i]));
+
+    list = g_slist_reverse(list);
 
     g_strfreev(names);
     return list;
