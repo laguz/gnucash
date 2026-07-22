@@ -1755,13 +1755,34 @@ doc_coords (GncDenseCal *dcal, int dayOfCal,
     gint d_week_of_cal, top_of_col_week_of_cal;
     gint colNum, dayCol, weekRow;
 
-    /* FIXME: add range checks */
+    if (x1)
+        *x1 = 0;
+    if (y1)
+        *y1 = 0;
+    if (x2)
+        *x2 = 0;
+    if (y2)
+        *y2 = 0;
+
     g_date_set_dmy (&d, 1, dcal->month, dcal->year);
+
+    if (dayOfCal < 0)
+    {
+        return;
+    }
+
+    GDate eoc = d;
+    g_date_add_months (&eoc, dcal->numMonths);
+    if (dayOfCal >= g_date_get_julian (&eoc) - g_date_get_julian (&d))
+    {
+        return;
+    }
+
     g_date_add_days (&d, dayOfCal);
     docMonth = g_date_get_month (&d);
     if (g_date_get_year (&d) != dcal->year)
     {
-        docMonth += 12;
+        docMonth += 12 * (g_date_get_year (&d) - dcal->year);
     }
     colNum  = floor ((float)(docMonth - dcal->month) / (float)dcal->monthsPerCol);
     dayCol = g_date_get_weekday (&d) - dcal->day_of_week_start;
