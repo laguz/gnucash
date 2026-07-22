@@ -678,6 +678,16 @@ test_instance_refers_to_object( Fixture *fixture, gconstpointer pData )
     refers_test_struct.inst = fixture->inst;
     refers_test_struct.ref = ref;
 
+    g_test_message( "Test when inst is null" );
+    g_test_expect_message( "gnc.engine", G_LOG_LEVEL_CRITICAL, "*inst != nullptr*" );
+    g_assert_true( !qof_instance_refers_to_object( nullptr, ref ) );
+    g_test_assert_expected_messages();
+
+    g_test_message( "Test when ref is null" );
+    g_test_expect_message( "gnc.engine", G_LOG_LEVEL_CRITICAL, "*ref != nullptr*" );
+    g_assert_true( !qof_instance_refers_to_object( fixture->inst, nullptr ) );
+    g_test_assert_expected_messages();
+
     g_test_message( "Test when refers to object not set" );
     g_assert_true( !qof_instance_refers_to_object( fixture->inst, ref ) );
     g_assert_true( !refers_test_struct.refers_to_object_called );
