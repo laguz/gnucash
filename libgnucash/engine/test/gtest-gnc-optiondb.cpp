@@ -34,6 +34,7 @@
 #include <cstdint>
 
 #include "gnc-session.h"
+#include "gnc-optiondb.h"
 
 using GncOptionDBPtr = std::unique_ptr<GncOptionDB>;
 
@@ -398,4 +399,26 @@ TEST_F(GncOptionDBIOTest, test_option_kvp_save)
     EXPECT_EQ(nullptr, qux_garply);
     EXPECT_EQ(nullptr, qux_grault);
     EXPECT_STREQ("pepper", foo_sausage->get<const char*>());
+}
+
+
+
+TEST_F(GncOptionDBIOTest, test_option_kvp_load)
+{
+    auto foo = "foo";
+    auto sausage = "sausage";
+    auto qux = "qux";
+    auto grault = "grault";
+    GSList foo_sausage_tail{(void*)sausage, nullptr};
+    GSList foo_sausage_head{(void*)foo, &foo_sausage_tail};
+    GSList qux_grault_tail{(void*)grault, nullptr};
+    GSList qux_grault_head{(void*)qux, &qux_grault_tail};
+
+    qof_book_set_option(m_book, new KvpValueImpl(g_strdup("salami")), &foo_sausage_head);
+    qof_book_set_option(m_book, new KvpValueImpl(g_strdup("corge")), &qux_grault_head);
+
+    gnc_option_db_load(m_db.get(), m_book);
+
+    EXPECT_STREQ("salami", m_db->lookup_string_option("foo", "sausage").c_str());
+    EXPECT_STREQ("corge", m_db->lookup_string_option("qux", "grault").c_str());
 }
