@@ -954,8 +954,9 @@ gnc_tree_view_set_column_order (GncTreeView *view,
         column = gnc_tree_view_find_column_by_name (view, name);
         if (!column)
             continue;
-        columns = g_slist_append (columns, column);
+        columns = g_slist_prepend (columns, column);
     }
+    columns = g_slist_reverse (columns);
 
     /* Then reorder the columns */
     for (prev = NULL, tmp = columns; tmp; tmp = g_slist_next (tmp))
