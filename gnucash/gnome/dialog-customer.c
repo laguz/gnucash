@@ -507,7 +507,7 @@ gnc_customer_new_window (GtkWindow *parent, QofBook *bookp, GncCustomer *cust)
     {
         GncGUID customer_guid;
 
-        customer_guid = *gncCustomerGetGUID(cust);
+        customer_guid = *qof_instance_get_guid(QOF_INSTANCE(cust));
         cw = gnc_find_first_gui_component (DIALOG_EDIT_CUSTOMER_CM_CLASS,
                                            find_handler, &customer_guid);
         if (cw)
@@ -624,7 +624,7 @@ gnc_customer_new_window (GtkWindow *parent, QofBook *bookp, GncCustomer *cust)
         const char *string;
 
         cw->dialog_type = EDIT_CUSTOMER;
-        cw->customer_guid = *gncCustomerGetGUID (cust);
+        cw->customer_guid = *qof_instance_get_guid(QOF_INSTANCE(cust));
 
         addr = gncCustomerGetAddr (cust);
         shipaddr = gncCustomerGetShipAddr (cust);
@@ -671,7 +671,7 @@ gnc_customer_new_window (GtkWindow *parent, QofBook *bookp, GncCustomer *cust)
     else
     {
         cust = gncCustomerCreate (bookp);
-        cw->customer_guid = *gncCustomerGetGUID (cust);
+        cw->customer_guid = *qof_instance_get_guid(QOF_INSTANCE(cust));
 
         cw->dialog_type = NEW_CUSTOMER;
         cw->component_id =
@@ -724,7 +724,7 @@ gnc_ui_customer_edit (GtkWindow *parent, GncCustomer *cust)
 
     if (!cust) return NULL;
 
-    cw = gnc_customer_new_window (parent, gncCustomerGetBook(cust), cust);
+    cw = gnc_customer_new_window (parent, qof_instance_get_book(QOF_INSTANCE(cust)), cust);
 
     return cw;
 }
@@ -915,7 +915,7 @@ gnc_customer_search (GtkWindow *parent, GncCustomer *start, QofBook *book)
     {
         q2 = qof_query_copy (q);
         qof_query_add_guid_match (q2, g_slist_prepend (NULL, QOF_PARAM_GUID),
-                                  gncCustomerGetGUID (start), QOF_QUERY_AND);
+                                  qof_instance_get_guid(QOF_INSTANCE(start)), QOF_QUERY_AND);
     }
 #endif
 
