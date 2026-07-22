@@ -795,17 +795,18 @@ gnc_main_window_restore_window (GncMainWindow *window, GncMainWindowSaveData *da
         if (!page_added) // if page not added, increase offset to compensate
         {
             offset ++;
-            added_page_offsets = g_slist_append (added_page_offsets, 
-                                                 GINT_TO_POINTER(-1));
+            added_page_offsets = g_slist_prepend (added_page_offsets,
+                                                  GINT_TO_POINTER(-1));
         }
         else
-            added_page_offsets = g_slist_append (added_page_offsets,
-                                                 GINT_TO_POINTER(offset));
+            added_page_offsets = g_slist_prepend (added_page_offsets,
+                                                  GINT_TO_POINTER(offset));
 
         /* give the page a chance to display */
         while (gtk_events_pending ())
             gtk_main_iteration ();
     }
+    added_page_offsets = g_slist_reverse(added_page_offsets);
     priv->restoring_pages = FALSE;
     /* Restore page ordering within the notebook. Use +1 notation so the
      * numbers in the page order match the page sections, at least for
