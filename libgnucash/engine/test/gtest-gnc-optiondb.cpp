@@ -37,6 +37,7 @@
 
 #include "gnc-session.h"
 #include "gnc-optiondb.h"
+#include "qofbookslots.h"
 
 using GncOptionDBPtr = std::unique_ptr<GncOptionDB>;
 
@@ -51,6 +52,34 @@ protected:
 TEST_F(GncOptionDBTest, test_ctor)
 {
     EXPECT_NO_THROW ({ GncOptionDB optiondb; });
+}
+
+TEST_F(GncOptionDBTest, test_book_options)
+{
+    gnc_option_db_book_options(m_db.get());
+
+    // Verify sections are added
+    EXPECT_TRUE(m_db->num_sections() > 0);
+
+    // Verify Accounts Tab
+    EXPECT_TRUE(m_db->find_option(OPTION_SECTION_ACCOUNTS, OPTION_NAME_AUTO_READONLY_DAYS) != nullptr);
+    EXPECT_TRUE(m_db->find_option(OPTION_SECTION_ACCOUNTS, OPTION_NAME_NUM_FIELD_SOURCE) != nullptr);
+    EXPECT_TRUE(m_db->find_option(OPTION_SECTION_ACCOUNTS, OPTION_NAME_TRADING_ACCOUNTS) != nullptr);
+
+    // Verify Budgeting Tab
+    EXPECT_TRUE(m_db->find_option(OPTION_SECTION_BUDGETING, OPTION_NAME_DEFAULT_BUDGET) != nullptr);
+
+    // Verify Counters Tab
+    constexpr const char* counter_section = "Counters";
+    EXPECT_TRUE(m_db->find_option(counter_section, "Customer number") != nullptr);
+    EXPECT_TRUE(m_db->find_option(counter_section, "Employee number") != nullptr);
+    EXPECT_TRUE(m_db->find_option(counter_section, "Invoice number") != nullptr);
+
+    // Verify Business Tab
+    constexpr const char* business_section = "Business";
+    EXPECT_TRUE(m_db->find_option(business_section, "Company Name") != nullptr);
+    EXPECT_TRUE(m_db->find_option(business_section, "Company Address") != nullptr);
+    EXPECT_TRUE(m_db->find_option(business_section, "Default Customer Tax Table") != nullptr);
 }
 
 TEST_F(GncOptionDBTest, test_register_option)
