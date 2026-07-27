@@ -36,6 +36,7 @@
 #include "gnc-optiondb.h"
 
 #include "gnc-session.h"
+#include "gnc-optiondb.h"
 
 using GncOptionDBPtr = std::unique_ptr<GncOptionDB>;
 
