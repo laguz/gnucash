@@ -321,6 +321,43 @@ test_instance_get_set_slots( Fixture *fixture, gconstpointer pData )
 }
 
 static void
+test_instance_foreach_slot_prefix( Fixture *fixture, gconstpointer pData )
+{
+    g_assert_true( fixture->inst );
+
+    qof_instance_set_slots( fixture->inst, new KvpFrame );
+
+    fixture->inst->kvp_data->set({"prefix1_A"}, new KvpValue(static_cast<int64_t>(10)));
+    fixture->inst->kvp_data->set({"prefix1_B"}, new KvpValue(static_cast<int64_t>(20)));
+    fixture->inst->kvp_data->set({"prefix2_C"}, new KvpValue(static_cast<int64_t>(30)));
+
+    struct TestData {
+        int count = 0;
+        int sum = 0;
+    } data;
+
+    auto test_func = [](const std::string& key, const KvpValue* value, TestData& data) {
+        data.count++;
+        if (value && value->get_type() == KvpValueImpl::Type::INT64) {
+            data.sum += value->get<int64_t>();
+        }
+    };
+
+    qof_instance_foreach_slot_prefix(fixture->inst, "prefix1_", test_func, data);
+
+    g_assert_cmpint( data.count, == , 2 );
+    g_assert_cmpint( data.sum, == , 30 );
+
+    data.count = 0;
+    data.sum = 0;
+
+    qof_instance_foreach_slot_prefix(fixture->inst, "prefix2_", test_func, data);
+
+    g_assert_cmpint( data.count, == , 1 );
+    g_assert_cmpint( data.sum, == , 30 );
+}
+
+static void
 test_instance_version_cmp( void )
 {
     QofInstance *left, *right;
@@ -545,6 +582,18 @@ test_instance_commit_edit( Fixture *fixture, gconstpointer pData )
 
 
 static void
+test_instance_set_editlevel( Fixture *fixture, gconstpointer user_data )
+{
+    g_test_message( "Test qof_instance_set_editlevel" );
+
+    qof_instance_set_editlevel( fixture->inst, 5 );
+    g_assert_cmpint( qof_instance_get_editlevel( fixture->inst ), == , 5 );
+
+    qof_instance_set_editlevel( fixture->inst, -2 );
+    g_assert_cmpint( qof_instance_get_editlevel( fixture->inst ), == , -2 );
+}
+
+static void
 test_instance_commit_edit_part2( Fixture *fixture, gconstpointer pData )
 {
     QofBook *book;
@@ -677,6 +726,16 @@ test_instance_refers_to_object( Fixture *fixture, gconstpointer pData )
     refers_test_struct.refers_to_object_called = FALSE;
     refers_test_struct.inst = fixture->inst;
     refers_test_struct.ref = ref;
+
+    g_test_message( "Test when inst is null" );
+    g_test_expect_message( "gnc.engine", G_LOG_LEVEL_CRITICAL, "*inst != nullptr*" );
+    g_assert_true( !qof_instance_refers_to_object( nullptr, ref ) );
+    g_test_assert_expected_messages();
+
+    g_test_message( "Test when ref is null" );
+    g_test_expect_message( "gnc.engine", G_LOG_LEVEL_CRITICAL, "*ref != nullptr*" );
+    g_assert_true( !qof_instance_refers_to_object( fixture->inst, nullptr ) );
+    g_test_assert_expected_messages();
 
     g_test_message( "Test when refers to object not set" );
     g_assert_true( !qof_instance_refers_to_object( fixture->inst, ref ) );
@@ -997,11 +1056,13 @@ test_suite_qofinstance ( void )
     GNC_TEST_ADD_FUNC( suitename, "instance new and destroy", test_instance_new_destroy );
     GNC_TEST_ADD_FUNC( suitename, "init data", test_instance_init_data );
     GNC_TEST_ADD( suitename, "get set slots", Fixture, NULL, setup, test_instance_get_set_slots, teardown );
+    GNC_TEST_ADD( suitename, "foreach slot prefix", Fixture, NULL, setup, test_instance_foreach_slot_prefix, teardown );
     GNC_TEST_ADD_FUNC( suitename, "version compare", test_instance_version_cmp );
     GNC_TEST_ADD( suitename, "get set dirty", Fixture, NULL, setup, test_instance_get_set_dirty, teardown );
     GNC_TEST_ADD( suitename, "display name", Fixture, NULL, setup, test_instance_display_name, teardown );
     GNC_TEST_ADD( suitename, "begin edit", Fixture, NULL, setup, test_instance_begin_edit, teardown );
     GNC_TEST_ADD( suitename, "commit edit", Fixture, NULL, setup, test_instance_commit_edit, teardown );
+    GNC_TEST_ADD( suitename, "set editlevel", Fixture, NULL, setup, test_instance_set_editlevel, teardown );
     GNC_TEST_ADD( suitename, "commit edit part 2", Fixture, NULL, setup, test_instance_commit_edit_part2, teardown );
     GNC_TEST_ADD( suitename, "instance refers to object", Fixture, NULL, setup, test_instance_refers_to_object, teardown );
     GNC_TEST_ADD_FUNC( suitename, "instance get referring object list from collection", test_instance_get_referring_object_list_from_collection );

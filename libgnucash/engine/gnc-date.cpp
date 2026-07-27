@@ -349,7 +349,7 @@ gnc_date_monthformat_to_string(GNCDateMonthFormat format)
 gboolean
 gnc_date_string_to_monthformat(const char *fmt_str, GNCDateMonthFormat *format)
 {
-    if (!fmt_str)
+    if (!fmt_str || !format)
         return TRUE;
 
     if (!strcmp(fmt_str, "number"))

@@ -28,10 +28,12 @@
 
 #include "gnc-optiondb.hpp"
 #include "gnc-optiondb-impl.hpp"
+#include "gnc-optiondb.h"
 #include "gnc-option-ui.hpp"
 #include "kvp-value.hpp"
 #include <glib-2.0/glib.h>
 #include <cstdint>
+#include "gnc-optiondb.h"
 
 #include "gnc-session.h"
 #include "gnc-optiondb.h"
@@ -401,24 +403,28 @@ TEST_F(GncOptionDBIOTest, test_option_kvp_save)
     EXPECT_STREQ("pepper", foo_sausage->get<const char*>());
 }
 
-
-
-TEST_F(GncOptionDBIOTest, test_option_kvp_load)
+TEST_F(GncOptionDBIOTest, test_gnc_option_db_save)
 {
+    gnc_option_db_save(m_db.get(), m_book, FALSE);
     auto foo = "foo";
+    auto bar = "bar";
     auto sausage = "sausage";
-    auto qux = "qux";
     auto grault = "grault";
+    GSList foo_bar_tail{(void*)bar, nullptr};
+    GSList foo_bar_head{(void*)foo, &foo_bar_tail};
     GSList foo_sausage_tail{(void*)sausage, nullptr};
     GSList foo_sausage_head{(void*)foo, &foo_sausage_tail};
     GSList qux_grault_tail{(void*)grault, nullptr};
-    GSList qux_grault_head{(void*)qux, &qux_grault_tail};
-
-    qof_book_set_option(m_book, new KvpValueImpl(g_strdup("salami")), &foo_sausage_head);
-    qof_book_set_option(m_book, new KvpValueImpl(g_strdup("corge")), &qux_grault_head);
-
-    gnc_option_db_load(m_db.get(), m_book);
-
-    EXPECT_STREQ("salami", m_db->lookup_string_option("foo", "sausage").c_str());
-    EXPECT_STREQ("corge", m_db->lookup_string_option("qux", "grault").c_str());
+    GSList qux_grault_head{(void*)foo, &qux_grault_tail};
+    GSList qux_garply_head{(void*)foo, &qux_grault_tail};
+    m_db->set_option("foo", "sausage", std::string{"pepper"});
+    gnc_option_db_save(m_db.get(), m_book, TRUE);
+    auto foo_bar = qof_book_get_option(m_book, &foo_bar_head);
+    auto foo_sausage = qof_book_get_option(m_book, &foo_sausage_head);
+    auto qux_garply = qof_book_get_option(m_book, &qux_garply_head);
+    auto qux_grault = qof_book_get_option(m_book, &qux_grault_head);
+    EXPECT_EQ(nullptr, foo_bar);
+    EXPECT_EQ(nullptr, qux_garply);
+    EXPECT_EQ(nullptr, qux_grault);
+    EXPECT_STREQ("pepper", foo_sausage->get<const char*>());
 }

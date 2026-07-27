@@ -356,10 +356,10 @@ gnc_sql_recurrence_load_list (GncSqlBackend* sql_be, const GncGUID* guid)
         Recurrence* pRecurrence = g_new0 (Recurrence, 1);
         g_assert (pRecurrence != NULL);
         load_recurrence (sql_be, row, pRecurrence);
-        list = g_list_append (list, pRecurrence);
+        list = g_list_prepend (list, pRecurrence);
     }
 
-    return list;
+    return g_list_reverse (list);
 }
 
 /* ================================================================= */

@@ -623,6 +623,12 @@ void qof_instance_reset_editlevel (gpointer ptr)
     GET_PRIVATE(ptr)->editlevel = 0;
 }
 
+void qof_instance_set_editlevel (gpointer ptr, gint level)
+{
+    g_return_if_fail(QOF_IS_INSTANCE(ptr));
+    GET_PRIVATE(ptr)->editlevel = level;
+}
+
 int
 qof_instance_version_cmp (const QofInstance *left, const QofInstance *right)
 {
