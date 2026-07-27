@@ -40,6 +40,45 @@
 
 using GncOptionDBPtr = std::unique_ptr<GncOptionDB>;
 
+class GncUIType
+{
+public:
+    void set_value(const std::string& value) const noexcept { m_value = value; }
+    const std::string& get_value() const noexcept { return m_value; }
+    void clear() noexcept { m_value.clear(); }
+private:
+    mutable std::string m_value;
+};
+
+class OptionUIItem : public GncOptionUIItem
+{
+    GncUIType m_widget;
+    bool m_dirty = false;
+public:
+    OptionUIItem() : GncOptionUIItem{GncOptionUIType::STRING} {}
+    ~OptionUIItem() = default;
+    void set_dirty(bool status) noexcept override { m_dirty = status; }
+    bool get_dirty() const noexcept override { return m_dirty; }
+    void set_selectable(bool selectable) const noexcept override {}
+    void clear_ui_item() override { m_widget.clear(); }
+    void set_ui_item_from_option(GncOption& option) noexcept override
+    {
+        m_widget.set_value(option.get_value<std::string>());
+    }
+    void set_option_from_ui_item(GncOption& option) noexcept override
+    {
+        option.set_value(m_widget.get_value());
+    }
+    void set_widget_value(const std::string& value) const noexcept
+    {
+        m_widget.set_value(value);
+    }
+    const std::string& get_widget_value() const noexcept
+    {
+        return m_widget.get_value();
+    }
+};
+
 class GncOptionDBTest : public ::testing::Test
 {
 protected:
@@ -51,6 +90,26 @@ protected:
 TEST_F(GncOptionDBTest, test_ctor)
 {
     EXPECT_NO_THROW ({ GncOptionDB optiondb; });
+}
+
+TEST_F(GncOptionDBTest, test_gnc_option_db_clean)
+{
+    gnc_register_string_option(m_db.get(), "foo", "bar", "baz", "Phony Option", std::string{"waldo"});
+    auto option = m_db->find_option("foo", "bar");
+    auto ui_item = std::make_unique<OptionUIItem>();
+    auto ui_item_ptr = ui_item.get();
+    option->set_ui_item(std::move(ui_item));
+    EXPECT_STREQ("", ui_item_ptr->get_widget_value().c_str());
+    gnc_option_db_clean(m_db.get());
+    EXPECT_STREQ("waldo", ui_item_ptr->get_widget_value().c_str());
+
+    m_db->set_option("foo", "bar", std::string{"pepper"});
+    // set_option updates the option value, but not the UI element automatically
+    EXPECT_STREQ("waldo", ui_item_ptr->get_widget_value().c_str());
+
+    // clean synchronizes them again
+    gnc_option_db_clean(m_db.get());
+    EXPECT_STREQ("pepper", ui_item_ptr->get_widget_value().c_str());
 }
 
 TEST_F(GncOptionDBTest, test_register_option)
