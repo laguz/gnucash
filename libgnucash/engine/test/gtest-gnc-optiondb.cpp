@@ -28,6 +28,7 @@
 
 #include "gnc-optiondb.hpp"
 #include "gnc-optiondb-impl.hpp"
+#include "gnc-optiondb.h"
 #include "gnc-option-ui.hpp"
 #include "kvp-value.hpp"
 #include <glib-2.0/glib.h>
@@ -401,10 +402,28 @@ TEST_F(GncOptionDBIOTest, test_option_kvp_save)
     EXPECT_STREQ("pepper", foo_sausage->get<const char*>());
 }
 
-TEST_F(GncOptionDBTest, test_gnc_option_db_destroy)
+TEST_F(GncOptionDBIOTest, test_gnc_option_db_save)
 {
-    g_test_expect_message ("gnc.engine", G_LOG_LEVEL_WARNING,
-                           "*Direct Destroy called on GncOptionDB*");
-    gnc_option_db_destroy(m_db.release());
-    g_test_assert_expected_messages();
+    gnc_option_db_save(m_db.get(), m_book, FALSE);
+    auto foo = "foo";
+    auto bar = "bar";
+    auto sausage = "sausage";
+    auto grault = "grault";
+    GSList foo_bar_tail{(void*)bar, nullptr};
+    GSList foo_bar_head{(void*)foo, &foo_bar_tail};
+    GSList foo_sausage_tail{(void*)sausage, nullptr};
+    GSList foo_sausage_head{(void*)foo, &foo_sausage_tail};
+    GSList qux_grault_tail{(void*)grault, nullptr};
+    GSList qux_grault_head{(void*)foo, &qux_grault_tail};
+    GSList qux_garply_head{(void*)foo, &qux_grault_tail};
+    m_db->set_option("foo", "sausage", std::string{"pepper"});
+    gnc_option_db_save(m_db.get(), m_book, TRUE);
+    auto foo_bar = qof_book_get_option(m_book, &foo_bar_head);
+    auto foo_sausage = qof_book_get_option(m_book, &foo_sausage_head);
+    auto qux_garply = qof_book_get_option(m_book, &qux_garply_head);
+    auto qux_grault = qof_book_get_option(m_book, &qux_grault_head);
+    EXPECT_EQ(nullptr, foo_bar);
+    EXPECT_EQ(nullptr, qux_garply);
+    EXPECT_EQ(nullptr, qux_grault);
+    EXPECT_STREQ("pepper", foo_sausage->get<const char*>());
 }

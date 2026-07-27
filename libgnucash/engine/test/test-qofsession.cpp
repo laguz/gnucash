@@ -138,6 +138,23 @@ TEST (QofSessionTest, ensure_all_data_loaded)
     qof_backend_unregister_all_providers ();
 }
 
+TEST (QofSessionTest, qof_session_ensure_all_data_loaded)
+{
+    qof_backend_register_provider (get_provider ());
+    QofSession s(qof_book_new());
+    s.begin ("book1", SESSION_NORMAL_OPEN);
+    data_loaded = false;
+    qof_session_ensure_all_data_loaded (&s);
+    EXPECT_EQ (data_loaded, true);
+    qof_backend_unregister_all_providers ();
+}
+
+TEST (QofSessionTest, qof_session_ensure_all_data_loaded_null)
+{
+    // Calling with null should not crash
+    qof_session_ensure_all_data_loaded(nullptr);
+}
+
 TEST (QofSessionTest, get_error)
 {
     qof_backend_register_provider (get_provider ());
