@@ -43,7 +43,7 @@ public:
     virtual void append_col_def(std::string& ddl,
                                 const GncSqlColumnInfo& info) = 0;
     virtual StrVec get_index_list (dbi_conn conn) = 0;
-    virtual void drop_index(dbi_conn conn, const std::string& index) = 0;
+    virtual bool drop_indexes(dbi_conn conn, const StrVec& indexes) = 0;
     virtual std::string quote_identifier(const std::string& identifier) const = 0;
 };
 

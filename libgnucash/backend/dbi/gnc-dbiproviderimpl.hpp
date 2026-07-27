@@ -28,6 +28,7 @@
 #include <string>
 #include <algorithm>
 #include <vector>
+#include <map>
 
 #include "gnc-backend-dbi.hpp"
 #include "gnc-dbiprovider.hpp"
@@ -43,9 +44,13 @@ public:
     StrVec get_table_list(dbi_conn conn, const std::string& table);
     void append_col_def(std::string& ddl, const GncSqlColumnInfo& info);
     StrVec get_index_list (dbi_conn conn);
-    void drop_index(dbi_conn conn, const std::string& index);
+    bool drop_indexes(dbi_conn conn, const StrVec& indexes);
     std::string quote_identifier(const std::string& identifier) const override;
 };
+
+template <> std::string GncDbiProviderImpl<DbType::DBI_MYSQL>::quote_identifier(const std::string& identifier) const;
+template <> bool GncDbiProviderImpl<DbType::DBI_SQLITE>::drop_indexes(dbi_conn conn, const StrVec& indexes);
+template <> bool GncDbiProviderImpl<DbType::DBI_MYSQL>::drop_indexes(dbi_conn conn, const StrVec& indexes);
 
 template <DbType T> GncDbiProviderPtr
 make_dbi_provider()
@@ -382,12 +387,49 @@ GncDbiProviderImpl<DbType::DBI_PGSQL>::get_index_list (dbi_conn conn)
     return retval;
 }
 
-template <DbType P> void
-GncDbiProviderImpl<P>::drop_index(dbi_conn conn, const std::string& index)
+template <DbType P> bool
+GncDbiProviderImpl<P>::drop_indexes(dbi_conn conn, const StrVec& indexes)
 {
-    dbi_result result = dbi_conn_queryf (conn, "DROP INDEX %s", quote_identifier(index).c_str());
+    if (indexes.empty())
+        return true;
+
+    std::string query = "DROP INDEX ";
+    for (size_t i = 0; i < indexes.size(); ++i)
+    {
+        query += quote_identifier(indexes[i]);
+        if (i < indexes.size() - 1)
+            query += ", ";
+    }
+
+    dbi_result result = dbi_conn_query (conn, query.c_str());
     if (result)
+    {
         dbi_result_free (result);
+        return true;
+    }
+    return false;
+}
+
+template<> inline bool
+GncDbiProviderImpl<DbType::DBI_SQLITE>::drop_indexes(dbi_conn conn, const StrVec& indexes)
+{
+    if (indexes.empty())
+        return true;
+
+    for (const auto& index : indexes)
+    {
+        std::string query = "DROP INDEX " + quote_identifier(index);
+        dbi_result result = dbi_conn_query (conn, query.c_str());
+        if (result)
+        {
+            dbi_result_free (result);
+        }
+        else
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 template <DbType T> inline std::string
@@ -420,22 +462,45 @@ GncDbiProviderImpl<DbType::DBI_MYSQL>::quote_identifier(const std::string& ident
     return retval;
 }
 
-template<> void
-GncDbiProviderImpl<DbType::DBI_MYSQL>::drop_index (dbi_conn conn, const std::string& index)
+template<> inline bool
+GncDbiProviderImpl<DbType::DBI_MYSQL>::drop_indexes (dbi_conn conn, const StrVec& indexes)
 {
+    if (indexes.empty())
+        return true;
 
-    auto sep = index.find(' ', 0);
-    if (index.find(' ', sep + 1) != std::string::npos)
+    std::map<std::string, StrVec> table_indexes;
+    for (const auto& index : indexes)
     {
-        PWARN("Drop index error: invalid MySQL index format (<index> <table>): %s",
-              index.c_str());
-        return;
+        auto sep = index.find(' ', 0);
+        if (sep != std::string::npos && index.find(' ', sep + 1) == std::string::npos)
+        {
+            std::string idx_name = index.substr(0, sep);
+            std::string tbl_name = index.substr(sep + 1);
+            table_indexes[tbl_name].push_back(idx_name);
+        }
+        else
+        {
+            PWARN("Drop index error: invalid MySQL index format (<index> <table>): %s",
+                  index.c_str());
+            return false;
+        }
     }
 
-    auto result = dbi_conn_queryf (conn, "DROP INDEX %s ON %s",
-                                   quote_identifier(index.substr(0, sep)).c_str(),
-                                   quote_identifier(index.substr(sep + 1)).c_str());
-    if (result)
-        dbi_result_free (result);
+    for (const auto& pair : table_indexes)
+    {
+        std::string query = "ALTER TABLE " + quote_identifier(pair.first) + " ";
+        for (size_t i = 0; i < pair.second.size(); ++i)
+        {
+            query += "DROP INDEX " + quote_identifier(pair.second[i]);
+            if (i < pair.second.size() - 1)
+                query += ", ";
+        }
+        auto result = dbi_conn_query (conn, query.c_str());
+        if (result)
+            dbi_result_free (result);
+        else
+            return false;
+    }
+    return true;
 }
 #endif //__GNC_DBISQLPROVIDERIMPL_HPP__
