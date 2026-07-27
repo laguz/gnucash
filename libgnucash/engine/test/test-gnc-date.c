@@ -739,10 +739,110 @@ return void
 Globals: dateCompletion dateCompletionBackMonths
 void qof_date_completion_set(QofDateCompletion dc, int backmonths)// C: 1  Local: 0:0:0
 */
-/* static void
+static void
 test_qof_date_completion_set (void)
 {
-}*/
+    int day, mo, yr;
+    time64 t64;
+    struct tm *tm;
+
+    /* Test invalid enum value logging */
+    g_test_expect_message (QOF_MOD_ENGINE, G_LOG_LEVEL_CRITICAL,
+                           "*non-existent date completion set attempted*");
+    qof_date_completion_set ((QofDateCompletion)99, 0);
+    g_test_assert_expected_messages ();
+
+    /* The fallback for an invalid enum value is QOF_DATE_COMPLETION_THISYEAR,
+       and the backmonths parameter will still be processed. */
+    t64 = gnc_time (NULL);
+    tm = gnc_localtime (&t64);
+
+    /* We use qof_scan_date with sliding completion to check backmonths clamping */
+    /* Clamp < 0 to 0 */
+    qof_date_completion_set (QOF_DATE_COMPLETION_SLIDING, -5);
+    /* Set month to one month ago. With backmonths=0, it should use the previous year
+       if we are in January, or this year otherwise.
+       Let's use a month that will definitely cross the year boundary
+       if backmonths is large, and won't if backmonths is small. */
+    qof_date_completion_set (QOF_DATE_COMPLETION_SLIDING, 15); /* clamped to 11 */
+
+    /* Ensure backmonths is clamped by testing qof_scan_date output */
+    /* Let's construct a scenario to test clamping:
+       We want to parse a date without a year: "MM-DD".
+       QOF_DATE_COMPLETION_SLIDING calculates year as:
+       now_year - floordiv(imonth - now_month + dateCompletionBackMonths, 12)
+
+       If dateCompletionBackMonths is clamped to 0:
+       year = now_year - floordiv(imonth - now_month + 0, 12)
+
+       If dateCompletionBackMonths is clamped to 11:
+       year = now_year - floordiv(imonth - now_month + 11, 12)
+
+       We can test backmonths < 0 (clamped to 0) by setting a date 11 months ahead.
+       floordiv(now_month + 11 - now_month + 0, 12) = floordiv(11, 12) = 0 -> year = now_year
+       If it wasn't clamped and was e.g. -5: floordiv(11 - 5, 12) = 0 -> year = now_year.
+       Wait, let's use: imonth = now_month - 1 (or 11 if now_month is 1)
+       If backmonths = 0: floordiv(-1, 12) = -1. year = now_year - (-1) = now_year + 1.
+       If backmonths = -5: floordiv(-1 - 5, 12) = floordiv(-6, 12) = -1. year = now_year + 1.
+
+       Let's just trust that gnc_scan_date uses the internal dateCompletionBackMonths
+       variable correctly and we can just set them to see if it doesn't crash,
+       but we want to be thorough.
+
+       Actually, `qof_scan_date` does:
+       iyear = now_year - floordiv(imonth - now_month + dateCompletionBackMonths, 12);
+
+       To distinguish 11 from 15:
+       imonth = now_month + 1 (next month)
+       imonth - now_month = 1.
+       If backmonths = 11: floordiv(1 + 11, 12) = floordiv(12, 12) = 1. year = now_year - 1.
+       If backmonths = 15: floordiv(1 + 15, 12) = floordiv(16, 12) = 1. year = now_year - 1.
+
+       Wait, what if imonth = now_month + 2?
+       imonth - now_month = 2.
+       backmonths = 11: floordiv(13, 12) = 1. year = now_year - 1.
+       backmonths = 15 (if not clamped): floordiv(17, 12) = 1. year = now_year - 1.
+
+       Let's find a case where clamping to 11 gives a different result than 15.
+       backmonths = 11:
+       imonth - now_month + 11. We want this to be < 12 so floordiv is 0,
+       but if it was 15, it would be >= 12 so floordiv is 1.
+       We need: imonth - now_month + 11 < 12  =>  imonth - now_month < 1.
+       And: imonth - now_month + 15 >= 12 => imonth - now_month >= -3.
+       Let's choose imonth - now_month = 0 (same month).
+       If clamped to 11: floordiv(11, 12) = 0. year = now_year.
+       If 15 (unclamped): floordiv(15, 12) = 1. year = now_year - 1.
+
+       So we parse a date in the *current* month.
+       If clamped correctly to 11, the year will be the current year.
+    */
+    {
+        char date_str[16];
+        int test_month = tm->tm_mon + 1; /* 1-12 */
+        int test_year = tm->tm_year + 1900;
+
+        qof_date_completion_set (QOF_DATE_COMPLETION_SLIDING, 15);
+        snprintf(date_str, sizeof(date_str), "%02d-%02d", test_month, 15);
+
+        qof_date_format_set (QOF_DATE_FORMAT_US);
+        g_assert_true (qof_scan_date (date_str, &day, &mo, &yr));
+        g_assert_cmpint (mo, ==, test_month);
+        g_assert_cmpint (yr, ==, test_year); /* Should be current year because 15 is clamped to 11 */
+
+        /* Now test clamping < 0 to 0 */
+        /* If clamped to 0:
+           We want imonth - now_month + 0 to behave differently than imonth - now_month - 1.
+           imonth - now_month = 0.
+           If clamped to 0: floordiv(0, 12) = 0 -> year = now_year.
+           If unclamped to -1: floordiv(-1, 12) = -1 -> year = now_year + 1.
+        */
+        qof_date_completion_set (QOF_DATE_COMPLETION_SLIDING, -1);
+        g_assert_true (qof_scan_date (date_str, &day, &mo, &yr));
+        g_assert_cmpint (mo, ==, test_month);
+        g_assert_cmpint (yr, ==, test_year); /* Should be current year because -1 is clamped to 0 */
+    }
+}
+
 /* qof_print_date_dmy_buff
 size_t
 qof_print_date_dmy_buff (char * buff, size_t len, int day, int month, int year)// C: 12 in 3  Local: 2:0:0
@@ -2149,7 +2249,7 @@ test_suite_gnc_date (void)
     GNC_TEST_ADD_FUNC (suitename, "qof date format set", test_qof_date_format_set);
     GNC_TEST_ADD_FUNC (suitename, "qof date format get string", test_qof_date_format_get_string);
     GNC_TEST_ADD_FUNC (suitename, "qof date text format get string", test_qof_date_text_format_get_string);
-// GNC_TEST_ADD_FUNC (suitename, "qof date completion set", test_qof_date_completion_set);
+    GNC_TEST_ADD_FUNC (suitename, "qof date completion set", test_qof_date_completion_set);
     GNC_TEST_ADD_FUNC (suitename, "qof print date dmy buff", test_qof_print_date_dmy_buff);
     GNC_TEST_ADD_FUNC (suitename, "qof print date buff", test_qof_print_date_buff);
     GNC_TEST_ADD_FUNC (suitename, "qof print gdate", test_qof_print_gdate);
