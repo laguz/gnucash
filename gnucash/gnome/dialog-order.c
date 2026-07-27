@@ -791,7 +791,7 @@ gnc_ui_order_new (GtkWindow *parent, GncOwner *ownerp, QofBook *bookp)
             break;
         default:
             g_warning ("Cannot deal with unknown Owner types");
-            /* XXX: popup a warning? */
+            gnc_warning_dialog (parent, "%s", _("Cannot deal with unknown Owner types"));
             return NULL;
         }
     }
