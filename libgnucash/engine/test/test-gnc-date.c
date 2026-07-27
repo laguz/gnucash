@@ -440,6 +440,10 @@ test_gnc_date_string_to_monthformat (void)
     g_assert_cmpint (fmt, ==, 123);
     g_assert_true (gnc_date_string_to_monthformat ("foo", &fmt));
     g_assert_cmpint (fmt, ==, 123);
+
+    g_assert_true (gnc_date_string_to_monthformat ("number", NULL));
+    g_assert_true (gnc_date_string_to_monthformat ("foo", NULL));
+    g_assert_true (gnc_date_string_to_monthformat (NULL, NULL));
 }
 
 static void
