@@ -450,8 +450,6 @@ gsr_create_table( GNCSplitReg *gsr )
                                      gnc_split_reg_ld_destroy,
                                      gnc_split_reg_get_parent );
 
-    /* FIXME: We'd really rather pass this down... */
-    sr = gnc_ledger_display_get_split_register( gsr->ledger );
     register_widget = gnucash_register_new( sr->table, register_state_section );
     gsr->reg = GNUCASH_REGISTER( register_widget );
 
