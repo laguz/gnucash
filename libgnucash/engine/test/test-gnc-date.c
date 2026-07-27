@@ -739,10 +739,72 @@ return void
 Globals: dateCompletion dateCompletionBackMonths
 void qof_date_completion_set(QofDateCompletion dc, int backmonths)// C: 1  Local: 0:0:0
 */
-/* static void
+static void
 test_qof_date_completion_set (void)
 {
-}*/
+    gchar *locale = g_strdup (setlocale (LC_TIME, NULL));
+    int day = 0, mo = 0, yr = 0;
+    time64 now = gnc_time(NULL);
+    struct tm tm = { 0 };
+    gnc_localtime_r(&now, &tm);
+    gint now_year = tm.tm_year + 1900;
+    gint now_month = tm.tm_mon + 1;
+
+    int expected_year;
+    int num;
+    int floordiv;
+
+    /* Test valid backmonths */
+    qof_date_completion_set (QOF_DATE_COMPLETION_SLIDING, 5);
+    qof_date_format_set (QOF_DATE_FORMAT_US);
+    g_assert_true (qof_scan_date ("11-23", &day, &mo, &yr));
+    g_assert_cmpint (day, ==, 23);
+    g_assert_cmpint (mo, ==, 11);
+    num = 11 - now_month + 5;
+    floordiv = (num < 0) ? (num - 12 + 1) / 12 : num / 12;
+    expected_year = now_year - floordiv;
+    g_assert_cmpint (yr, ==, expected_year);
+
+    /* Test setting negative backmonth, should clamp to 0 */
+    qof_date_completion_set (QOF_DATE_COMPLETION_SLIDING, -5);
+    g_assert_true (qof_scan_date ("10-23", &day, &mo, &yr));
+    g_assert_cmpint (day, ==, 23);
+    g_assert_cmpint (mo, ==, 10);
+    num = 10 - now_month + 0;
+    floordiv = (num < 0) ? (num - 12 + 1) / 12 : num / 12;
+    expected_year = now_year - floordiv;
+    g_assert_cmpint (yr, ==, expected_year);
+
+    /* Test setting backmonth > 11, should clamp to 11 */
+    qof_date_completion_set (QOF_DATE_COMPLETION_SLIDING, 15);
+    g_assert_true (qof_scan_date ("02-23", &day, &mo, &yr));
+    g_assert_cmpint (day, ==, 23);
+    g_assert_cmpint (mo, ==, 2);
+    num = 2 - now_month + 11;
+    floordiv = (num < 0) ? (num - 12 + 1) / 12 : num / 12;
+    expected_year = now_year - floordiv;
+    g_assert_cmpint (yr, ==, expected_year);
+
+    /* Test invalid QofDateCompletion enum value */
+    gchar *msg = "[qof_date_completion_set()] non-existent date completion set attempted. Setting current year completion as default";
+    gint loglevel = G_LOG_LEVEL_CRITICAL | G_LOG_FLAG_FATAL;
+    gchar *logdomain = "qof.engine";
+    TestErrorStruct check = {loglevel, logdomain, msg, 0};
+    GLogFunc hdlr = g_log_set_default_handler ((GLogFunc)test_null_handler, &check);
+    g_test_log_set_fatal_handler ((GTestLogFatalFunc)test_checked_handler, &check);
+
+    qof_date_completion_set ((QofDateCompletion)999, 0);
+
+    /* It should revert to QOF_DATE_COMPLETION_THISYEAR, so let's check with scan date */
+    g_assert_true (qof_scan_date ("08-23", &day, &mo, &yr));
+    g_assert_cmpint (day, ==, 23);
+    g_assert_cmpint (mo, ==, 8);
+    g_assert_cmpint (yr, ==, now_year);
+
+    g_log_set_default_handler (hdlr, 0);
+    setlocale (LC_TIME, locale);
+    g_free (locale);
+}
 /* qof_print_date_dmy_buff
 size_t
 qof_print_date_dmy_buff (char * buff, size_t len, int day, int month, int year)// C: 12 in 3  Local: 2:0:0
@@ -2149,7 +2211,7 @@ test_suite_gnc_date (void)
     GNC_TEST_ADD_FUNC (suitename, "qof date format set", test_qof_date_format_set);
     GNC_TEST_ADD_FUNC (suitename, "qof date format get string", test_qof_date_format_get_string);
     GNC_TEST_ADD_FUNC (suitename, "qof date text format get string", test_qof_date_text_format_get_string);
-// GNC_TEST_ADD_FUNC (suitename, "qof date completion set", test_qof_date_completion_set);
+    GNC_TEST_ADD_FUNC (suitename, "qof date completion set", test_qof_date_completion_set);
     GNC_TEST_ADD_FUNC (suitename, "qof print date dmy buff", test_qof_print_date_dmy_buff);
     GNC_TEST_ADD_FUNC (suitename, "qof print date buff", test_qof_print_date_buff);
     GNC_TEST_ADD_FUNC (suitename, "qof print gdate", test_qof_print_gdate);
