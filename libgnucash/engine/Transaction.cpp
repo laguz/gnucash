@@ -653,8 +653,9 @@ xaccTransCloneNoKvp (const Transaction *from)
     {
         split = xaccSplitCloneNoKvp(GNC_SPLIT(node->data));
         split->parent = to;
-        to->splits = g_list_append (to->splits, split);
+        to->splits = g_list_prepend (to->splits, split);
     }
+    to->splits = g_list_reverse(to->splits);
     qof_instance_set_dirty(QOF_INSTANCE(to));
     xaccTransCommitEdit(to);
     qof_event_resume();
