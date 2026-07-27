@@ -304,7 +304,7 @@ gnc_date_dateformat_to_string(QofDateFormat format)
 gboolean
 gnc_date_string_to_dateformat(const char* fmt_str, QofDateFormat *format)
 {
-    if (!fmt_str)
+    if (!fmt_str || !format)
         return TRUE;
 
     if (!strcmp(fmt_str, "us"))

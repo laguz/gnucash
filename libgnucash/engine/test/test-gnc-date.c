@@ -406,6 +406,9 @@ test_gnc_date_string_to_dateformat (void)
     g_assert_true (gnc_date_string_to_dateformat ("foo", &fmt));
     g_assert_cmpint (fmt, ==, 123);
 
+    g_assert_true (gnc_date_string_to_dateformat ("us", NULL));
+    g_assert_true (gnc_date_string_to_dateformat ("foo", NULL));
+    g_assert_true (gnc_date_string_to_dateformat (NULL, NULL));
 }
 /* gnc_date_monthformat_to_string
 const char*
