@@ -612,6 +612,26 @@ TEST(gnc_datetime_functions, test_format_zulu)
     EXPECT_EQ(atime.format_zulu("%d-%m-%Y %H:%M:%S"), "13-11-2045 12:00:00");
 }
 
+TEST(gnc_datetime_functions, test_gnc_dow_abbrev)
+{
+    char buf[128];
+    // Test a valid day of week (e.g., 0 = Sunday)
+    gnc_dow_abbrev(buf, sizeof(buf), 0);
+    EXPECT_STRNE(buf, ""); // Depending on locale it might be "Sun" or localized equivalent
+
+    // Test out of bounds (negative)
+    gnc_dow_abbrev(buf, sizeof(buf), -1);
+    EXPECT_STREQ(buf, "");
+
+    // Test out of bounds (too large)
+    gnc_dow_abbrev(buf, sizeof(buf), 7);
+    EXPECT_STREQ(buf, "");
+
+    // Test buffer constraint
+    gnc_dow_abbrev(buf, 2, 1);
+    EXPECT_EQ(buf[1], '\0');
+}
+
 //This is a bit convoluted because it uses GncDate's GncDateImpl constructor and year_month_day() function. There's no good way to test the former without violating the privacy of the implementation.
 TEST(gnc_datetime_functions, test_date)
 {
