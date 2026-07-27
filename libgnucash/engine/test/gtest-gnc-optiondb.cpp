@@ -33,6 +33,7 @@
 #include "kvp-value.hpp"
 #include <glib-2.0/glib.h>
 #include <cstdint>
+#include "gnc-optiondb.h"
 
 #include "gnc-session.h"
 
