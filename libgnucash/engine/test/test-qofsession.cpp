@@ -39,6 +39,7 @@ static bool safe_sync_called {false};
 static bool sync_called {false};
 static bool load_error {true};
 static bool data_loaded {false};
+static const QofSession * current_session {nullptr};
 
 struct DestroyAccount
 {
@@ -84,6 +85,10 @@ void QofSessionMockBackend::safe_sync (QofBook *)
 void QofSessionMockBackend::sync (QofBook *)
 {
     sync_called = true;
+    if (current_session)
+    {
+        EXPECT_TRUE (qof_session_save_in_progress (current_session));
+    }
 }
 
 void QofSessionMockBackend::export_coa(QofBook * book)
@@ -238,6 +243,31 @@ TEST (QofSessionTest, save)
     qof_book_mark_session_dirty (s.get_book ());
     s.save (nullptr);
     EXPECT_EQ (sync_called, true);
+    qof_backend_unregister_all_providers ();
+    sync_called = false;
+    load_error = true;
+}
+
+TEST (QofSessionTest, qof_session_save_in_progress)
+{
+    EXPECT_FALSE (qof_session_save_in_progress (nullptr));
+
+    qof_backend_register_provider (get_provider ());
+    QofSession s(qof_book_new());
+    s.begin ("book1", SESSION_NORMAL_OPEN);
+    load_error = false;
+    s.load (nullptr);
+
+    EXPECT_FALSE (qof_session_save_in_progress (&s));
+
+    qof_book_mark_session_dirty (s.get_book ());
+    current_session = &s;
+    s.save (nullptr);
+    EXPECT_EQ (sync_called, true);
+
+    EXPECT_FALSE (qof_session_save_in_progress (&s));
+
+    current_session = nullptr;
     qof_backend_unregister_all_providers ();
     sync_called = false;
     load_error = true;

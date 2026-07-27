@@ -733,16 +733,17 @@ _gdc_compute_min_size (GncDenseCal *dcal, guint *min_width, guint *min_height)
     {
         *min_width =
             (dcal->leftPadding * 2)
-            + (num_cols (dcal) * (col_width_at (dcal, dcal->min_x_scale)
+            + (num_cols (dcal) * (week_width_at (dcal, dcal->min_x_scale)
                                  + dcal->month_side_bar_width))
-            + ((num_cols (dcal) - 1) * COL_BORDER_SIZE);
+            + ((num_cols (dcal) - 1) * 2 * COL_BORDER_SIZE)
+            + 2;
     }
 
     if (min_height != NULL)
     {
         *min_height =
             (dcal->topPadding * 2)
-            + MINOR_BORDER_SIZE
+            + 1
             + dcal->day_top_bar_height
             + (num_weeks_per_col (dcal)
                * week_height_at (dcal, dcal->min_y_scale));
@@ -765,15 +766,14 @@ recompute_x_y_scales (GncDenseCal *dcal)
         height = alloc.height;
     }
 
-    /* FIXME: there's something slightly wrong in the x_scale computation that
-     * lets us draw larger than our area. */
     denom = 7 * num_cols (dcal);
     g_assert (denom != 0);
     dcal->x_scale = ((gint)(width
                             - (dcal->leftPadding * 2)
                             - (num_cols (dcal) * ((7 * MINOR_BORDER_SIZE)
                                     + dcal->month_side_bar_width))
-                            - ((num_cols (dcal) - 1) * COL_BORDER_SIZE))
+                            - ((num_cols (dcal) - 1) * 2 * COL_BORDER_SIZE)
+                            - 2)
                      / denom);
     dcal->x_scale = MAX(dcal->x_scale, dcal->min_x_scale);
 
@@ -781,9 +781,9 @@ recompute_x_y_scales (GncDenseCal *dcal)
     g_assert (denom != 0);
     dcal->y_scale = ((gint)(height
                             - (dcal->topPadding * 2)
-                            - MINOR_BORDER_SIZE
+                            - 1
                             - dcal->day_top_bar_height
-                            - ((num_weeks_per_col (dcal) - 1)
+                            - (num_weeks_per_col (dcal)
                                * MINOR_BORDER_SIZE))
                      / denom);
     dcal->y_scale = MAX(dcal->y_scale, dcal->min_y_scale);
