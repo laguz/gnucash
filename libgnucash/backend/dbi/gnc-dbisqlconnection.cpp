@@ -744,16 +744,17 @@ bool
 GncDbiSqlConnection::drop_indexes() noexcept
 {
     auto index_list = m_provider->get_index_list (m_conn);
-    for (auto index : index_list)
+    if (index_list.empty())
+        return true;
+
+    if (!m_provider->drop_indexes(m_conn, index_list))
     {
         const char* errmsg;
-        m_provider->drop_index (m_conn, index);
-        if (DBI_ERROR_NONE != dbi_conn_error (m_conn, &errmsg))
-        {
-            PERR("Failed to drop indexes %s", errmsg);
-            return false;
-        }
+        dbi_conn_error (m_conn, &errmsg);
+        PERR("Failed to drop indexes %s", errmsg ? errmsg : "Unknown error");
+        return false;
     }
+
     return true;
 }
 
