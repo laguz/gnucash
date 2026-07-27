@@ -691,11 +691,35 @@ test_qof_date_format_set (void)
 
     qof_date_format_set (QOF_DATE_FORMAT_LOCALE);
     g_assert_cmpint (qof_date_format_get (), ==, QOF_DATE_FORMAT_LOCALE);
+
+    qof_date_format_set (QOF_DATE_FORMAT_CUSTOM);
+    g_assert_cmpint (qof_date_format_get (), ==, QOF_DATE_FORMAT_CUSTOM);
+
+    qof_date_format_set (QOF_DATE_FORMAT_UNSET);
+    g_assert_cmpint (qof_date_format_get (), ==, QOF_DATE_FORMAT_UNSET);
+
     g_assert_cmpint (check.hits, ==, 0);
 
 
     /* Reset global date format for subsequent tests. */
     g_log_set_default_handler (hdlr, NULL);
+
+    /* Verify an out-of-bounds format acts like default */
+    if (g_test_subprocess())
+    {
+        /* Need to catch the critical warning to not fail the test when it's emitted */
+        g_log_set_always_fatal (G_LOG_LEVEL_ERROR);
+        /* Set to UNSET to ensure out of bounds fallback overwrites the current format
+         * with ISO format instead of ignoring it. */
+        qof_date_format_set(QOF_DATE_FORMAT_UNSET);
+        qof_date_format_set ((QofDateFormat)999);
+        g_assert_cmpint (qof_date_format_get (), ==, QOF_DATE_FORMAT_ISO);
+        return;
+    }
+    g_test_trap_subprocess(NULL, 0, G_TEST_SUBPROCESS_INHERIT_STDOUT);
+    g_test_trap_assert_passed();
+    g_test_trap_assert_stderr("*non-existent date format set attempted*");
+
     qof_date_format_set(QOF_DATE_FORMAT_UK);
 }
 
