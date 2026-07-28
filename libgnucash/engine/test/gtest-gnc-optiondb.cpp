@@ -37,8 +37,48 @@
 
 #include "gnc-session.h"
 #include "gnc-optiondb.h"
+#include "qofbookslots.h"
 
 using GncOptionDBPtr = std::unique_ptr<GncOptionDB>;
+
+class GncUIType
+{
+public:
+    void set_value(const std::string& value) const noexcept { m_value = value; }
+    const std::string& get_value() const noexcept { return m_value; }
+    void clear() noexcept { m_value.clear(); }
+private:
+    mutable std::string m_value;
+};
+
+class OptionUIItem : public GncOptionUIItem
+{
+    GncUIType m_widget;
+    bool m_dirty = false;
+public:
+    OptionUIItem() : GncOptionUIItem{GncOptionUIType::STRING} {}
+    ~OptionUIItem() = default;
+    void set_dirty(bool status) noexcept override { m_dirty = status; }
+    bool get_dirty() const noexcept override { return m_dirty; }
+    void set_selectable(bool selectable) const noexcept override {}
+    void clear_ui_item() override { m_widget.clear(); }
+    void set_ui_item_from_option(GncOption& option) noexcept override
+    {
+        m_widget.set_value(option.get_value<std::string>());
+    }
+    void set_option_from_ui_item(GncOption& option) noexcept override
+    {
+        option.set_value(m_widget.get_value());
+    }
+    void set_widget_value(const std::string& value) const noexcept
+    {
+        m_widget.set_value(value);
+    }
+    const std::string& get_widget_value() const noexcept
+    {
+        return m_widget.get_value();
+    }
+};
 
 class GncOptionDBTest : public ::testing::Test
 {
@@ -51,6 +91,34 @@ protected:
 TEST_F(GncOptionDBTest, test_ctor)
 {
     EXPECT_NO_THROW ({ GncOptionDB optiondb; });
+}
+
+TEST_F(GncOptionDBTest, test_book_options)
+{
+    gnc_option_db_book_options(m_db.get());
+
+    // Verify sections are added
+    EXPECT_TRUE(m_db->num_sections() > 0);
+
+    // Verify Accounts Tab
+    EXPECT_TRUE(m_db->find_option(OPTION_SECTION_ACCOUNTS, OPTION_NAME_AUTO_READONLY_DAYS) != nullptr);
+    EXPECT_TRUE(m_db->find_option(OPTION_SECTION_ACCOUNTS, OPTION_NAME_NUM_FIELD_SOURCE) != nullptr);
+    EXPECT_TRUE(m_db->find_option(OPTION_SECTION_ACCOUNTS, OPTION_NAME_TRADING_ACCOUNTS) != nullptr);
+
+    // Verify Budgeting Tab
+    EXPECT_TRUE(m_db->find_option(OPTION_SECTION_BUDGETING, OPTION_NAME_DEFAULT_BUDGET) != nullptr);
+
+    // Verify Counters Tab
+    constexpr const char* counter_section = "Counters";
+    EXPECT_TRUE(m_db->find_option(counter_section, "Customer number") != nullptr);
+    EXPECT_TRUE(m_db->find_option(counter_section, "Employee number") != nullptr);
+    EXPECT_TRUE(m_db->find_option(counter_section, "Invoice number") != nullptr);
+
+    // Verify Business Tab
+    constexpr const char* business_section = "Business";
+    EXPECT_TRUE(m_db->find_option(business_section, "Company Name") != nullptr);
+    EXPECT_TRUE(m_db->find_option(business_section, "Company Address") != nullptr);
+    EXPECT_TRUE(m_db->find_option(business_section, "Default Customer Tax Table") != nullptr);
 }
 
 TEST_F(GncOptionDBTest, test_register_option)

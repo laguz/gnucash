@@ -461,6 +461,48 @@ gnc_start_recn_children_changed (GtkWidget *widget, startRecnWindowData *data)
  * Returns:  none.                                                  *
 \********************************************************************/
 
+/********************************************************************\
+ * find_interest_account                                            *
+ *   find an account that 'looks like' an interest account for the  *
+ *   given account.                                                 *
+ *                                                                  *
+ * Args:   account - the account to look in                         *
+ *         match_type - the account type to look for                *
+ * Return: a candidate interest account or nullptr if none was found*
+\********************************************************************/
+static Account *
+find_interest_account(Account *account, GNCAccountType match_type)
+{
+    if (account == nullptr)
+        return nullptr;
+
+    const auto& splits = xaccAccountGetSplits (account);
+
+    /* Search backwards to find the latest interest payment */
+    for (auto it = splits.rbegin(); it != splits.rend(); it++)
+    {
+        auto split = *it;
+
+        for (auto n = xaccTransGetSplitList (xaccSplitGetParent(split)); n; n = n->next)
+        {
+            auto s = GNC_SPLIT(n->data);
+            if (s == split)
+                continue;
+
+            auto a = xaccSplitGetAccount(s);
+            if (a == account)
+                continue;
+
+            auto type = xaccAccountGetType(a);
+            if (type == match_type)
+                return a;
+        }
+    }
+
+    return nullptr;
+}
+
+
 /* helper function */
 static char *
 gnc_recn_make_interest_window_name(Account *account, char *text)
@@ -518,7 +560,9 @@ recnInterestXferWindow( startRecnWindowData *data)
                                                 _("Payment From") );
         gnc_xfer_dialog_set_from_show_button_active( data->xferData, TRUE );
 
-        // XXX: Set "from" account from previous interest payment.
+        Account *interest_account = find_interest_account(data->account, ACCT_TYPE_INCOME);
+        if (interest_account != nullptr)
+            gnc_xfer_dialog_select_from_account (data->xferData, interest_account);
 
         gnc_xfer_dialog_set_to_account_label( data->xferData,
                                               _("Reconcile Account") );
@@ -539,7 +583,9 @@ recnInterestXferWindow( startRecnWindowData *data)
                                               _("Payment To") );
         gnc_xfer_dialog_set_to_show_button_active( data->xferData, TRUE );
 
-        // XXX: Set "to" account from previous interest payment.
+        Account *interest_account = find_interest_account(data->account, ACCT_TYPE_EXPENSE);
+        if (interest_account != nullptr)
+            gnc_xfer_dialog_select_to_account (data->xferData, interest_account);
 
         /* Quickfill based on the reconcile account, which is the "From" acct. */
         gnc_xfer_dialog_quickfill_to_account( data->xferData, FALSE );
@@ -1533,9 +1579,7 @@ gnc_recn_scrub_cb (GSimpleAction *simple,
     xaccAccountTreeScrubOrphans (account, gnc_window_show_progress);
     xaccAccountTreeScrubImbalance (account, gnc_window_show_progress);
 
-    // XXX: Lots are disabled.
-    if (g_getenv("GNC_AUTO_SCRUB_LOTS") != NULL)
-        xaccAccountTreeScrubLots(account);
+    xaccAccountTreeScrubLots(account);
 
     gnc_resume_gui_refresh ();
 }

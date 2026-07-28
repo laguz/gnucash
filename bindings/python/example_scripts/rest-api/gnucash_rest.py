@@ -973,7 +973,7 @@ def getAccountSplits(book, guid, date_posted_from, date_posted_to):
 
     for split in query.run():
         splits.append(gnucash_simple.splitToDict(
-            gnucash.gnucash_business.Split(instance=split),
+            split,
             ['account', 'transaction', 'other_split'],
             account_cache=account_cache, gbp=gbp))
 

@@ -22,11 +22,6 @@
  *                                                                  *
 \********************************************************************/
 
-/* XXX todo: The button "view lot in register" is not implemented.
- *   it needs to open register window showing only the splits in the
- *     given lot ...
- */
-
 #include <config.h>
 
 #include <gtk/gtk.h>
@@ -46,6 +41,9 @@
 #include "dialog-utils.h"
 #include "dialog-lot-viewer.h"
 #include "gnc-component-manager.h"
+#include "gnc-plugin-page-register.h"
+#include "gnc-main-window.h"
+#include "Query.h"
 #include "gnc-prefs.h"
 #include "gnc-ui-util.h"
 #include "gnc-window.h"
@@ -760,10 +758,47 @@ lv_response_cb (GtkDialog *dialog, gint response, gpointer data)
         return;
 
     case RESPONSE_VIEW:
+    {
+        QofQuery *query, *guid_query;
+        GNCLedgerDisplay *ledger;
+        GncPluginPage *page;
+        SplitList *splits, *node;
+        gchar *title;
+
         if (NULL == lot)
             return;
-        printf ("UNIMPLEMENTED: need to display register showing only this one lot.\n");
+
+        splits = gnc_lot_get_split_list (lot);
+        if (!splits)
+            return;
+
+        query = qof_query_create_for (GNC_ID_SPLIT);
+        qof_query_set_book (query, gnc_get_current_book ());
+
+        guid_query = qof_query_create_for (GNC_ID_SPLIT);
+        for (node = splits; node; node = node->next)
+        {
+            Split *split = node->data;
+            GncGUID guid = *xaccSplitGetGUID (split);
+            xaccQueryAddGUIDMatch (guid_query, &guid, GNC_ID_SPLIT, QOF_QUERY_OR);
+        }
+
+        QofQuery *final_query = qof_query_merge (query, guid_query, QOF_QUERY_AND);
+
+        ledger = gnc_ledger_display_query (final_query, SEARCH_LEDGER, REG_STYLE_JOURNAL);
+        gnc_ledger_display_refresh (ledger);
+        page = gnc_plugin_page_register_new_ledger (ledger);
+
+        title = g_strdup_printf (_("Lot %s"), gnc_lot_get_title (lot));
+        main_window_update_page_name (page, title);
+        g_free (title);
+
+        gnc_main_window_open_page (NULL, page);
+
+        qof_query_destroy (query);
+        qof_query_destroy (guid_query);
         break;
+    }
 
     case RESPONSE_DELETE:
         if (NULL == lot)
