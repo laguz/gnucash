@@ -689,7 +689,20 @@
                         <property name="can-focus">False</property>
                         <property name="orientation">vertical</property>
                         <child>
-                          <placeholder/>
+                          <object class="GtkEntry" id="acl_entry">
+                            <property name="visible">True</property>
+                            <property name="can-focus">True</property>
+                            <property name="hexpand">True</property>
+                            <property name="invisible-char">●</property>
+                            <property name="activates-default">True</property>
+                            <property name="primary-icon-activatable">False</property>
+                            <property name="secondary-icon-activatable">False</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">True</property>
+                            <property name="position">0</property>
+                          </packing>
                         </child>
                       </object>
                     </child>

@@ -100,7 +100,7 @@ struct _employee_window
 
     GtkWidget *	active_check;
 
-    /* ACL? */
+    GtkWidget *	acl_entry;
 
     EmployeeDialogType	dialog_type;
     GncGUID		employee_guid;
@@ -145,6 +145,7 @@ static void gnc_ui_to_employee (EmployeeWindow *ew, GncEmployee *employee)
     gncEmployeeSetActive (employee, gtk_toggle_button_get_active
                           (GTK_TOGGLE_BUTTON (ew->active_check)));
     gncEmployeeSetLanguage (employee, gtk_entry_get_text (GTK_ENTRY (ew->language_entry)));
+    gncEmployeeSetAcl (employee, gtk_entry_get_text (GTK_ENTRY (ew->acl_entry)));
 
     /* Parse and set the workday and rate amounts */
     gncEmployeeSetWorkday (employee, gnc_amount_edit_get_amount
@@ -417,6 +418,8 @@ gnc_employee_new_window (GtkWindow *parent,
     ew->language_entry = GTK_WIDGET(gtk_builder_get_object (builder, "language_entry"));
     ew->active_check = GTK_WIDGET(gtk_builder_get_object (builder, "active_check"));
 
+    ew->acl_entry = GTK_WIDGET(gtk_builder_get_object (builder, "acl_entry"));
+
     /* Currency */
     edit = gnc_currency_edit_new();
     gnc_currency_edit_set_currency (GNC_CURRENCY_EDIT(edit), currency);
@@ -538,7 +541,7 @@ gnc_employee_new_window (GtkWindow *parent,
         gnc_account_sel_set_account (GNC_ACCOUNT_SEL (ew->ccard_acct_sel), ccard_acct, FALSE);
     }
 
-    /* XXX: Set the ACL */
+    gtk_entry_set_text (GTK_ENTRY (ew->acl_entry), gncEmployeeGetAcl (employee) ? gncEmployeeGetAcl (employee) : "");
 
     gnc_gui_component_watch_entity_type (ew->component_id,
                                          GNC_EMPLOYEE_MODULE_NAME,
