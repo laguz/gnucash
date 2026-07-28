@@ -664,8 +664,8 @@ gnc_sql_slots_delete (GncSqlBackend* sql_be, const GncGUID* guid)
 
     gnc::GUID cpp_guid(*guid);
     std::ostringstream sql;
-    sql << "SELECT * FROM " TABLE_NAME " WHERE obj_guid='" << cpp_guid.to_string()
-        << "' and slot_type in ('" << static_cast<int>(KvpValue::Type::FRAME)
+    sql << "SELECT * FROM " TABLE_NAME " WHERE obj_guid=" << sql_be->quote_string(cpp_guid.to_string())
+        << " and slot_type in ('" << static_cast<int>(KvpValue::Type::FRAME)
         << "', '" << static_cast<int>(KvpValue::Type::GLIST)
         << "') and not guid_val is null";
     auto stmt = sql_be->create_statement_from_sql(sql.str());
@@ -707,7 +707,7 @@ gnc_sql_slots_delete_multiple (GncSqlBackend* sql_be, const std::vector<const Gn
     {
         if (i > 0) sql << ", ";
         gnc::GUID cpp_guid(*guids[i]);
-        sql << "'" << cpp_guid.to_string() << "'";
+        sql << sql_be->quote_string(cpp_guid.to_string());
     }
     sql << ") and slot_type in ('" << static_cast<int>(KvpValue::Type::FRAME)
         << "', '" << static_cast<int>(KvpValue::Type::GLIST)
@@ -741,7 +741,7 @@ gnc_sql_slots_delete_multiple (GncSqlBackend* sql_be, const std::vector<const Gn
     {
         if (i > 0) del_sql << ", ";
         gnc::GUID cpp_guid(*guids[i]);
-        del_sql << "'" << cpp_guid.to_string() << "'";
+        del_sql << sql_be->quote_string(cpp_guid.to_string());
     }
     del_sql << ")";
     auto del_stmt = sql_be->create_statement_from_sql(del_sql.str());
@@ -805,8 +805,7 @@ slots_load_info (slot_info_t* pInfo)
     g_return_if_fail (pInfo->pKvpFrame != NULL);
 
     gnc::GUID guid(*pInfo->guid);
-    std::string sql("SELECT * FROM " TABLE_NAME " WHERE obj_guid='");
-    sql += guid.to_string() + "'";
+    std::string sql("SELECT * FROM " TABLE_NAME " WHERE obj_guid=" + pInfo->be->quote_string(guid.to_string()));
     auto stmt = pInfo->be->create_statement_from_sql(sql);
     if (stmt != nullptr)
     {
