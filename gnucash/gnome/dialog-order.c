@@ -518,7 +518,7 @@ gnc_order_update_window (OrderWindow *ow)
         gtk_widget_set_sensitive (ow->id_entry, FALSE);
         gtk_widget_set_sensitive (ow->opened_date, FALSE);
         gtk_widget_set_sensitive (ow->closed_date, FALSE);
-        gtk_widget_set_sensitive (ow->notes_text, FALSE); /* XXX: Should notes remain writable? */
+        gtk_text_view_set_editable (GTK_TEXT_VIEW (ow->notes_text), FALSE);
 
         /* Hide the 'close order' button */
         gtk_widget_hide (ow->close_order_button);
