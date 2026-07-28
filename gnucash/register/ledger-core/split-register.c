@@ -1844,21 +1844,22 @@ gnc_split_register_save (SplitRegister* reg, gboolean do_commit)
     /* determine whether we should commit the pending transaction */
     if (pending_trans != trans)
     {
-        // FIXME: How could the pending transaction not be open?
-        // FIXME: For that matter, how could an open pending
-        // transaction ever not be the current trans?
-        if (xaccTransIsOpen (pending_trans))
+        if (pending_trans)
         {
-            g_warning ("Impossible? committing pending %p", pending_trans);
-            unreconcile_splits (reg);
-            xaccTransCommitEdit (pending_trans);
-            xaccTransRecordPrice (trans, PRICE_SOURCE_SPLIT_REG);
-        }
-        else if (pending_trans)
-        {
-            g_critical ("BUG DETECTED! pending transaction (%p) not open",
-                        pending_trans);
-            g_assert_not_reached ();
+            /* A pending transaction could be not open if it was committed
+             * or rolled back by an external subsystem (e.g. another dialog
+             * or event handler). An open pending transaction could be
+             * different from the current trans if the cursor was warped
+             * without a proper commit. */
+            if (xaccTransIsOpen (pending_trans))
+            {
+                g_warning ("Impossible? committing pending %p", pending_trans);
+                xaccTransCommitEdit (pending_trans);
+            }
+            else
+            {
+                PINFO ("Pending transaction %p is no longer open; clearing.", pending_trans);
+            }
         }
 
         if (trans == blank_trans)
