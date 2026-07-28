@@ -149,11 +149,32 @@ test_instance_set_get_idata( Fixture *fixture, gconstpointer pData )
     qof_instance_set_idata( fixture->inst, idata );
     g_assert_cmpuint( idata, ==, qof_instance_get_idata( fixture->inst ) );
 
+    // Testing happy path logic: making sure get_idata actually returns what was set,
+    // and ensuring we overwrite what was originally there.
+    qof_instance_set_idata( fixture->inst, idata + 1 );
+    g_assert_cmpuint( idata + 1, ==, qof_instance_get_idata( fixture->inst ) );
+
     g_test_message( "Getting idata when instance is null" );
     g_assert_cmpuint( qof_instance_get_idata( NULL ), ==, 0 );
 
     g_test_message( "Setting idata when instance is null" );
     qof_instance_set_idata( NULL, idata );
+
+    g_test_message( "Setting idata when instance is invalid" );
+    QofBook *book = qof_book_new();
+
+    auto check1 = test_error_struct_new(NULL, static_cast<GLogLevelFlags>(G_LOG_LEVEL_CRITICAL | G_LOG_FLAG_FATAL), "*QOF_IS_INSTANCE*");
+    GSList* handlers = test_log_set_fatal_handler(NULL, check1, reinterpret_cast<GLogFunc>(test_checked_handler));
+    qof_instance_set_idata( book, idata );
+    g_slist_free_full(handlers, reinterpret_cast<GDestroyNotify>(test_free_log_handler));
+
+    g_test_message( "Getting idata when instance is invalid" );
+    auto check2 = test_error_struct_new(NULL, static_cast<GLogLevelFlags>(G_LOG_LEVEL_CRITICAL | G_LOG_FLAG_FATAL), "*QOF_IS_INSTANCE*");
+    handlers = test_log_set_fatal_handler(NULL, check2, reinterpret_cast<GLogFunc>(test_checked_handler));
+    qof_instance_get_idata( book );
+    g_slist_free_full(handlers, reinterpret_cast<GDestroyNotify>(test_free_log_handler));
+
+    qof_book_destroy(book);
 }
 
 static void
