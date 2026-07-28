@@ -870,24 +870,12 @@ gnc_split_register_auto_completion (SplitRegister *reg,
             return FALSE;
 
         /* nothing but the date, num, and description should be changed */
-        /* FIXME, this should be refactored. */
-        if (gnc_table_layout_get_cell_changed (reg->table->layout,
-                                               XFRM_CELL, TRUE) ||
-            gnc_table_layout_get_cell_changed (reg->table->layout,
-                                               MXFRM_CELL, TRUE) ||
-            gnc_table_layout_get_cell_changed (reg->table->layout,
-                                               PRIC_CELL, TRUE) ||
-            gnc_table_layout_get_cell_changed (reg->table->layout,
-                                               SHRS_CELL, TRUE) ||
-            gnc_table_layout_get_cell_changed (reg->table->layout,
-                                               DEBT_CELL, TRUE) ||
-            gnc_table_layout_get_cell_changed (reg->table->layout,
-                                               CRED_CELL, TRUE) ||
-            gnc_table_layout_get_cell_changed (reg->table->layout,
-                                               NOTES_CELL, TRUE) ||
-            gnc_table_layout_get_cell_changed (reg->table->layout,
-                                               RECN_CELL, TRUE))
-            return FALSE;
+        for (const auto cell : {XFRM_CELL, MXFRM_CELL, PRIC_CELL, SHRS_CELL,
+                                DEBT_CELL, CRED_CELL, NOTES_CELL, RECN_CELL})
+        {
+            if (gnc_table_layout_get_cell_changed (reg->table->layout, cell, TRUE))
+                return FALSE;
+        }
 
         /* and the description should be changed */
         if (!gnc_table_layout_get_cell_changed (reg->table->layout,
@@ -1014,18 +1002,11 @@ gnc_split_register_auto_completion (SplitRegister *reg,
             return FALSE;
 
         /* nothing but the action, memo, and amounts should be changed */
-        /* FIXME. This should be refactored. */
-        if (gnc_table_layout_get_cell_changed (reg->table->layout,
-                                               XFRM_CELL, TRUE) ||
-            gnc_table_layout_get_cell_changed (reg->table->layout,
-                                               MXFRM_CELL, TRUE) ||
-            gnc_table_layout_get_cell_changed (reg->table->layout,
-                                               PRIC_CELL, TRUE) ||
-            gnc_table_layout_get_cell_changed (reg->table->layout,
-                                               SHRS_CELL, TRUE) ||
-            gnc_table_layout_get_cell_changed (reg->table->layout,
-                                               RECN_CELL, TRUE))
-            return FALSE;
+        for (const auto cell : {XFRM_CELL, MXFRM_CELL, PRIC_CELL, SHRS_CELL, RECN_CELL})
+        {
+            if (gnc_table_layout_get_cell_changed (reg->table->layout, cell, TRUE))
+                return FALSE;
+        }
 
         /* and the memo should be changed */
         if (!gnc_table_layout_get_cell_changed (reg->table->layout,
