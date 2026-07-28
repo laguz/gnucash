@@ -1123,10 +1123,20 @@ CsvImpTransAssist::preview_update_encoding (const char* encoding)
             tx_imp->encoding (encoding);
             preview_refresh_table ();
         }
-        catch (...)
+        catch (const boost::locale::conv::conversion_error&)
         {
             /* If it fails, change back to the old encoding. */
             gnc_error_dialog (GTK_WINDOW (csv_imp_asst), "%s", _("Invalid encoding selected"));
+            go_charmap_sel_set_encoding (encselector, previous_encoding.c_str());
+        }
+        catch (const boost::locale::conv::invalid_charset_error&)
+        {
+            gnc_error_dialog (GTK_WINDOW (csv_imp_asst), "%s", _("Invalid encoding selected"));
+            go_charmap_sel_set_encoding (encselector, previous_encoding.c_str());
+        }
+        catch (const std::range_error &e)
+        {
+            gnc_error_dialog (GTK_WINDOW (csv_imp_asst), "%s", e.what());
             go_charmap_sel_set_encoding (encselector, previous_encoding.c_str());
         }
     }

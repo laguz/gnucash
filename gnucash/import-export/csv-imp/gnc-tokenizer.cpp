@@ -105,7 +105,7 @@ void
 GncTokenizer::encoding(const std::string& encoding)
 {
     m_enc_str = encoding;
-    m_utf8_contents = boost::locale::conv::to_utf<char>(m_raw_contents, m_enc_str);
+    m_utf8_contents = boost::locale::conv::to_utf<char>(m_raw_contents, m_enc_str, boost::locale::conv::stop);
 
     // While we are converting here, let's also normalize line-endings to "\n"
     // That's what STL expects by default

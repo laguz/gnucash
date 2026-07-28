@@ -255,17 +255,10 @@ int GncTxImport::date_format () { return m_settings.m_date_format; }
  */
 void GncTxImport::encoding (const std::string& encoding)
 {
-
-    // TODO investigate if we can catch conversion errors and report them
     if (m_tokenizer)
     {
         m_tokenizer->encoding(encoding); // May throw
-        try
-        {
-            tokenize(false);
-        }
-        catch (...)
-        { };
+        tokenize(false); // May throw
     }
 
     m_settings.m_encoding = encoding;
