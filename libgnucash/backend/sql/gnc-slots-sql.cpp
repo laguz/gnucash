@@ -707,7 +707,7 @@ gnc_sql_slots_delete_multiple (GncSqlBackend* sql_be, const std::vector<const Gn
     {
         if (i > 0) sql << ", ";
         gnc::GUID cpp_guid(*guids[i]);
-        sql << "'" << cpp_guid.to_string() << "'";
+        sql << sql_be->quote_string(cpp_guid.to_string());
     }
     sql << ") and slot_type in ('" << static_cast<int>(KvpValue::Type::FRAME)
         << "', '" << static_cast<int>(KvpValue::Type::GLIST)
@@ -741,7 +741,7 @@ gnc_sql_slots_delete_multiple (GncSqlBackend* sql_be, const std::vector<const Gn
     {
         if (i > 0) del_sql << ", ";
         gnc::GUID cpp_guid(*guids[i]);
-        del_sql << "'" << cpp_guid.to_string() << "'";
+        del_sql << sql_be->quote_string(cpp_guid.to_string());
     }
     del_sql << ")";
     auto del_stmt = sql_be->create_statement_from_sql(del_sql.str());
