@@ -1590,9 +1590,7 @@ xaccTransCommitEdit (Transaction *trans)
         xaccTransScrubImbalance (trans, nullptr, nullptr);
         /* Get the cap gains into a consistent state as well. */
 
-        /* Lot Scrubbing is temporarily disabled. */
-        if (g_getenv("GNC_AUTO_SCRUB_LOTS") != nullptr)
-            xaccTransScrubGains (trans, nullptr);
+        xaccTransScrubGains (trans, nullptr);
 
         /* Allow scrubbing in transaction commit again */
         scrub_data = 1;

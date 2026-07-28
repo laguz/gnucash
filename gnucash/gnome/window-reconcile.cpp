@@ -1579,9 +1579,7 @@ gnc_recn_scrub_cb (GSimpleAction *simple,
     xaccAccountTreeScrubOrphans (account, gnc_window_show_progress);
     xaccAccountTreeScrubImbalance (account, gnc_window_show_progress);
 
-    // XXX: Lots are disabled.
-    if (g_getenv("GNC_AUTO_SCRUB_LOTS") != NULL)
-        xaccAccountTreeScrubLots(account);
+    xaccAccountTreeScrubLots(account);
 
     gnc_resume_gui_refresh ();
 }
