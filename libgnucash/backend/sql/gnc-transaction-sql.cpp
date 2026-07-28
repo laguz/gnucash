@@ -694,8 +694,8 @@ void gnc_sql_transaction_load_tx_for_account (GncSqlBackend* sql_be,
     const std::string stkey(split_col_table[1]->name()); //txn_guid
     const std::string sakey(split_col_table[2]->name()); //account_guid
     std::string sql("(SELECT DISTINCT ");
-    sql += stkey + " FROM " SPLIT_TABLE " WHERE " + sakey + " = '";
-    sql += gnc::GUID(*guid).to_string() + "')";
+    sql += stkey + " FROM " SPLIT_TABLE " WHERE " + sakey + " = ";
+    sql += sql_be->quote_string(gnc::GUID(*guid).to_string()) + ")";
     query_transactions (sql_be, sql);
 }
 
