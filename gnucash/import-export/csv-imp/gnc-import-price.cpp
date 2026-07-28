@@ -44,6 +44,7 @@
 
 #include <boost/regex.hpp>
 #include <boost/regex/icu.hpp>
+#include <boost/locale.hpp>
 
 #include "gnc-import-price.hpp"
 #include "gnc-imp-props-price.hpp"
@@ -230,16 +231,26 @@ int GncPriceImport::date_format () { return m_settings.m_date_format; }
  */
 void GncPriceImport::encoding (const std::string& encoding)
 {
-    // TODO investigate if we can catch conversion errors and report them
     if (m_tokenizer)
     {
-        m_tokenizer->encoding(encoding); // May throw
+        try
+        {
+            m_tokenizer->encoding(encoding);
+        }
+        catch (const boost::locale::conv::conversion_error& err)
+        {
+            throw std::invalid_argument(_("Invalid character encoding."));
+        }
+        catch (const boost::locale::conv::invalid_charset_error& err)
+        {
+            throw std::invalid_argument(_("Invalid character encoding."));
+        }
         try
         {
             tokenize(false);
         }
         catch (...)
-        { };
+        { }
     }
 
     m_settings.m_encoding = encoding;
