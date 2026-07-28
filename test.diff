@@ -1,0 +1,10 @@
+--- gnucash/gnome/window-reconcile.cpp
++++ gnucash/gnome/window-reconcile.cpp
+@@ -518,8 +518,6 @@
+                                                 _("Payment From") );
+         gnc_xfer_dialog_set_from_show_button_active( data->xferData, TRUE );
+
+-        // XXX: Set "from" account from previous interest payment.
+-
+         gnc_xfer_dialog_set_to_account_label( data->xferData,
+                                               _("Reconcile Account") );
