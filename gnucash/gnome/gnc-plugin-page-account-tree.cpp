@@ -1958,9 +1958,7 @@ gnc_plugin_page_account_tree_cmd_scrub (GSimpleAction *simple,
     xaccAccountScrubOrphans (account, gnc_window_show_progress);
     xaccAccountScrubImbalance (account, gnc_window_show_progress);
 
-    // XXX: Lots/capital gains scrubbing is disabled
-    if (g_getenv("GNC_AUTO_SCRUB_LOTS") != NULL)
-        xaccAccountScrubLots(account);
+    xaccAccountScrubLots(account);
 
     gncScrubBusinessAccount(account, gnc_window_show_progress);
 
@@ -1989,9 +1987,7 @@ gnc_plugin_page_account_tree_cmd_scrub_sub (GSimpleAction *simple,
     xaccAccountTreeScrubOrphans (account, gnc_window_show_progress);
     xaccAccountTreeScrubImbalance (account, gnc_window_show_progress);
 
-    // XXX: Lots/capital gains scrubbing is disabled
-    if (g_getenv("GNC_AUTO_SCRUB_LOTS") != NULL)
-        xaccAccountTreeScrubLots(account);
+    xaccAccountTreeScrubLots(account);
 
     gncScrubBusinessAccountTree(account, gnc_window_show_progress);
 
@@ -2017,9 +2013,8 @@ gnc_plugin_page_account_tree_cmd_scrub_all (GSimpleAction *simple,
 
     xaccAccountTreeScrubOrphans (root, gnc_window_show_progress);
     xaccAccountTreeScrubImbalance (root, gnc_window_show_progress);
-    // XXX: Lots/capital gains scrubbing is disabled
-    if (g_getenv("GNC_AUTO_SCRUB_LOTS") != NULL)
-        xaccAccountTreeScrubLots(root);
+
+    xaccAccountTreeScrubLots(root);
 
     gncScrubBusinessAccountTree(root, gnc_window_show_progress);
 
