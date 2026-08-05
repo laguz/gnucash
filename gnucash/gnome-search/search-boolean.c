@@ -125,7 +125,6 @@ static gboolean
 gncs_validate (GNCSearchCoreType *fe)
 {
     GNCSearchBoolean *fi = (GNCSearchBoolean *)fe;
-    gboolean valid = TRUE;
 
     g_return_val_if_fail (fi, FALSE);
     g_return_val_if_fail (GNC_IS_SEARCH_BOOLEAN (fi), FALSE);
