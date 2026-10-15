@@ -85,6 +85,7 @@
 (export gnc:account-get-trans-type-balance-interval)
 (export gnc:account-get-trans-type-balance-interval-with-closing)
 (export gnc:account-get-trans-type-splits-interval)
+(export gnc:max-budget-periods)
 (export gnc:budget-get-start-date)
 (export gnc:budget-get-end-date)
 (export gnc:budget-account-get-net)
@@ -725,6 +726,9 @@
         (let ((splits (qof-query-run query)))
           (qof-query-destroy query)
           splits))))
+
+;; Maximum number of budget periods supported in budget reports
+(define gnc:max-budget-periods 60)
 
 ;; Returns the start date of the first period (period 0) of the budget.
 (define (gnc:budget-get-start-date budget)
