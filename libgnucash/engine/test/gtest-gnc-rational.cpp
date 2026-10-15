@@ -182,3 +182,12 @@ TEST(gncrational_functions, test_round_to_numeric)
 
     }
 }
+
+TEST(gncrational_functions, test_round_to_numeric_overflow)
+{
+    // Construct a GncRational where m_num / m_den is big (quot.isBig() is true)
+    // GncInt128(1, 0) gives a value >= 2^63 (or upper leg non-zero), making isBig() return true.
+    GncInt128 big_num(1, 0);
+    GncRational big_rational(big_num, 1);
+    EXPECT_THROW(big_rational.round_to_numeric(), std::overflow_error);
+}
