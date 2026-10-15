@@ -127,7 +127,7 @@ def transactionToDict(transaction, entities, account_cache=None, gbp=None):
 
         return simple_transaction
 
-def splitToDict(split, entities, account_cache=None, gbp=None):
+def splitToDict(split, entities, account_cache=None, gbp=None, transaction_cache=None, split_cache=None):
     if split is None:
         return None
     else:
@@ -143,11 +143,28 @@ def splitToDict(split, entities, account_cache=None, gbp=None):
             else:
                 simple_split['account'] = accountToDict(account, gbp=gbp)
         if 'transaction' in entities:
-            simple_split['transaction'] = transactionToDict(
-                split.GetParent(), [], account_cache=account_cache, gbp=gbp)
+            transaction = split.GetParent()
+            if transaction_cache is not None and transaction is not None:
+                transaction_guid = transaction.GetGUID().to_string()
+                if transaction_guid not in transaction_cache:
+                    transaction_cache[transaction_guid] = transactionToDict(
+                        transaction, [], account_cache=account_cache, gbp=gbp)
+                simple_split['transaction'] = transaction_cache[transaction_guid]
+            else:
+                simple_split['transaction'] = transactionToDict(
+                    transaction, [], account_cache=account_cache, gbp=gbp)
         if 'other_split' in entities:
-            simple_split['other_split'] = splitToDict(
-                split.GetOtherSplit(), ['account'], account_cache=account_cache, gbp=gbp)
+            other_split = split.GetOtherSplit()
+            if split_cache is not None and other_split is not None:
+                other_guid = other_split.GetGUID().to_string()
+                if other_guid not in split_cache:
+                    split_cache[other_guid] = splitToDict(
+                        other_split, ['account'], account_cache=account_cache, gbp=gbp,
+                        transaction_cache=transaction_cache, split_cache=split_cache)
+                simple_split['other_split'] = split_cache[other_guid]
+            else:
+                simple_split['other_split'] = splitToDict(
+                    other_split, ['account'], account_cache=account_cache, gbp=gbp)
         simple_split['amount'] = split.GetAmount().to_double()
         simple_split['value'] = split.GetValue().to_double()
         simple_split['balance'] = split.GetBalance().to_double()
