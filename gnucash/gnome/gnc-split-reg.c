@@ -566,7 +566,7 @@ gsr_update_summary_label( GtkWidget *label,
 
     if ( euroFlag )
     {
-        strcat( string, " / " );
+        g_strlcat( string, " / ", sizeof(string) );
         xaccSPrintAmount( string + strlen( string ), sizeof(string) - strlen(string),
                           gnc_convert_to_euro( cmdty, amount ),
                           gnc_commodity_print_info( gnc_get_euro(), TRUE ) );
