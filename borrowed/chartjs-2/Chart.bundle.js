@@ -17157,15 +17157,6 @@ var moment = createCommonjsModule(function (module, exports) {
 
     // date from string and format string
     function configFromStringAndFormat(config) {
-        // TODO: Move this to another part of the creation flow to prevent circular deps
-        if (config._f === hooks.ISO_8601) {
-            configFromISO(config);
-            return;
-        }
-        if (config._f === hooks.RFC_2822) {
-            configFromRFC2822(config);
-            return;
-        }
         config._a = [];
         getParsingFlags(config).empty = true;
 
@@ -17343,7 +17334,13 @@ var moment = createCommonjsModule(function (module, exports) {
         } else if (isArray(format)) {
             configFromStringAndArray(config);
         } else if (format) {
-            configFromStringAndFormat(config);
+            if (config._f === hooks.ISO_8601) {
+                configFromISO(config);
+            } else if (config._f === hooks.RFC_2822) {
+                configFromRFC2822(config);
+            } else {
+                configFromStringAndFormat(config);
+            }
         }  else {
             configFromInput(config);
         }
