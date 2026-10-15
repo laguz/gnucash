@@ -632,6 +632,16 @@ TEST(gnc_datetime_functions, test_gnc_dow_abbrev)
     EXPECT_EQ(buf[1], '\0');
 }
 
+TEST(gnc_datetime_functions, test_gnc_timegm_invalid_argument)
+{
+    struct tm tm{};
+    tm.tm_year = 8100; // normalize_struct_tm converts 8100 + 1900 = 10000 % 10000 -> year 0, causing GncDateTime constructor to throw std::invalid_argument
+    tm.tm_mon = 0;
+    tm.tm_mday = 1;
+    time64 res = gnc_timegm(&tm);
+    EXPECT_EQ(res, 0);
+}
+
 //This is a bit convoluted because it uses GncDate's GncDateImpl constructor and year_month_day() function. There's no good way to test the former without violating the privacy of the implementation.
 TEST(gnc_datetime_functions, test_date)
 {
