@@ -1718,9 +1718,10 @@ qof_query_printPredData (QofQueryPredData *pd, GList *lst)
     gs = g_string_new ("Pred Data: ");
     g_string_append (gs, (gchar *) pd->type_name);
 
-    /* Char Predicate and GncGUID predicate don't use the 'how' field. */
+    /* Char Predicate, GncGUID predicate, and Collection predicate don't use the 'how' field. */
     if (g_strcmp0 (pd->type_name, QOF_TYPE_CHAR) &&
-            g_strcmp0 (pd->type_name, QOF_TYPE_GUID))
+            g_strcmp0 (pd->type_name, QOF_TYPE_GUID) &&
+            g_strcmp0 (pd->type_name, QOF_TYPE_COLLECT))
     {
         g_string_append_printf (gs, " how: %s",
                                 qof_query_printStringForHow (pd->how));
@@ -1844,7 +1845,20 @@ qof_query_printValueForParam (QofQueryPredData *pd, GString * gs)
         g_string_append_printf (gs, " boolean: %s", pdata->val ? "TRUE" : "FALSE");
         return;
     }
-    /** \todo QOF_TYPE_COLLECT */
+    if (!g_strcmp0 (pd->type_name, QOF_TYPE_COLLECT))
+    {
+        GList *node;
+        query_coll_t pdata = (query_coll_t) pd;
+        g_string_append_printf (gs, " Match type %s",
+                                qof_query_printGuidMatch (pdata->options));
+        for (node = pdata->guids; node; node = node->next)
+        {
+            gchar guidstr[GUID_ENCODING_LENGTH+1];
+            guid_to_string_buff ((GncGUID *) node->data, guidstr);
+            g_string_append_printf (gs, ", guids: %s", guidstr);
+        }
+        return;
+    }
     return;
 }        /* qof_query_printValueForParam */
 

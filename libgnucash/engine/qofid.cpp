@@ -58,6 +58,7 @@ qof_collection_new (QofIdType type)
 void
 qof_collection_destroy (QofCollection *col)
 {
+    if (!col) return;
     CACHE_REMOVE (col->e_type);
     g_hash_table_destroy(col->hash_of_entities);
     col->e_type = NULL;
