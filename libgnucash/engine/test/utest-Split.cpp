@@ -189,9 +189,8 @@ static void
 test_gnc_split_set_get_property ()
 {
     /* TODO: Several of the parameters set by gnc_split_init are not
-     * properties, and two members of struct split_s (orig_parent and
-     * reconciled) are neither initialized in gnc_split_init nor
-     * properties.
+     * properties, and member orig_parent of struct split_s is neither
+     * initialized in gnc_split_init nor a property.
      */
     QofBook *book = qof_book_new ();
     gnc_commodity *curr = gnc_commodity_new (book, "Gnu Rand", "CURRENCY", "GNR", "", 100);
@@ -202,6 +201,7 @@ test_gnc_split_set_get_property ()
     time64 time = gnc_time(nullptr);
     Time64 t = {time}, *rtime;
     char *r_action, *r_memo;
+    gchar r_reconciled;
     gnc_numeric value = gnc_numeric_create (123, 100);
     gnc_numeric amount = gnc_numeric_create (321, 100);
     gnc_numeric *r_value, *r_amount;
@@ -218,6 +218,7 @@ test_gnc_split_set_get_property ()
                   "value", &value,
                   "amount", &amount,
                   "reconcile-date", &t,
+                  "reconcile-state", YREC,
                   "account", acc,
                   "lot", lot,
                   "transaction", txn,
@@ -229,6 +230,7 @@ test_gnc_split_set_get_property ()
                   "value", &r_value,
                   "amount", &r_amount,
                   "reconcile-date", &rtime,
+                  "reconcile-state", &r_reconciled,
                   "transaction", &rtxn,
                   "account", &racc,
                   "lot", &rlot,
@@ -240,6 +242,7 @@ test_gnc_split_set_get_property ()
     /* Setting the transaction causes the amount to be scrubbed into the value */
     g_assert_true (gnc_numeric_equal (*r_amount, value));
     g_assert_cmpint (rtime->t, ==, time);
+    g_assert_cmpint (r_reconciled, ==, YREC);
     g_assert_true (txn == rtxn);
     g_assert_true (acc == racc);
     g_assert_true (lot == rlot);

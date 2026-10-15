@@ -81,7 +81,7 @@ enum
     PROP_ACCOUNT,               /* Table */
     PROP_MEMO,                  /* Table */
     PROP_ACTION,                /* Table */
-//    PROP_RECONCILE_STATE,     /* Table */
+    PROP_RECONCILE_STATE,       /* Table */
     PROP_RECONCILE_DATE,        /* Table */
     PROP_VALUE,                 /* Table, in 2 fields */
     PROP_SX_ACCOUNT,            /* KVP */
@@ -169,6 +169,9 @@ gnc_split_get_property(GObject         *object,
         case PROP_MEMO:
             g_value_set_string(value, split->memo);
             break;
+        case PROP_RECONCILE_STATE:
+            g_value_set_schar(value, split->reconciled);
+            break;
         case PROP_VALUE:
             g_value_set_boxed(value, &split->value);
             break;
@@ -246,6 +249,9 @@ gnc_split_set_property(GObject         *object,
             break;
         case PROP_MEMO:
             xaccSplitSetMemo(split, g_value_get_string(value));
+            break;
+        case PROP_RECONCILE_STATE:
+            xaccSplitSetReconcile(split, g_value_get_schar(value));
             break;
         case PROP_VALUE:
             number = static_cast<gnc_numeric*>(g_value_get_boxed(value));
@@ -337,6 +343,17 @@ gnc_split_class_init(SplitClass* klass)
                              "this split.",
                              nullptr,
                              G_PARAM_READWRITE));
+
+    g_object_class_install_property
+        (gobject_class,
+         PROP_RECONCILE_STATE,
+         g_param_spec_char("reconcile-state",
+                           "Reconcile State",
+                           "The reconcile status for this split.",
+                           0,
+                           127,
+                           NREC,
+                           G_PARAM_READWRITE));
 
     g_object_class_install_property
         (gobject_class,
