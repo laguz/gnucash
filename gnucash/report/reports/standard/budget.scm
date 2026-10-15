@@ -159,10 +159,7 @@
     (gnc-register-number-range-option options
       gnc:pagename-general optname-budget-period-start-exact
       "g1.2" opthelp-budget-period-start-exact
-      ;; FIXME: It would be nice if the max number of budget periods (60) was
-      ;; defined globally somewhere so we could reference it here.  However, it
-      ;; only appears to be defined currently in src/gnome/glade/budget.glade.
-      1 1 60 1)
+      1 1 gnc:max-budget-periods 1)
 
     (gnc-register-multichoice-callback-option options
       gnc:pagename-general optname-budget-period-end
@@ -176,10 +173,7 @@
     (gnc-register-number-range-option options
       gnc:pagename-general optname-budget-period-end-exact
       "g2.2" opthelp-budget-period-end-exact
-      ;; FIXME: It would be nice if the max number of budget periods (60) was
-      ;; defined globally somewhere so we could reference it here.  However, it
-      ;; only appears to be defined currently in src/gnome/glade/budget.glade.
-      1 1 60 1)
+      1 1 gnc:max-budget-periods 1)
     ;; accounts to work on
 
     (gnc-register-simple-boolean-option options
