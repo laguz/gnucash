@@ -910,13 +910,13 @@ def getTransactions(book, account_guid, date_posted_from, date_posted_to):
 
     # Eagerly load only the accounts associated with the queried transactions
     accounts_to_load = {}
-    for tx_instance in transactions_list:
-        tx = gnucash.gnucash_business.Transaction(instance=tx_instance)
-        for sp_instance in tx.GetSplitList():
-            sp = gnucash.gnucash_business.Split(instance=sp_instance)
+    for tx in transactions_list:
+        for sp in tx.GetSplitList():
             acc = sp.GetAccount()
             if acc:
-                accounts_to_load[acc.GetGUID().to_string()] = acc
+                guid_str = acc.GetGUID().to_string()
+                if guid_str not in accounts_to_load:
+                    accounts_to_load[guid_str] = acc
 
     for acc_guid, acc in accounts_to_load.items():
         account_cache[acc_guid] = gnucash_simple.accountToDict(acc, gbp=gbp, lazy=True)
