@@ -82,6 +82,29 @@ TEST(gncrational_operators, test_addition)
             EXPECT_EQ (777778777641976301, a.num());
             EXPECT_EQ (1000000000, a.denom());
         });
+
+    /* Test addition numerator overflow */
+    GncInt128 max_int(INT64_C(0x1fffffffffffffff), UINT64_MAX);
+    GncRational num_a(max_int, 1);
+    GncRational num_b(max_int, 1);
+    EXPECT_THROW(num_a + num_b, std::overflow_error);
+    EXPECT_THROW(num_a += num_b, std::overflow_error);
+
+    /* Test addition denominator (lcm) overflow */
+    GncInt128 den_a(INT64_C(0x1fffffffffffffff), UINT64_MAX);
+    GncInt128 den_b(INT64_C(0x1fffffffffffffff) - 1, UINT64_MAX);
+    GncRational den_rat1(1, den_a);
+    GncRational den_rat2(1, den_b);
+    EXPECT_THROW(den_rat1 + den_rat2, std::overflow_error);
+
+    /* Test addition with invalid operand throwing std::range_error */
+    GncInt128 invalid_int(INT64_C(0x1fffffffffffffff), UINT64_MAX);
+    invalid_int += invalid_int; // triggers overflow in GncInt128 making it invalid
+    GncRational invalid_rat(invalid_int, 1);
+    GncRational valid_rat(1, 1);
+    EXPECT_FALSE(invalid_rat.valid());
+    EXPECT_THROW(valid_rat + invalid_rat, std::range_error);
+    EXPECT_THROW(invalid_rat + valid_rat, std::range_error);
 }
 
 TEST(gncrational_operators, test_subtraction)
