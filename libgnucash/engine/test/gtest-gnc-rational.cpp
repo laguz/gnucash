@@ -138,6 +138,33 @@ TEST(gncrational_operators, test_division)
         });
 }
 
+TEST(gncrational_operators, test_division_overflow_and_errors)
+{
+    GncInt128 max_val(UINT64_C(0x1fffffffffffffff), UINT64_MAX, GncInt128::pos);
+
+    // Numerator overflow
+    GncRational a_large_num(max_val, 1);
+    GncRational b_half(1, 2);
+    EXPECT_THROW(a_large_num / b_half, std::overflow_error);
+    EXPECT_THROW(a_large_num /= b_half, std::overflow_error);
+
+    // Denominator overflow
+    GncRational a_unit(1, max_val);
+    GncRational b_two(2, 1);
+    EXPECT_THROW(a_unit / b_two, std::overflow_error);
+    EXPECT_THROW(a_unit /= b_two, std::overflow_error);
+
+    // Division by zero
+    GncRational a_normal(10, 1);
+    GncRational b_zero(0, 1);
+    EXPECT_THROW(a_normal / b_zero, std::underflow_error);
+
+    // Out of range (invalid) operand
+    GncRational invalid_a(max_val * 2, 1);
+    EXPECT_THROW(invalid_a / a_normal, std::range_error);
+    EXPECT_THROW(a_normal / invalid_a, std::range_error);
+}
+
 static bool
 rounding_predicate(GncInt128 expected, GncInt128 result)
 {
