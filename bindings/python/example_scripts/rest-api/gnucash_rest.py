@@ -778,8 +778,7 @@ def getCustomers(book):
     customers = []
 
     for result in query.run():
-        customers.append(gnucash_simple.customerToDict(
-            gnucash.gnucash_business.Customer(instance=result)))
+        customers.append(gnucash_simple.customerToDict(result))
 
     query.destroy()
 
