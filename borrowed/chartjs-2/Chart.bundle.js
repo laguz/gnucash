@@ -17266,7 +17266,13 @@ var moment = createCommonjsModule(function (module, exports) {
                 tempConfig._useUTC = config._useUTC;
             }
             tempConfig._f = config._f[i];
-            configFromStringAndFormat(tempConfig);
+            if (tempConfig._f === hooks.ISO_8601) {
+                configFromISO(tempConfig);
+            } else if (tempConfig._f === hooks.RFC_2822) {
+                configFromRFC2822(tempConfig);
+            } else {
+                configFromStringAndFormat(tempConfig);
+            }
 
             if (!isValid(tempConfig)) {
                 continue;
