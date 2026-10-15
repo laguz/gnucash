@@ -146,6 +146,10 @@ static GTimeZone *tz;
 static void
 test_gnc_localtime (void)
 {
+    struct tm time_buf;
+    time64 invalid_sec = 887326459367LL;
+    g_assert_null (gnc_localtime_r (&invalid_sec, &time_buf));
+
     time64 secs[] = {-15767956734LL, -1123692LL, 432761LL,
                       723349832LL, 887326459367LL,
                       1364160236LL};
