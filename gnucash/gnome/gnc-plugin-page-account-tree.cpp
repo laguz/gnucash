@@ -96,6 +96,7 @@ typedef struct _delete_helper
 #define STATE_SECTION "Account Hierarchy"
 
 #define DELETE_DIALOG_FILTER       "filter"
+#define DELETE_DIALOG_SA_FILTER    "sa_filter"
 #define DELETE_DIALOG_ACCOUNT      "account"
 #define DELETE_DIALOG_TRANS_MAS    "trans_mas"
 #define DELETE_DIALOG_SA_MAS       "sa_mas"
@@ -1223,7 +1224,14 @@ gppat_populate_gas_list(GtkWidget *dialog,
     if (gas == NULL)
         return;
     account = GNC_ACCOUNT(g_object_get_data(G_OBJECT(dialog), DELETE_DIALOG_ACCOUNT));
-    filter = static_cast<GList*>(g_object_get_data(G_OBJECT(dialog), DELETE_DIALOG_FILTER));
+    auto sa_mas = GTK_WIDGET(g_object_get_data(G_OBJECT(dialog), DELETE_DIALOG_SA_MAS));
+    auto sa_trans_mas = GTK_WIDGET(g_object_get_data(G_OBJECT(dialog), DELETE_DIALOG_SA_TRANS_MAS));
+
+    if ((GTK_WIDGET(gas) == sa_mas || GTK_WIDGET(gas) == sa_trans_mas) &&
+        g_object_get_data(G_OBJECT(dialog), DELETE_DIALOG_SA_FILTER) != NULL)
+        filter = static_cast<GList*>(g_object_get_data(G_OBJECT(dialog), DELETE_DIALOG_SA_FILTER));
+    else
+        filter = static_cast<GList*>(g_object_get_data(G_OBJECT(dialog), DELETE_DIALOG_FILTER));
 
     /* Setting the account type filter triggers GNCAccountSel population. */
     gnc_account_sel_set_acct_filters (gas, filter, NULL);
@@ -1400,7 +1408,14 @@ account_delete_dialog (Account *account, GtkWindow *parent, Adopters* adopt)
     dialog = GTK_WIDGET(gtk_builder_get_object (builder, "account_delete_dialog"));
     gtk_window_set_transient_for(GTK_WINDOW(dialog), parent);
 
-    /* FIXME: Same account type used for subaccount. */
+    Account *subacc = account_subaccount (account);
+    if (subacc)
+    {
+        GList* sa_filter = g_list_prepend (NULL, (gpointer)xaccAccountGetType (subacc));
+        g_object_set_data_full (G_OBJECT(dialog), DELETE_DIALOG_SA_FILTER, sa_filter,
+                                (GDestroyNotify) g_list_free);
+    }
+
     g_object_set_data_full (G_OBJECT(dialog), DELETE_DIALOG_FILTER, filter,
                             (GDestroyNotify) g_list_free);
     g_object_set_data(G_OBJECT(dialog), DELETE_DIALOG_ACCOUNT, account);
