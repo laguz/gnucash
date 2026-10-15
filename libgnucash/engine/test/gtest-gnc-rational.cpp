@@ -151,6 +151,33 @@ rounding_predicate(GncInt128 expected, GncInt128 result)
     return false;
 }
 
+TEST(gncrational_functions, test_reduce)
+{
+    // Happy path reduction
+    GncRational r1(12, 16);
+    auto red1 = r1.reduce();
+    EXPECT_EQ(3, red1.num());
+    EXPECT_EQ(4, red1.denom());
+
+    // Reduce already simplified rational
+    GncRational r2(7, 13);
+    auto red2 = r2.reduce();
+    EXPECT_EQ(7, red2.num());
+    EXPECT_EQ(13, red2.denom());
+
+    // Reduce overflow error path (numerator overflow)
+    GncInt128 ov_num(0, 100, GncInt128::overflow);
+    GncInt128 normal_den(0, 50);
+    GncRational r_ov1(ov_num, normal_den);
+    EXPECT_THROW(r_ov1.reduce(), std::overflow_error);
+
+    // Reduce overflow error path (denominator NaN)
+    GncInt128 normal_num(0, 100);
+    GncInt128 nan_den(0, 50, GncInt128::NaN);
+    GncRational r_ov2(normal_num, nan_den);
+    EXPECT_THROW(r_ov2.reduce(), std::overflow_error);
+}
+
 TEST(gncrational_functions, test_round_to_numeric)
 {
     std::default_random_engine dre;
