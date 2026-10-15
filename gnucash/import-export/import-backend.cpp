@@ -385,20 +385,22 @@ GdkPixbuf* gen_probability_pixbuf(gint score_original, GNCImportSettings *settin
     auto clear_threshold = gnc_import_Settings_get_clear_threshold(settings);
     for (int i = 0; i < height; i++)
     {
-        xpm[num_colors+1+i] = g_new0(char, (width_each_bar * score) + width_first_bar + 1);
+        std::string row_str;
+        row_str.reserve((width_each_bar * score) + width_first_bar);
         for (int j = 0; j <= score; j++)
         {
             if (j == 0)
-                strcat(xpm[num_colors+1+i], "b");
+                row_str += "b";
             else if (i == 0 || i == height - 1)
-                strcat(xpm[num_colors+1+i], "bbbbbb ");
+                row_str += "bbbbbb ";
             else if (j <= add_threshold)
-                strcat(xpm[num_colors+1+i], "brrrrb ");
+                row_str += "brrrrb ";
             else if (j >= clear_threshold)
-                strcat(xpm[num_colors+1+i], "bggggb ");
+                row_str += "bggggb ";
             else
-                strcat(xpm[num_colors+1+i], "byyyyb ");
+                row_str += "byyyyb ";
         }
+        xpm[num_colors+1+i] = g_strdup(row_str.c_str());
     }
     GError *err = nullptr;
     std::string xpm_str = "/* XPM */\nstatic char * XFACE[] = {\n";
