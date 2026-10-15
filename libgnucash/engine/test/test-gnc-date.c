@@ -268,6 +268,13 @@ test_gnc_mktime (void)
         g_assert_cmpint (secs, ==, ans[ind] - offset);
 
     }
+
+    /* Test error path when std::invalid_argument is thrown */
+    struct tm invalid_time;
+    memset (&invalid_time, 0, sizeof (invalid_time));
+    invalid_time.tm_year = -10000;
+    time64 secs_invalid = gnc_mktime (&invalid_time);
+    g_assert_cmpint (secs_invalid, ==, 0);
 }
 
 /* In addition to computing a time offset from a struct tm, mktime is
