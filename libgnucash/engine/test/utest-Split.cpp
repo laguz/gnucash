@@ -127,6 +127,7 @@ test_gnc_split_init ()
     g_assert_true (split->acc == NULL);
     g_assert_true (split->orig_acc == NULL);
     g_assert_true (split->parent == NULL);
+    g_assert_true (split->orig_parent == NULL);
     g_assert_true (split->lot == NULL);
     g_assert_cmpstr (split->action, ==, "");
     g_assert_cmpstr (split->memo, ==, "");
@@ -189,8 +190,7 @@ static void
 test_gnc_split_set_get_property ()
 {
     /* TODO: Several of the parameters set by gnc_split_init are not
-     * properties, and member orig_parent of struct split_s is neither
-     * initialized in gnc_split_init nor a property.
+     * properties.
      */
     QofBook *book = qof_book_new ();
     gnc_commodity *curr = gnc_commodity_new (book, "Gnu Rand", "CURRENCY", "GNR", "", 100);
@@ -267,11 +267,32 @@ xaccInitSplit(Split * split, QofBook *book)// Local: 1:0:0
 An utterly useless function that just chains up to QofInstance.
 */
 
-// Not Used
 /* xaccSplitReinit
 void
 xaccSplitReinit(Split * split)//
 */
+static void
+test_xaccSplitReinit (Fixture *fixture, gconstpointer pData)
+{
+    Split *split = fixture->split;
+    xaccSplitReinit (split);
+    g_assert_true (split->acc == NULL);
+    g_assert_true (split->orig_acc == NULL);
+    g_assert_true (split->parent == NULL);
+    g_assert_true (split->orig_parent == NULL);
+    g_assert_true (split->lot == NULL);
+    g_assert_cmpstr (split->action, ==, "");
+    g_assert_cmpstr (split->memo, ==, "");
+    g_assert_cmpint (split->reconciled, ==, NREC);
+    g_assert_true (gnc_numeric_zero_p (split->amount));
+    g_assert_true (gnc_numeric_zero_p (split->value));
+    g_assert_true (gnc_numeric_zero_p (split->balance));
+    g_assert_true (gnc_numeric_zero_p (split->cleared_balance));
+    g_assert_true (gnc_numeric_zero_p (split->reconciled_balance));
+    g_assert_cmpint (split->gains, ==, GAINS_STATUS_UNKNOWN);
+    g_assert_true (split->gains_split == NULL);
+}
+
 /* xaccMallocSplit
 Split *
 xaccMallocSplit(QofBook *book)// C: 46 in 23 SCM: 3 in 2
@@ -1901,6 +1922,7 @@ test_suite_split (void)
     GNC_TEST_ADD_FUNC (suitename, "gnc split init", test_gnc_split_init);
     GNC_TEST_ADD_FUNC (suitename, "gnc split dispose", test_gnc_split_dispose);
     GNC_TEST_ADD_FUNC (suitename, "gnc split set & get property", test_gnc_split_set_get_property);
+    GNC_TEST_ADD (suitename, "xaccSplitReinit", Fixture, NULL, setup, test_xaccSplitReinit, teardown);
     GNC_TEST_ADD (suitename, "xaccMallocSplit", Fixture, NULL, setup, test_xaccMallocSplit, teardown);
     GNC_TEST_ADD (suitename, "xaccDupeSplit", Fixture, NULL, setup, test_xaccDupeSplit, teardown);
     GNC_TEST_ADD (suitename, "xaccSplitCloneNoKvp", Fixture, NULL, setup, test_xaccSplitCloneNoKvp, teardown);
