@@ -970,12 +970,16 @@ def getAccountSplits(book, guid, date_posted_from, date_posted_to):
     commod_table = book.get_table()
     gbp = commod_table.lookup('CURRENCY', 'GBP')
     account_cache = {}
+    transaction_cache = {}
+    split_cache = {}
 
     for split in query.run():
         splits.append(gnucash_simple.splitToDict(
             split,
             ['account', 'transaction', 'other_split'],
-            account_cache=account_cache, gbp=gbp))
+            account_cache=account_cache, gbp=gbp,
+            transaction_cache=transaction_cache,
+            split_cache=split_cache))
 
     query.destroy()
 
