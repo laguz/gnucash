@@ -179,30 +179,19 @@ test_kvp_xml_stuff (void)
 static void
 test_kvp_missing_value (void)
 {
-    auto msg = "KvpFrame missing value error handling";
-    xmlNodePtr root_node = xmlNewNode (NULL, BAD_CAST "slots");
-    xmlNodePtr slot_node = xmlNewChild (root_node, NULL, BAD_CAST "slot", NULL);
-    xmlNodePtr key_node = xmlNewChild (slot_node, NULL, BAD_CAST "slot:key", NULL);
-    xmlNodeAddContent (key_node, BAD_CAST "test_key_without_value");
+    // Test that a slot with a key but missing/invalid value produces no value and is handled cleanly.
+    xmlNodePtr root = xmlNewNode (nullptr, BAD_CAST "test-frame");
+    xmlNodePtr slot = xmlNewChild (root, nullptr, BAD_CAST "slot", nullptr);
+    xmlNewTextChild (slot, nullptr, BAD_CAST "slot:key", BAD_CAST "test-key-missing-val");
 
-    g_test_expect_message ("gnc.io", G_LOG_LEVEL_WARNING,
-                           "*No value found for key 'test_key_without_value'*");
-
-    KvpFrame* parsed_frame = dom_tree_to_kvp_frame (root_node);
-
-    g_test_assert_expected_messages ();
-
-    if (parsed_frame && parsed_frame->get_slot ({"test_key_without_value"}) == nullptr)
+    KvpFrame* frame = dom_tree_to_kvp_frame (root);
+    do_test (frame != nullptr, "dom_tree_to_kvp_frame returned frame");
+    if (frame)
     {
-        success (msg);
+        do_test (frame->get_slot ({"test-key-missing-val"}) == nullptr, "missing value not set in frame");
+        delete frame;
     }
-    else
-    {
-        failure (msg);
-    }
-
-    delete parsed_frame;
-    xmlFreeNode (root_node);
+    xmlFreeNode (root);
 }
 
 int

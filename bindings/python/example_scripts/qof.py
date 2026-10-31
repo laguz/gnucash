@@ -84,10 +84,7 @@ def query_transactions(book, terms=[]):
         for term in terms:
             query.add_term(*term)
 
-    transactions = []
-
-    for transaction in query.run():
-        transactions.append(transaction)	
+    transactions = list(query.run())
 
     query.destroy()
     return transactions

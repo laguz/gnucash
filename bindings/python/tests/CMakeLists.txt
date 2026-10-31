@@ -29,6 +29,7 @@ set(test_python_bindings_DATA
         test_deprecation.py
         test_export_account_totals.py
         test_change_tax_code.py
+        test_gnc_convenience.py
         test_latex_invoices.py
         test_one_arg_default_none.py
         test_account_analysis.py

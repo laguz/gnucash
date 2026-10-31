@@ -100,42 +100,6 @@ GncSqlBackend::connect(GncSqlConnection *conn) noexcept
     m_conn = conn;
 }
 
-GncSqlStatementPtr
-GncSqlBackend::create_statement_from_sql(const std::string& str) const noexcept
-{
-    auto stmt = m_conn ? m_conn->create_statement_from_sql(str) : nullptr;
-    if (stmt == nullptr)
-    {
-        PERR ("SQL error: %s\n", str.c_str());
-        qof_backend_set_error ((QofBackend*)this, ERR_BACKEND_SERVER_ERR);
-    }
-    return stmt;
-}
-
-GncSqlResultPtr
-GncSqlBackend::execute_select_statement(const GncSqlStatementPtr& stmt) const noexcept
-{
-    auto result = m_conn ? m_conn->execute_select_statement(stmt) : nullptr;
-    if (result == nullptr)
-    {
-        PERR ("SQL error: %s\n", stmt->to_sql());
-        qof_backend_set_error ((QofBackend*)this, ERR_BACKEND_SERVER_ERR);
-    }
-    return result;
-}
-
-int
-GncSqlBackend::execute_nonselect_statement(const GncSqlStatementPtr& stmt) const noexcept
-{
-    int result = m_conn ? m_conn->execute_nonselect_statement(stmt) : -1;
-    if (result == -1)
-    {
-        PERR ("SQL error: %s\n", stmt->to_sql());
-        qof_backend_set_error ((QofBackend*)this, ERR_BACKEND_SERVER_ERR);
-    }
-    return result;
-}
-
 std::string
 GncSqlBackend::quote_string(const std::string& str) const noexcept
 {
