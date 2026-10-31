@@ -356,7 +356,7 @@ dom_tree_to_kvp_frame_given (xmlNodePtr node, KvpFrame* frame)
                 }
                 else
                 {
-                    /* FIXME: should put some error here */
+                    PERR ("Missing or invalid value for key %s", key);
                 }
             }
         }

@@ -161,7 +161,6 @@ static void gnc_plugin_page_report_load_cb(GncHtml * html, URLType type,
 static void gnc_plugin_page_report_refresh (gpointer data);
 static void gnc_plugin_page_report_set_fwd_button(GncPluginPageReport * page, int enabled);
 static void gnc_plugin_page_report_set_back_button(GncPluginPageReport * page, int enabled);
-static void gnc_plugin_page_report_history_destroy_cb(gnc_html_history_node * node, gpointer user_data);
 static void close_handler(gpointer user_data);
 void gnc_plugin_page_report_destroy(GncPluginPageReportPrivate *priv);
 static void gnc_plugin_page_report_option_change_cb(gpointer data);
@@ -530,10 +529,6 @@ gnc_plugin_page_report_create_widget( GncPluginPage *page )
     gnc_html_set_parent( priv->html, topLvl );
     priv->loaded = FALSE;
 
-    gnc_html_history_set_node_destroy_cb(gnc_html_get_history(priv->html),
-                                         gnc_plugin_page_report_history_destroy_cb,
-                                         (gpointer)priv);
-
     priv->container = GTK_CONTAINER(gtk_frame_new(nullptr));
     gtk_frame_set_shadow_type(GTK_FRAME(priv->container), GTK_SHADOW_NONE);
 
@@ -835,35 +830,6 @@ gnc_plugin_page_report_option_change_cb(gpointer data)
     gnc_plugin_set_actions_enabled(G_ACTION_MAP(priv->action_group),
                                    disable_during_load_actions, TRUE);
     priv->reloading = FALSE;
-}
-
-/* FIXME: This function does... nothing?  */
-static void
-gnc_plugin_page_report_history_destroy_cb(gnc_html_history_node * node,
-        gpointer user_data)
-{
-#if 0
-    static SCM         remover = SCM_BOOL_F;
-    int                report_id;
-
-    if (remover == SCM_BOOL_F)
-    {
-        remover = scm_c_eval_string("gnc:report-remove-by-id");
-    }
-
-    if (node
-            && !g_strcmp0 (node->type, URL_TYPE_REPORT)\
-            && !strncmp("id=", node->location, 3))
-    {
-        sscanf(node->location + 3, "%d", &report_id);
-        /*    printf("unreffing report %d and children\n", report_id);
-              scm_call_1(remover, scm_from_int (report_id)); */
-    }
-    else
-    {
-        return;
-    }
-#endif
 }
 
 // @param data is actually GncPluginPageReportPrivate

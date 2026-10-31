@@ -796,7 +796,7 @@ gnc_ui_order_new (GtkWindow *parent, GncOwner *ownerp, QofBook *bookp)
         }
     }
     else
-        gncOwnerInitJob (&owner, NULL); /* XXX: pass in the owner type? */
+        gncOwnerInitCustomer (&owner, NULL);
 
     /* Make sure required options exist */
     if (!bookp) return NULL;

@@ -775,10 +775,7 @@ def getCustomers(book):
     query = gnucash.Query()
     query.search_for('gncCustomer')
     query.set_book(book)
-    customers = []
-
-    for result in query.run():
-        customers.append(gnucash_simple.customerToDict(result))
+    customers = [gnucash_simple.customerToDict(result) for result in query.run()]
 
     query.destroy()
 
@@ -847,7 +844,7 @@ def getSubAccounts(account):
 
     flat_accounts = []
 
-    if 'subaccounts' in list(account.keys()):
+    if 'subaccounts' in account:
         for n, subaccount in enumerate(account['subaccounts']):
             flat_accounts.append(subaccount)
             flat_accounts = flat_accounts + getSubAccounts(subaccount)
