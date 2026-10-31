@@ -99,10 +99,7 @@ def query_splits(book, terms=[]):
         for term in terms:
             query.add_term(*term)
 
-    splits = []
-
-    for split in query.run():
-        splits.append(split)	
+    splits = list(query.run())
 
     query.destroy()
     return splits
