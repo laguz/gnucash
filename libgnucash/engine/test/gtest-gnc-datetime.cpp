@@ -652,6 +652,31 @@ TEST(gnc_datetime_functions, test_gnc_timegm_invalid_argument)
     EXPECT_EQ(res, 0);
 }
 
+TEST(gnc_datetime_functions, test_gnc_mktime_invalid_argument)
+{
+    struct tm tm{};
+    tm.tm_year = 8100; // normalize_struct_tm converts 8100 + 1900 = 10000 % 10000 -> year 0, causing GncDateTime constructor to throw std::invalid_argument
+    tm.tm_mon = 0;
+    tm.tm_mday = 1;
+    time64 res = gnc_mktime(&tm);
+    EXPECT_EQ(res, 0);
+}
+
+TEST(gnc_datetime_functions, test_gnc_localtime_r_invalid_argument)
+{
+    time64 invalid_time = 253402300800LL; // Year 10000, outside boost::gregorian supported range
+    struct tm tm{};
+    struct tm* res = gnc_localtime_r(&invalid_time, &tm);
+    EXPECT_EQ(res, nullptr);
+}
+
+TEST(gnc_datetime_functions, test_gnc_gmtime_invalid_argument)
+{
+    time64 invalid_time = 253402300800LL; // Year 10000, outside boost::gregorian supported range
+    struct tm* res = gnc_gmtime(&invalid_time);
+    EXPECT_EQ(res, nullptr);
+}
+
 //This is a bit convoluted because it uses GncDate's GncDateImpl constructor and year_month_day() function. There's no good way to test the former without violating the privacy of the implementation.
 TEST(gnc_datetime_functions, test_date)
 {
