@@ -176,6 +176,24 @@ test_kvp_xml_stuff (void)
     }
 }
 
+static void
+test_kvp_missing_value (void)
+{
+    // Test that a slot with a key but missing/invalid value produces no value and is handled cleanly.
+    xmlNodePtr root = xmlNewNode (nullptr, BAD_CAST "test-frame");
+    xmlNodePtr slot = xmlNewChild (root, nullptr, BAD_CAST "slot", nullptr);
+    xmlNewTextChild (slot, nullptr, BAD_CAST "slot:key", BAD_CAST "test-key-missing-val");
+
+    KvpFrame* frame = dom_tree_to_kvp_frame (root);
+    do_test (frame != nullptr, "dom_tree_to_kvp_frame returned frame");
+    if (frame)
+    {
+        do_test (frame->get_slot ({"test-key-missing-val"}) == nullptr, "missing value not set in frame");
+        delete frame;
+    }
+    xmlFreeNode (root);
+}
+
 int
 main (int argc, char** argv)
 {
@@ -184,6 +202,7 @@ main (int argc, char** argv)
     test_kvp_printing ();
     test_kvp_frames1 ();
     test_kvp_xml_stuff ();
+    test_kvp_missing_value ();
     print_test_results ();
     exit (get_rv ());
 }
