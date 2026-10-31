@@ -37,10 +37,10 @@
 class QofQueryCoreTest : public ::testing::Test {
     protected:
     QofQueryCoreTest() {
-        qof_query_core_init();
+        qof_query_init();
     }
     ~QofQueryCoreTest() {
-        qof_query_core_shutdown();
+        qof_query_shutdown();
     }
 };
 
@@ -217,4 +217,59 @@ TEST_F(QofQueryCoreTest, numeric_predicate_get_date)
     );
     EXPECT_FALSE (qof_query_date_predicate_get_date(pdata, &date));
     qof_query_core_predicate_free (pdata);
+}
+
+TEST_F(QofQueryCoreTest, construct_predicate_collect)
+{
+    GncGUID guid;
+    guid_replace(&guid);
+    QofBook *book = qof_book_new();
+    QofCollection *col = qof_book_get_collection(book, "asdf");
+    auto ent = QOF_INSTANCE(g_object_new(QOF_TYPE_INSTANCE, "guid", &guid, NULL));
+    ent->e_type = qof_collection_get_type(col);
+    qof_collection_insert_entity(col, ent);
+
+    query_coll_def *pdata = (query_coll_def*)qof_query_collect_predicate(
+        QOF_GUID_MATCH_ANY,
+        col
+    );
+    ASSERT_NE (nullptr, pdata);
+    EXPECT_STREQ (QOF_TYPE_COLLECT, pdata->pd.type_name);
+    EXPECT_EQ (QOF_GUID_MATCH_ANY,  pdata->options);
+    ASSERT_NE (nullptr,             pdata->guids);
+    EXPECT_TRUE (guid_equal (&guid, (const GncGUID*)pdata->guids->data));
+
+    qof_query_core_predicate_free ((QofQueryPredData*) pdata);
+    qof_collection_remove_entity(ent);
+    g_object_unref(ent);
+    qof_book_destroy (book);
+}
+
+TEST_F(QofQueryCoreTest, print_query_collect)
+{
+    GncGUID guid;
+    guid_replace(&guid);
+    QofBook *book = qof_book_new();
+    QofCollection *col = qof_book_get_collection(book, "asdf");
+    auto ent = QOF_INSTANCE(g_object_new(QOF_TYPE_INSTANCE, "guid", &guid, NULL));
+    ent->e_type = qof_collection_get_type(col);
+    qof_collection_insert_entity(col, ent);
+
+    QofQueryPredData *pdata = qof_query_collect_predicate(
+        QOF_GUID_MATCH_ANY,
+        col
+    );
+
+    QofQuery *q = qof_query_create_for("asdf");
+    qof_query_set_book(q, book);
+    QofQueryParamList *plist = qof_query_build_param_list("param", NULL);
+    qof_query_add_term(q, plist, pdata, QOF_QUERY_OR);
+
+    qof_log_set_level(QOF_MOD_QUERY, QOF_LOG_DEBUG);
+    qof_query_run(q);
+
+    qof_query_destroy(q);
+    qof_collection_remove_entity(ent);
+    g_object_unref(ent);
+    qof_book_destroy(book);
 }

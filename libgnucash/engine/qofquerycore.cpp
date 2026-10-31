@@ -1347,7 +1347,6 @@ collect_free_pdata (QofQueryPredData *pd)
     {
         guid_free (static_cast<GncGUID*>(node->data));
     }
-    qof_collection_destroy(pdata->coll);
     g_list_free (pdata->guids);
     g_free (pdata);
 }
@@ -1356,9 +1355,22 @@ static QofQueryPredData *
 collect_copy_predicate (const QofQueryPredData *pd)
 {
     const query_coll_t pdata = (const query_coll_t) pd;
+    query_coll_t new_pdata;
+    GList *node;
 
     VERIFY_PDATA_R (query_collect_type);
-    return qof_query_collect_predicate (pdata->options, pdata->coll);
+
+    new_pdata = g_new0 (query_coll_def, 1);
+    new_pdata->pd.type_name = query_collect_type;
+    new_pdata->options = pdata->options;
+    for (node = pdata->guids; node; node = node->next)
+    {
+        new_pdata->guids = g_list_prepend (new_pdata->guids,
+                                           guid_copy (static_cast<GncGUID*>(node->data)));
+    }
+    new_pdata->guids = g_list_reverse (new_pdata->guids);
+
+    return ((QofQueryPredData*)new_pdata);
 }
 
 static gboolean
@@ -1366,14 +1378,19 @@ collect_predicate_equal (const QofQueryPredData *p1, const QofQueryPredData *p2)
 {
     const query_coll_t pd1 = (const query_coll_t) p1;
     const query_coll_t pd2 = (const query_coll_t) p2;
-    gint result;
+    GList *l1, *l2;
 
-    result = qof_collection_compare(pd1->coll, pd2->coll);
-    if (result == 0)
+    if (pd1->options != pd2->options)
+        return FALSE;
+
+    for (l1 = pd1->guids, l2 = pd2->guids; l1 || l2; l1 = l1->next, l2 = l2->next)
     {
-        return TRUE;
+        if (!l1 || !l2)
+            return FALSE;
+        if (!guid_equal (static_cast<GncGUID*>(l1->data), static_cast<GncGUID*>(l2->data)))
+            return FALSE;
     }
-    return FALSE;
+    return TRUE;
 }
 
 static void
@@ -1382,7 +1399,7 @@ query_collect_cb(QofInstance* ent, gpointer user_data)
     query_coll_t pdata;
     GncGUID *guid;
 
-    guid = (GncGUID*)qof_entity_get_guid(ent);
+    guid = guid_copy (qof_entity_get_guid(ent));
     pdata = (query_coll_t)user_data;
     pdata->guids = g_list_append(pdata->guids, guid);
 }
@@ -1399,6 +1416,7 @@ qof_query_collect_predicate (QofGuidMatch options, QofCollection *coll)
     qof_collection_foreach(coll, query_collect_cb, pdata);
     if (nullptr == pdata->guids)
     {
+        g_free (pdata);
         return nullptr;
     }
     return ((QofQueryPredData*)pdata);
