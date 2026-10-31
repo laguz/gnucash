@@ -355,7 +355,7 @@ dom_tree_to_kvp_frame_given (xmlNodePtr node, KvpFrame* frame)
                 }
                 else
                 {
-                    /* FIXME: should put some error here */
+                    PWARN ("No value found for key '%s'", key);
                 }
             }
         }

@@ -176,6 +176,35 @@ test_kvp_xml_stuff (void)
     }
 }
 
+static void
+test_kvp_missing_value (void)
+{
+    auto msg = "KvpFrame missing value error handling";
+    xmlNodePtr root_node = xmlNewNode (NULL, BAD_CAST "slots");
+    xmlNodePtr slot_node = xmlNewChild (root_node, NULL, BAD_CAST "slot", NULL);
+    xmlNodePtr key_node = xmlNewChild (slot_node, NULL, BAD_CAST "slot:key", NULL);
+    xmlNodeAddContent (key_node, BAD_CAST "test_key_without_value");
+
+    g_test_expect_message ("gnc.io", G_LOG_LEVEL_WARNING,
+                           "*No value found for key 'test_key_without_value'*");
+
+    KvpFrame* parsed_frame = dom_tree_to_kvp_frame (root_node);
+
+    g_test_assert_expected_messages ();
+
+    if (parsed_frame && parsed_frame->get_slot ({"test_key_without_value"}) == nullptr)
+    {
+        success (msg);
+    }
+    else
+    {
+        failure (msg);
+    }
+
+    delete parsed_frame;
+    xmlFreeNode (root_node);
+}
+
 int
 main (int argc, char** argv)
 {
@@ -184,6 +213,7 @@ main (int argc, char** argv)
     test_kvp_printing ();
     test_kvp_frames1 ();
     test_kvp_xml_stuff ();
+    test_kvp_missing_value ();
     print_test_results ();
     exit (get_rv ());
 }
