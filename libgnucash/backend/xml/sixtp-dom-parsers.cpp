@@ -294,12 +294,13 @@ dom_tree_to_kvp_value (xmlNodePtr node)
         if (g_strcmp0 (reinterpret_cast<char*>(xml_type), mark->tag) == 0)
         {
             ret = (mark->converter) (node);
+            break;
         }
     }
 
     if (!mark->tag)
     {
-        /* FIXME: deal with unknown type tag here */
+        PWARN ("Unknown type: %s", xml_type ? reinterpret_cast<const char*>(xml_type) : "(null)");
     }
 
     xmlFree (xml_type);
