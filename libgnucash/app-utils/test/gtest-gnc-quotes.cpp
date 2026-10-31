@@ -298,7 +298,9 @@ TEST_F(GncQuotesTest, bad_date)
     auto hpe{gnc_commodity_table_lookup(commtable, "NYSE", "HPE")};
     auto usd{gnc_commodity_table_lookup(commtable, "ISO4217", "USD")};
     GncQuotesImpl quotes(m_book, std::make_unique<GncMockQuoteSource>(std::move(quote_vec), std::move(err_vec)));
+    g_test_expect_message("gnc.price-quotes", G_LOG_LEVEL_WARNING, "*failed to parse quote date*");
     quotes.fetch(hpe);
+    g_test_assert_expected_messages();
     auto failures{quotes.failures()};
     EXPECT_TRUE(failures.empty());
     auto pricedb{gnc_pricedb_get_db(m_book)};
