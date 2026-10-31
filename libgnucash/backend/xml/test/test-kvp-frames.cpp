@@ -176,6 +176,42 @@ test_kvp_xml_stuff (void)
     }
 }
 
+static void
+test_kvp_unknown_type (void)
+{
+    /* Test unknown type tag handling in dom_tree_to_kvp_frame */
+    xmlNodePtr root = xmlNewNode (NULL, BAD_CAST "test-kvp");
+    xmlNodePtr slot1 = xmlNewChild (root, NULL, BAD_CAST "slot", NULL);
+    xmlNewChild (slot1, NULL, BAD_CAST "slot:key", BAD_CAST "bad-type-key");
+    xmlNodePtr val1 = xmlNewChild (slot1, NULL, BAD_CAST "slot:value", BAD_CAST "some content");
+    xmlSetProp (val1, BAD_CAST "type", BAD_CAST "unknown-custom-type");
+
+    xmlNodePtr slot2 = xmlNewChild (root, NULL, BAD_CAST "slot", NULL);
+    xmlNewChild (slot2, NULL, BAD_CAST "slot:key", BAD_CAST "no-type-key");
+    xmlNewChild (slot2, NULL, BAD_CAST "slot:value", BAD_CAST "some content");
+
+    xmlNodePtr slot3 = xmlNewChild (root, NULL, BAD_CAST "slot", NULL);
+    xmlNewChild (slot3, NULL, BAD_CAST "slot:key", BAD_CAST "valid-key");
+    xmlNodePtr val3 = xmlNewChild (slot3, NULL, BAD_CAST "slot:value", BAD_CAST "12345");
+    xmlSetProp (val3, BAD_CAST "type", BAD_CAST "integer");
+
+    auto frame = dom_tree_to_kvp_frame (root);
+    do_test_args (frame != nullptr, "dom_tree_to_kvp_frame with unknown type returns valid frame",
+                  __FILE__, __LINE__, "");
+    if (frame)
+    {
+        do_test_args (frame->get_slot ({"bad-type-key"}) == nullptr,
+                      "unknown type slot was ignored", __FILE__, __LINE__, "");
+        do_test_args (frame->get_slot ({"no-type-key"}) == nullptr,
+                      "no type slot was ignored", __FILE__, __LINE__, "");
+        auto valid_val = frame->get_slot ({"valid-key"});
+        do_test_args (valid_val != nullptr && valid_val->get<int64_t>() == 12345,
+                      "valid slot was parsed correctly", __FILE__, __LINE__, "");
+        delete frame;
+    }
+    xmlFreeNode (root);
+}
+
 int
 main (int argc, char** argv)
 {
@@ -184,6 +220,7 @@ main (int argc, char** argv)
     test_kvp_printing ();
     test_kvp_frames1 ();
     test_kvp_xml_stuff ();
+    test_kvp_unknown_type ();
     print_test_results ();
     exit (get_rv ());
 }
