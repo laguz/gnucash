@@ -32,6 +32,7 @@
 #include <sstream>
 #include <vector>
 #include <qof-backend.hpp>
+#include "gnc-sql-connection.hpp"
 
 class GncSqlColumnTableEntry;
 using GncSqlColumnTableEntryPtr = std::shared_ptr<GncSqlColumnTableEntry>;
@@ -40,9 +41,6 @@ class GncSqlObjectBackend;
 using GncSqlObjectBackendPtr = std::shared_ptr<GncSqlObjectBackend>;
 using OBEEntry = std::tuple<std::string, GncSqlObjectBackendPtr>;
 using OBEVec = std::vector<OBEEntry>;
-class GncSqlConnection;
-class GncSqlStatement;
-using GncSqlStatementPtr = std::unique_ptr<GncSqlStatement>;
 class GncSqlResult;
 using GncSqlResultPtr = GncSqlResult*;
 using VersionPair = std::pair<const std::string, unsigned int>;
@@ -109,8 +107,17 @@ public:
      * Finalizes DB table version information.
      */
     void finalize_version_info() noexcept;
-    /* FIXME: These are just pass-throughs of m_conn functions. */
-    GncSqlStatementPtr create_statement_from_sql(const std::string& str) const noexcept;
+    GncSqlStatementPtr create_statement_from_sql(const std::string& str) const noexcept
+    {
+        static QofLogModule log_module = G_LOG_DOMAIN;
+        auto stmt = m_conn ? m_conn->create_statement_from_sql(str) : nullptr;
+        if (stmt == nullptr)
+        {
+            PERR ("SQL error: %s\n", str.c_str());
+            qof_backend_set_error (const_cast<GncSqlBackend*>(this), ERR_BACKEND_SERVER_ERR);
+        }
+        return stmt;
+    }
     /** Executes an SQL SELECT statement and returns the result rows.  If an
      * error occurs, an entry is added to the log, an error status is returned
      * to qof and nullptr is returned.
@@ -118,8 +125,28 @@ public:
      * @param statement Statement
      * @return Results, or nullptr if an error has occurred
      */
-    GncSqlResultPtr execute_select_statement(const GncSqlStatementPtr& stmt) const noexcept;
-    int execute_nonselect_statement(const GncSqlStatementPtr& stmt) const noexcept;
+    GncSqlResultPtr execute_select_statement(const GncSqlStatementPtr& stmt) const noexcept
+    {
+        static QofLogModule log_module = G_LOG_DOMAIN;
+        auto result = m_conn ? m_conn->execute_select_statement(stmt) : nullptr;
+        if (result == nullptr)
+        {
+            PERR ("SQL error: %s\n", stmt->to_sql());
+            qof_backend_set_error (const_cast<GncSqlBackend*>(this), ERR_BACKEND_SERVER_ERR);
+        }
+        return result;
+    }
+    int execute_nonselect_statement(const GncSqlStatementPtr& stmt) const noexcept
+    {
+        static QofLogModule log_module = G_LOG_DOMAIN;
+        int result = m_conn ? m_conn->execute_nonselect_statement(stmt) : -1;
+        if (result == -1)
+        {
+            PERR ("SQL error: %s\n", stmt->to_sql());
+            qof_backend_set_error (const_cast<GncSqlBackend*>(this), ERR_BACKEND_SERVER_ERR);
+        }
+        return result;
+    }
     std::string quote_string(const std::string&) const noexcept;
     /**
      * Creates a table in the database
