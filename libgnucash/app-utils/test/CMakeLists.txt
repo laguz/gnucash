@@ -75,6 +75,27 @@ gnc_add_test(test-autoclear "${test_autoclear_SOURCES}"
     test_autoclear_LIBS
 )
 
+set(test_file_utils_SOURCES
+  test-file-utils.cpp
+)
+
+set(test_file_utils_INCLUDE_DIRS
+  ${CMAKE_BINARY_DIR}/common
+  ${MODULEPATH}
+  ${CMAKE_SOURCE_DIR}/libgnucash/core-utils
+)
+
+set(test_file_utils_LIBS
+  gnc-app-utils
+  gnc-core-utils
+  gtest
+)
+
+gnc_add_test(test-file-utils "${test_file_utils_SOURCES}"
+    test_file_utils_INCLUDE_DIRS
+    test_file_utils_LIBS
+)
+
 set(GUILE_DEPENDS
   scm-test-engine
   scm-app-utils
@@ -93,4 +114,5 @@ set_dist_list(test_app_utils_DIST
   ${test_app_utils_scheme_SOURCES}
   ${test_app_utils_SOURCES}
   ${test_autoclear_SOURCES}
+  ${test_file_utils_SOURCES}
 )
