@@ -1024,11 +1024,11 @@ def getInvoices(book, customer, is_paid, is_active, date_due_from,
     pred_data = gnucash.gnucash_core.QueryInt32Predicate(QOF_COMPARE_EQUAL, 1)
     query.add_term([INVOICE_TYPE], pred_data, QOF_QUERY_AND)
 
-    invoices = []
-
-    for result in query.run():
-        invoices.append(gnucash_simple.invoiceToDict(
-            gnucash.gnucash_business.Invoice(instance=result)))
+    invoices = [
+        gnucash_simple.invoiceToDict(
+            gnucash.gnucash_business.Invoice(instance=result))
+        for result in query.run()
+    ]
 
     query.destroy()
 
