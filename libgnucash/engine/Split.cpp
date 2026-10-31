@@ -113,6 +113,7 @@ gnc_split_init(Split* split)
     split->acc         = nullptr;
     split->orig_acc    = nullptr;
     split->parent      = nullptr;
+    split->orig_parent = nullptr;
     split->lot         = nullptr;
 
     split->action      = CACHE_INSERT("");
@@ -533,6 +534,7 @@ xaccSplitReinit(Split * split)
     split->acc         = nullptr;
     split->orig_acc    = nullptr;
     split->parent      = nullptr;
+    split->orig_parent = nullptr;
     split->lot         = nullptr;
 
     CACHE_REPLACE(split->action, "");
