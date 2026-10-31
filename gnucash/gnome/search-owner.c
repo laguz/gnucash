@@ -130,8 +130,6 @@ gncs_validate (GNCSearchCoreType *fe)
         gnc_error_dialog (GTK_WINDOW(fi->parent), "%s", _("You have not selected an owner"));
     }
 
-    /* XXX */
-
     return valid;
 }
 
