@@ -53,7 +53,7 @@ def get_splits_without_lot(account=None,split_list=None):
   
   rlist=[]
   for split in split_list:
-      if type(split).__name__ == 'SwigPyObject':
+      if not isinstance(split, Split):
           split = Split(instance=split) 
       lot=split.GetLot()
       if lot == None:
