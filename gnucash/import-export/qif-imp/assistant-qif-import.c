@@ -212,6 +212,9 @@ struct _qifnotebookpage
     gnc_commodity *commodity;
     gboolean       page_complete;
     SCM            hash_key;
+    gboolean       existing_accepted;
+    gchar         *accepted_ns;
+    gchar         *accepted_mn;
 };
 
 typedef struct _qifnotebookpage QIFCommNotebookPage;
@@ -439,6 +442,9 @@ gnc_ui_qif_import_commodity_destroy (QIFImportWindow * wind)
 
         /* Unprotect the Scheme hash key. */
         scm_gc_unprotect_object (comm_nb_page->hash_key);
+
+        g_free (comm_nb_page->accepted_ns);
+        g_free (comm_nb_page->accepted_mn);
 
         /* Free the memory allocated for the page's struct. */
         g_free (comm_nb_page);
@@ -2971,11 +2977,6 @@ gnc_ui_qif_import_comm_valid (GtkAssistant *assistant, gpointer user_data)
         return FALSE;
     }
 
-    /* FIXME: Should check whether a commodity with this namespace and
-     *        mnemonic already exists. If so, ask the user whether to use
-     *        the existing one, or go back and change what they've entered.
-     */
-
     book = gnc_get_current_book ();
     table = gnc_commodity_table_get_table (book);
     if (gnc_commodity_namespace_is_iso (name_space) &&
@@ -2988,6 +2989,54 @@ gnc_ui_qif_import_comm_valid (GtkAssistant *assistant, gpointer user_data)
         comm_nb_page->page_complete = FALSE;
         g_free (name_space);
         return FALSE;
+    }
+
+    /* Check whether a commodity with this namespace and mnemonic already exists.
+     * If so, ask the user whether to use the existing one, or go back and
+     * change what they've entered.
+     */
+    if (!gnc_commodity_namespace_is_iso (name_space))
+    {
+        gnc_commodity *existing = gnc_commodity_table_lookup (table, name_space, mnemonic);
+        if (existing && existing != comm_nb_page->commodity)
+        {
+            gboolean already_accepted = comm_nb_page->existing_accepted &&
+                (g_strcmp0 (comm_nb_page->accepted_ns, name_space) == 0) &&
+                (g_strcmp0 (comm_nb_page->accepted_mn, mnemonic) == 0);
+
+            if (!already_accepted)
+            {
+                gchar *msg = g_strdup_printf (_("A commodity with the type \"%s\" and symbol \"%s\" "
+                                                "already exists. Do you want to use the existing commodity?"),
+                                              name_space, mnemonic);
+                gboolean use_existing = gnc_verify_dialog (GTK_WINDOW(assistant), FALSE, "%s", msg);
+                g_free (msg);
+
+                if (use_existing)
+                {
+                    comm_nb_page->existing_accepted = TRUE;
+                    g_free (comm_nb_page->accepted_ns);
+                    g_free (comm_nb_page->accepted_mn);
+                    comm_nb_page->accepted_ns = g_strdup (name_space);
+                    comm_nb_page->accepted_mn = g_strdup (mnemonic);
+
+                    const gchar *existing_fullname = gnc_commodity_get_fullname (existing);
+                    if (existing_fullname && existing_fullname[0])
+                        gtk_entry_set_text (GTK_ENTRY(comm_nb_page->name_entry), existing_fullname);
+                }
+                else
+                {
+                    comm_nb_page->existing_accepted = FALSE;
+                    comm_nb_page->page_complete = FALSE;
+                    g_free (name_space);
+                    return FALSE;
+                }
+            }
+        }
+        else
+        {
+            comm_nb_page->existing_accepted = FALSE;
+        }
     }
 
     /* Is the namespace a new one? */
