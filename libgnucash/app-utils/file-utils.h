@@ -44,6 +44,11 @@
 #define GNC_FILE_UTILS_H
 
 #include <stdio.h>		/* for FILE* */
+#include <glib.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** Reads the contents of a file into a buffer for further processing.
  *
@@ -75,6 +80,10 @@ int gncReadFile (const char * filename, char ** data);
  *  @return The number of bytes read
  */
 gint64 gnc_getline (gchar **line, FILE *file);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* GNC_FILE_UTILS_H */
 /** @} */
