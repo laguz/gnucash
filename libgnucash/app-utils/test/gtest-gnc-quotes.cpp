@@ -317,6 +317,22 @@ TEST_F(GncQuotesTest, bad_date)
     gnc_price_unref(price);
 }
 
+TEST_F(GncQuotesTest, calc_price_time_exception_handling)
+{
+    PriceParams p;
+    p.ns = "NYSE";
+    p.mnemonic = "HPE";
+    p.success = true;
+    p.date = "invalid-date-format";
+
+    g_test_expect_message("gnc.price-quotes", G_LOG_LEVEL_WARNING, "*failed to parse quote date*");
+    auto res_time{calc_price_time(p)};
+    g_test_assert_expected_messages();
+
+    auto now{static_cast<time64>(GncDateTime())};
+    EXPECT_TRUE(abs(now - res_time) <= 1);
+}
+
 TEST_F(GncQuotesTest, fetch_one_currency)
 {
      StrVec quote_vec{
